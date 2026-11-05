@@ -1,0 +1,438 @@
+{
+  "language": "en",
+  "level": "B1",
+  "story": {
+    "id": "en-b1-003",
+    "title": "The Library on Wheels",
+    "title_ar": "المكتبة المتنقلة",
+    "moral_ar": "المعرفة تصبح أقرب للجميع حين نزيل العقبات ونستمع لاحتياجات الناس.",
+    "art_style": "Warm original editorial watercolor, realistic community setting, consistent character design, no text on art.",
+    "cover_image_prompt": "A bright blue converted library van parked beside a small village school, Nadia in yellow cardigan and Felix in blue shirt carrying a wooden crate of books, hills in the distance.",
+    "character_sheet": [
+      {
+        "name": "Nadia",
+        "description": "Eighteen-year-old woman with medium brown skin, long dark ponytail, soft yellow cardigan, olive trousers, round glasses."
+      },
+      {
+        "name": "Felix",
+        "description": "Eighteen-year-old man with light skin, curly sandy hair, sky-blue overshirt, charcoal jeans, canvas trainers."
+      },
+      {
+        "name": "Mrs. Park",
+        "description": "Older librarian with short silver hair, tan skin, purple sweater and neatly clipped name tag."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "The Road Beyond Town",
+        "title_ar": "الطريق خارج البلدة",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "A bright blue converted library van parked beside a small village school, Nadia in yellow cardigan and Felix in blue shirt carrying a wooden crate of books, hills in the distance. Original painterly watercolor editorial illustration, consistent cast Nadia Eighteen-year-old woman with medium brown skin, long dark ponytail, soft yellow cardigan, olive trousers, round glasses.; Felix Eighteen-year-old man with light skin, curly sandy hair, sky-blue overshirt, charcoal jeans, canvas trainers.; Mrs. Park Older librarian with short silver hair, tan skin, purple sweater and neatly clipped name tag.. No typography.",
+            "animation": "fade_in",
+            "image": "assets/stories/en/B1/illustrations/en-b1-003_scene_01.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "When Nadia volunteered at the city library, she discovered that several small villages had no **access** to regular book services. The nearest branch was more than an hour away by bus, making visits difficult for families without cars. Her colleague Felix suggested bringing books directly to readers using an old delivery **vehicle**. At first, the idea sounded expensive, but the local librarian agreed to examine its **potential**."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Books should not depend on your address, Nadia said."
+                  }
+                ],
+                "translation_ar": "حين تطوعت نادية في مكتبة المدينة اكتشفت أن قرى صغيرة لا تستطيع الوصول بسهولة إلى خدمات الكتب. كانت أقرب مكتبة تبعد أكثر من ساعة بالحافلة، مما يصعب الزيارة على الأسر بلا سيارات. اقترح زميلها فيليكس نقل الكتب بعربة توصيل قديمة. بدت الفكرة مكلفة، لكن أمينة المكتبة وافقت على دراسة إمكاناتها. قالت نادية إن الكتب يجب ألا تعتمد على عنوان السكن."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Mrs. Park helped them prepare a detailed **budget** covering fuel, repairs, insurance, and shelves. Felix contacted a workshop that offered to **convert** a small van into a safe travelling library. They also needed to plan a reliable **schedule**, because residents might give up if the van arrived at unpredictable times. The volunteers realized that enthusiasm was only the beginning of a much larger responsibility."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We need a service people can trust, Felix explained."
+                  }
+                ],
+                "translation_ar": "ساعدتهما السيدة بارك في إعداد ميزانية تتضمن الوقود والإصلاح والتأمين والرفوف. تواصل فيليكس مع ورشة وافقت على تحويل شاحنة صغيرة إلى مكتبة متنقلة آمنة. كان عليهما أيضًا وضع جدول ثابت كي لا يتخلى الناس عن الخدمة بسبب تأخرها. أدرك المتطوعون أن الحماس ليس إلا بداية مسؤولية كبيرة. قال فيليكس إنهم يحتاجون إلى خدمة يمكن الوثوق بها."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Inside a modest school classroom, Nadia and Felix listen to residents describing reading needs, older librarian Mrs Park writing ideas in a notebook, afternoon light. Original painterly watercolor editorial illustration, consistent cast Nadia Eighteen-year-old woman with medium brown skin, long dark ponytail, soft yellow cardigan, olive trousers, round glasses.; Felix Eighteen-year-old man with light skin, curly sandy hair, sky-blue overshirt, charcoal jeans, canvas trainers.; Mrs. Park Older librarian with short silver hair, tan skin, purple sweater and neatly clipped name tag.. No typography.",
+            "animation": "pan_left",
+            "image": "assets/stories/en/B1/illustrations/en-b1-003_scene_02.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Before choosing the books, Nadia visited three villages to conduct **interviews** with possible readers. Some children wanted adventure stories, while adults asked for practical guides and local newspapers. One retired teacher requested larger **print** because small letters had become difficult to read. These conversations challenged Nadia's original **assumptions** about what a useful library should contain."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We should let people tell us what they need, she told Felix."
+                  }
+                ],
+                "translation_ar": "قبل اختيار الكتب زارت نادية ثلاث قرى لإجراء مقابلات مع القراء المحتملين. أراد بعض الأطفال قصص مغامرات، وطلب الكبار أدلة عملية وصحفًا محلية. طلب معلم متقاعد كتبًا ذات حروف كبيرة لأن القراءة أصبحت صعبة عليه. دفعت هذه الحوارات نادية إلى مراجعة افتراضاتها عن المكتبة المفيدة. قالت لفيليكس إن عليهم الاستماع إلى الناس لمعرفة احتياجاتهم."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Felix created a simple online **catalogue**, allowing readers to request titles before the van arrived. However, several residents had limited **internet** connections, so the team also printed paper request forms. Mrs. Park insisted that the service must be **inclusive** rather than designed only for people with smartphones. Nadia placed a box for completed forms beside the door of each village school."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Two methods are better than one, Felix admitted."
+                  }
+                ],
+                "translation_ar": "أنشأ فيليكس فهرسًا إلكترونيًا بسيطًا لطلب الكتب قبل وصول العربة. لكن اتصال الإنترنت كان ضعيفًا لدى بعض السكان، فطبع الفريق استمارات طلب ورقية. أصرت السيدة بارك على أن تكون الخدمة شاملة لا مقتصرة على مستخدمي الهواتف الذكية. وضعت نادية صندوقًا للاستمارات قرب باب كل مدرسة قروية. اعترف فيليكس بأن طريقتين أفضل من طريقة واحدة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The first **journey** began on a cloudy Thursday morning. Their van carried stories, dictionaries, history books, and several audio recordings for people who preferred listening. As they reached the first village, Nadia noticed a narrow road that would make turning difficult. Felix followed the approved **route** slowly and parked in a designated **space** outside the community center."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We should remember this problem for next week, Nadia said."
+                  }
+                ],
+                "translation_ar": "بدأت الرحلة الأولى صباح خميس غائم. حملت العربة قصصًا وقواميس وكتب تاريخ وتسجيلات صوتية لمن يفضل الاستماع. وعند دخول القرية الأولى لاحظت نادية طريقًا ضيقًا يصعب الانعطاف فيه. اتبع فيليكس الطريق المعتمد ببطء ووقف في مساحة مخصصة خارج المركز المجتمعي. قالت نادية إن عليهم تذكر المشكلة للأسبوع القادم."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "A Story for Every Reader",
+        "title_ar": "قصة لكل قارئ",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "The blue mobile library parked by a village community hall, accessible ramp lowered safely and books on open display, families and students browsing, warm sunshine. Original painterly watercolor editorial illustration, consistent cast Nadia Eighteen-year-old woman with medium brown skin, long dark ponytail, soft yellow cardigan, olive trousers, round glasses.; Felix Eighteen-year-old man with light skin, curly sandy hair, sky-blue overshirt, charcoal jeans, canvas trainers.; Mrs. Park Older librarian with short silver hair, tan skin, purple sweater and neatly clipped name tag.. No typography.",
+            "animation": "zoom_in_slow",
+            "image": "assets/stories/en/B1/illustrations/en-b1-003_scene_03.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Only four people came during the first half hour, which was rather **discouraging** after months of preparation. Instead of treating the quiet start as a **failure**, Mrs. Park suggested visiting the nearby school to explain the library's purpose. They invited families to a short reading **session** that afternoon, while making sure children came with their teachers or parents."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "People need to know we are here, Felix agreed."
+                  }
+                ],
+                "translation_ar": "حضر أربعة أشخاص فقط خلال النصف ساعة الأولى، وكان ذلك محبطًا بعد شهور التحضير. بدل اعتبار البداية الهادئة فشلًا، اقترحت السيدة بارك زيارة المدرسة وشرح هدف المكتبة. دعوا الأسر إلى جلسة قراءة قصيرة بعد الظهر، مع حضور الأطفال بصحبة المعلمين أو الأهل. وافق فيليكس على أن الناس يحتاجون إلى معرفة وجود الخدمة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "After the reading session, more families gathered around the van and began browsing the **selection**. A girl asked for stories featuring inventors, while an older man chose a large-print **biography**. Nadia was pleased to see that the different formats encouraged **participation** among people of different ages. She carefully noted which subjects were popular so future deliveries would better match local interests."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Every request teaches us something, she said."
+                  }
+                ],
+                "translation_ar": "بعد جلسة القراءة تجمعت أسر أكثر حول العربة وبدأت تتصفح الكتب المتاحة. طلبت فتاة قصصًا عن المخترعين، واختار رجل مسن سيرة ذاتية بحروف كبيرة. سُعدت نادية بأن تنوع الصيغ شجع مشاركة أعمار مختلفة. سجلت الموضوعات المطلوبة كي تلائم الرحلات التالية اهتمامات السكان. قالت إن كل طلب يعلمهم شيئًا جديدًا."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Nadia and Felix with librarian Mrs Park sharing new books with children and older readers beside mobile library, rolling hills and evening sunlight, optimistic documentary watercolor. Original painterly watercolor editorial illustration, consistent cast Nadia Eighteen-year-old woman with medium brown skin, long dark ponytail, soft yellow cardigan, olive trousers, round glasses.; Felix Eighteen-year-old man with light skin, curly sandy hair, sky-blue overshirt, charcoal jeans, canvas trainers.; Mrs. Park Older librarian with short silver hair, tan skin, purple sweater and neatly clipped name tag.. No typography.",
+            "animation": "parallax",
+            "image": "assets/stories/en/B1/illustrations/en-b1-003_scene_04.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "One month later, the volunteers analyzed their borrowing **records** and found that the number of visitors was increasing. They also received useful **feedback** about opening hours and accessibility. Mrs. Park arranged a portable ramp and moved several heavy books to lower shelves, improving the van's **layout** for readers with mobility difficulties. Felix adjusted the route so the vehicle could park closer to each community center."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Small details make a big difference, he said."
+                  }
+                ],
+                "translation_ar": "بعد شهر حلل المتطوعون سجلات الإعارة ووجدوا أن عدد الزوار يتزايد. تلقوا أيضًا ملاحظات عن ساعات العمل وسهولة الوصول. وفرت السيدة بارك منحدرًا محمولًا وأنزلت الكتب الثقيلة إلى رفوف أدنى، لتحسين توزيع العربة لمن يعانون صعوبة الحركة. عدّل فيليكس الطريق لتقف العربة قرب المراكز المجتمعية. قال إن التفاصيل الصغيرة تحدث فرقًا كبيرًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "At the end of the term, the council agreed to support a second weekly **service** if the team could recruit additional trained helpers. Nadia organized an **orientation** meeting about book care, respectful communication, and safe loading. Felix prepared clear instructions so new volunteers could manage returns without confusion. The project had grown beyond two friends, becoming a shared **commitment** that connected several distant villages."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "This library belongs to everyone who uses it, Nadia explained."
+                  }
+                ],
+                "translation_ar": "في نهاية الفصل وافق المجلس على دعم خدمة أسبوعية ثانية إذا نجح الفريق في جذب مساعدين مدربين. نظمت نادية لقاء تعريفيًا عن حفظ الكتب والتواصل المحترم وتحميل العربة بأمان. أعد فيليكس تعليمات واضحة كي يدير المتطوعون الجدد إعادة الكتب دون ارتباك. كبر المشروع وأصبح التزامًا مشتركًا يربط قرى متباعدة. قالت نادية إن المكتبة ملك لجميع مستخدميها."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "On her final visit that year, Nadia met the retired teacher who had requested large-print books. He told her that reading again had restored his **confidence** and helped him feel less **isolated**. Nadia understood that the van's true **impact** could not be measured only by counting borrowed books. She thanked him for sharing his story and promised that the team would continue listening as carefully as they delivered."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Now we know what success really means, Felix said."
+                  }
+                ],
+                "translation_ar": "في زيارتها الأخيرة لذلك العام التقت نادية المعلم المتقاعد الذي طلب كتبًا بحروف كبيرة. أخبرها أن القراءة من جديد أعادت ثقته بنفسه وجعلته أقل عزلة. فهمت نادية أن أثر العربة الحقيقي لا يقاس بعدد الكتب المعارة فقط. شكرته على قصته ووعدت بأن يواصل الفريق الاستماع باهتمام مثلما يقدم الكتب. قال فيليكس إنهم فهموا الآن المعنى الحقيقي للنجاح."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "access",
+        "meaning_ar": "إمكانية الوصول",
+        "example": "When Nadia volunteered at the city library, she discovered that several small villages had no access to regular book services. The nearest branch was more than an hour away by bus, making visits difficult for families without cars. Her colleague Felix suggested bringing books directly to readers using an old delivery vehicle. At first, the idea sounded expensive, but the local librarian agreed to examine its potential."
+      },
+      {
+        "word": "vehicle",
+        "meaning_ar": "مركبة",
+        "example": "When Nadia volunteered at the city library, she discovered that several small villages had no access to regular book services. The nearest branch was more than an hour away by bus, making visits difficult for families without cars. Her colleague Felix suggested bringing books directly to readers using an old delivery vehicle. At first, the idea sounded expensive, but the local librarian agreed to examine its potential."
+      },
+      {
+        "word": "potential",
+        "meaning_ar": "إمكانات",
+        "example": "When Nadia volunteered at the city library, she discovered that several small villages had no access to regular book services. The nearest branch was more than an hour away by bus, making visits difficult for families without cars. Her colleague Felix suggested bringing books directly to readers using an old delivery vehicle. At first, the idea sounded expensive, but the local librarian agreed to examine its potential."
+      },
+      {
+        "word": "budget",
+        "meaning_ar": "ميزانية",
+        "example": "Mrs. Park helped them prepare a detailed budget covering fuel, repairs, insurance, and shelves. Felix contacted a workshop that offered to convert a small van into a safe travelling library. They also needed to plan a reliable schedule, because residents might give up if the van arrived at unpredictable times. The volunteers realized that enthusiasm was only the beginning of a much larger responsibility."
+      },
+      {
+        "word": "convert",
+        "meaning_ar": "يحوّل",
+        "example": "Mrs. Park helped them prepare a detailed budget covering fuel, repairs, insurance, and shelves. Felix contacted a workshop that offered to convert a small van into a safe travelling library. They also needed to plan a reliable schedule, because residents might give up if the van arrived at unpredictable times. The volunteers realized that enthusiasm was only the beginning of a much larger responsibility."
+      },
+      {
+        "word": "schedule",
+        "meaning_ar": "جدول",
+        "example": "Mrs. Park helped them prepare a detailed budget covering fuel, repairs, insurance, and shelves. Felix contacted a workshop that offered to convert a small van into a safe travelling library. They also needed to plan a reliable schedule, because residents might give up if the van arrived at unpredictable times. The volunteers realized that enthusiasm was only the beginning of a much larger responsibility."
+      },
+      {
+        "word": "interviews",
+        "meaning_ar": "مقابلات",
+        "example": "Before choosing the books, Nadia visited three villages to conduct interviews with possible readers. Some children wanted adventure stories, while adults asked for practical guides and local newspapers. One retired teacher requested larger print because small letters had become difficult to read. These conversations challenged Nadia's original assumptions about what a useful library should contain."
+      },
+      {
+        "word": "print",
+        "meaning_ar": "طباعة",
+        "example": "Before choosing the books, Nadia visited three villages to conduct interviews with possible readers. Some children wanted adventure stories, while adults asked for practical guides and local newspapers. One retired teacher requested larger print because small letters had become difficult to read. These conversations challenged Nadia's original assumptions about what a useful library should contain."
+      },
+      {
+        "word": "assumptions",
+        "meaning_ar": "افتراضات",
+        "example": "Before choosing the books, Nadia visited three villages to conduct interviews with possible readers. Some children wanted adventure stories, while adults asked for practical guides and local newspapers. One retired teacher requested larger print because small letters had become difficult to read. These conversations challenged Nadia's original assumptions about what a useful library should contain."
+      },
+      {
+        "word": "catalogue",
+        "meaning_ar": "فهرس",
+        "example": "Felix created a simple online catalogue, allowing readers to request titles before the van arrived. However, several residents had limited internet connections, so the team also printed paper request forms. Mrs. Park insisted that the service must be inclusive rather than designed only for people with smartphones. Nadia placed a box for completed forms beside the door of each village school."
+      },
+      {
+        "word": "internet",
+        "meaning_ar": "الإنترنت",
+        "example": "Felix created a simple online catalogue, allowing readers to request titles before the van arrived. However, several residents had limited internet connections, so the team also printed paper request forms. Mrs. Park insisted that the service must be inclusive rather than designed only for people with smartphones. Nadia placed a box for completed forms beside the door of each village school."
+      },
+      {
+        "word": "inclusive",
+        "meaning_ar": "شامل",
+        "example": "Felix created a simple online catalogue, allowing readers to request titles before the van arrived. However, several residents had limited internet connections, so the team also printed paper request forms. Mrs. Park insisted that the service must be inclusive rather than designed only for people with smartphones. Nadia placed a box for completed forms beside the door of each village school."
+      },
+      {
+        "word": "journey",
+        "meaning_ar": "رحلة",
+        "example": "The first journey began on a cloudy Thursday morning. Their van carried stories, dictionaries, history books, and several audio recordings for people who preferred listening. As they reached the first village, Nadia noticed a narrow road that would make turning difficult. Felix followed the approved route slowly and parked in a designated space outside the community center."
+      },
+      {
+        "word": "route",
+        "meaning_ar": "مسار",
+        "example": "The first journey began on a cloudy Thursday morning. Their van carried stories, dictionaries, history books, and several audio recordings for people who preferred listening. As they reached the first village, Nadia noticed a narrow road that would make turning difficult. Felix followed the approved route slowly and parked in a designated space outside the community center."
+      },
+      {
+        "word": "space",
+        "meaning_ar": "مساحة",
+        "example": "The first journey began on a cloudy Thursday morning. Their van carried stories, dictionaries, history books, and several audio recordings for people who preferred listening. As they reached the first village, Nadia noticed a narrow road that would make turning difficult. Felix followed the approved route slowly and parked in a designated space outside the community center."
+      },
+      {
+        "word": "discouraging",
+        "meaning_ar": "محبط",
+        "example": "Only four people came during the first half hour, which was rather discouraging after months of preparation. Instead of treating the quiet start as a failure, Mrs. Park suggested visiting the nearby school to explain the library's purpose. They invited families to a short reading session that afternoon, while making sure children came with their teachers or parents."
+      },
+      {
+        "word": "failure",
+        "meaning_ar": "فشل",
+        "example": "Only four people came during the first half hour, which was rather discouraging after months of preparation. Instead of treating the quiet start as a failure, Mrs. Park suggested visiting the nearby school to explain the library's purpose. They invited families to a short reading session that afternoon, while making sure children came with their teachers or parents."
+      },
+      {
+        "word": "session",
+        "meaning_ar": "جلسة",
+        "example": "Only four people came during the first half hour, which was rather discouraging after months of preparation. Instead of treating the quiet start as a failure, Mrs. Park suggested visiting the nearby school to explain the library's purpose. They invited families to a short reading session that afternoon, while making sure children came with their teachers or parents."
+      },
+      {
+        "word": "selection",
+        "meaning_ar": "مجموعة مختارة",
+        "example": "After the reading session, more families gathered around the van and began browsing the selection. A girl asked for stories featuring inventors, while an older man chose a large-print biography. Nadia was pleased to see that the different formats encouraged participation among people of different ages. She carefully noted which subjects were popular so future deliveries would better match local interests."
+      },
+      {
+        "word": "biography",
+        "meaning_ar": "سيرة ذاتية",
+        "example": "After the reading session, more families gathered around the van and began browsing the selection. A girl asked for stories featuring inventors, while an older man chose a large-print biography. Nadia was pleased to see that the different formats encouraged participation among people of different ages. She carefully noted which subjects were popular so future deliveries would better match local interests."
+      },
+      {
+        "word": "participation",
+        "meaning_ar": "مشاركة",
+        "example": "After the reading session, more families gathered around the van and began browsing the selection. A girl asked for stories featuring inventors, while an older man chose a large-print biography. Nadia was pleased to see that the different formats encouraged participation among people of different ages. She carefully noted which subjects were popular so future deliveries would better match local interests."
+      },
+      {
+        "word": "records",
+        "meaning_ar": "سجلات",
+        "example": "One month later, the volunteers analyzed their borrowing records and found that the number of visitors was increasing. They also received useful feedback about opening hours and accessibility. Mrs. Park arranged a portable ramp and moved several heavy books to lower shelves, improving the van's layout for readers with mobility difficulties. Felix adjusted the route so the vehicle could park closer to each community center."
+      },
+      {
+        "word": "feedback",
+        "meaning_ar": "ملاحظات",
+        "example": "One month later, the volunteers analyzed their borrowing records and found that the number of visitors was increasing. They also received useful feedback about opening hours and accessibility. Mrs. Park arranged a portable ramp and moved several heavy books to lower shelves, improving the van's layout for readers with mobility difficulties. Felix adjusted the route so the vehicle could park closer to each community center."
+      },
+      {
+        "word": "layout",
+        "meaning_ar": "توزيع",
+        "example": "One month later, the volunteers analyzed their borrowing records and found that the number of visitors was increasing. They also received useful feedback about opening hours and accessibility. Mrs. Park arranged a portable ramp and moved several heavy books to lower shelves, improving the van's layout for readers with mobility difficulties. Felix adjusted the route so the vehicle could park closer to each community center."
+      },
+      {
+        "word": "service",
+        "meaning_ar": "خدمة",
+        "example": "At the end of the term, the council agreed to support a second weekly service if the team could recruit additional trained helpers. Nadia organized an orientation meeting about book care, respectful communication, and safe loading. Felix prepared clear instructions so new volunteers could manage returns without confusion. The project had grown beyond two friends, becoming a shared commitment that connected several distant villages."
+      },
+      {
+        "word": "orientation",
+        "meaning_ar": "لقاء تعريفي",
+        "example": "At the end of the term, the council agreed to support a second weekly service if the team could recruit additional trained helpers. Nadia organized an orientation meeting about book care, respectful communication, and safe loading. Felix prepared clear instructions so new volunteers could manage returns without confusion. The project had grown beyond two friends, becoming a shared commitment that connected several distant villages."
+      },
+      {
+        "word": "commitment",
+        "meaning_ar": "التزام",
+        "example": "At the end of the term, the council agreed to support a second weekly service if the team could recruit additional trained helpers. Nadia organized an orientation meeting about book care, respectful communication, and safe loading. Felix prepared clear instructions so new volunteers could manage returns without confusion. The project had grown beyond two friends, becoming a shared commitment that connected several distant villages."
+      },
+      {
+        "word": "confidence",
+        "meaning_ar": "ثقة",
+        "example": "On her final visit that year, Nadia met the retired teacher who had requested large-print books. He told her that reading again had restored his confidence and helped him feel less isolated. Nadia understood that the van's true impact could not be measured only by counting borrowed books. She thanked him for sharing his story and promised that the team would continue listening as carefully as they delivered."
+      },
+      {
+        "word": "isolated",
+        "meaning_ar": "منعزل",
+        "example": "On her final visit that year, Nadia met the retired teacher who had requested large-print books. He told her that reading again had restored his confidence and helped him feel less isolated. Nadia understood that the van's true impact could not be measured only by counting borrowed books. She thanked him for sharing his story and promised that the team would continue listening as carefully as they delivered."
+      },
+      {
+        "word": "impact",
+        "meaning_ar": "أثر",
+        "example": "On her final visit that year, Nadia met the retired teacher who had requested large-print books. He told her that reading again had restored his confidence and helped him feel less isolated. Nadia understood that the van's true impact could not be measured only by counting borrowed books. She thanked him for sharing his story and promised that the team would continue listening as carefully as they delivered."
+      }
+    ],
+    "questions": [
+      {
+        "q": "Why did Nadia want a mobile library?",
+        "options": [
+          "To sell food",
+          "Villages lacked nearby book services",
+          "To find a new van",
+          "To avoid school"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What helped the team plan expenses?",
+        "options": [
+          "A photograph",
+          "A weather report",
+          "A budget",
+          "A music playlist"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "What did the retired teacher request?",
+        "options": [
+          "Newspapers only",
+          "Comic books",
+          "Travel tickets",
+          "Large-print books"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "Why did the team provide paper forms?",
+        "options": [
+          "Some people had weak internet access",
+          "The van had no shelves",
+          "Books were free",
+          "The printer was broken"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What happened at the first stop?",
+        "options": [
+          "Hundreds arrived immediately",
+          "Very few people came at first",
+          "It started to snow",
+          "The van was stolen"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What increased participation?",
+        "options": [
+          "Closing early",
+          "Selling toys",
+          "Offering different book formats",
+          "Removing the books"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "How did the team improve access?",
+        "options": [
+          "They stopped using schools",
+          "They moved farther away",
+          "They reduced titles",
+          "They added a ramp and changed the layout"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "What did Nadia learn about impact?",
+        "options": [
+          "Success involves readers' lives, not only book counts",
+          "Borrowing should be difficult",
+          "Only children enjoy books",
+          "The van must grow bigger"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+}
