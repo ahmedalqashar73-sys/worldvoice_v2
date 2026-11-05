@@ -658,7 +658,10 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
         _ttsCue.value = lineIndex;
         _activeLine.value = lineIndex;
         _followLine(lineIndex);
-        await _tts.speak(episode.dialogue[lineIndex].text);
+        final spoken = await _tts.speak(episode.dialogue[lineIndex].text);
+        if (spoken == 0) {
+          throw StateError('The device TTS engine did not start speech.');
+        }
       }
       if (mounted && session == _ttsSession) {
         setState(() => _ttsSpeaking = false);
@@ -678,7 +681,7 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
 
   void _stopReadAloud() {
     ++_ttsSession;
-    unawaited(_tts.stop());
+    unawaited(_tts.stop().catchError((_) {}));
     if (mounted) setState(() => _ttsSpeaking = false);
   }
 
@@ -802,7 +805,10 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
     _positionSubscription?.cancel();
     _stateSubscription?.cancel();
     ++_ttsSession;
-    unawaited(_tts.stop());
+    // Text-only reader widget tests never initialize a native TTS engine.
+    if (_ttsSpeaking) {
+      unawaited(_tts.stop().catchError((_) {}));
+    }
     _player.dispose();
     _scroll.dispose();
     _activeLine.dispose();
