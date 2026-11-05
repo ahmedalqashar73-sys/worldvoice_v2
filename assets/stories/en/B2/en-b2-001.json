@@ -1,0 +1,410 @@
+{
+  "language": "en",
+  "level": "B2",
+  "story": {
+    "id": "en-b2-001",
+    "title": "The Museum Without a Map",
+    "title_ar": "المتحف بلا خريطة",
+    "moral_ar": "حفظ التراث يعني أن نجعل قصصه مفهومة ومتاحة لكل الزوار، لا أن نحفظ الأشياء فقط.",
+    "art_style": "Original museum watercolor illustration, warm natural light and consistent faces; no captions.",
+    "cover_image_prompt": "A quiet city history museum with winding corridors, glass cases, Salma and Oliver noticing confused visitors in warm diffused light.",
+    "character_sheet": [
+      {
+        "name": "Salma",
+        "description": "A nineteen-year-old woman with medium olive skin, curly dark hair tied back, indigo blouse and slate trousers."
+      },
+      {
+        "name": "Oliver",
+        "description": "A twenty-year-old man with fair skin, sandy hair, tan jacket, navy trousers."
+      },
+      {
+        "name": "Dr. Chen",
+        "description": "A middle-aged female museum curator with gray-black hair, round glasses, wine-colored jacket."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "The Visitors Who Turned Back",
+        "title_ar": "زوار عادوا أدراجهم",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "A quiet city history museum with winding corridors, glass cases, Salma and Oliver noticing confused visitors in warm diffused light. Rich hand-painted museum watercolor scene, consistent cast Salma A nineteen-year-old woman with medium olive skin, curly dark hair tied back, indigo blouse and slate trousers.; Oliver A twenty-year-old man with fair skin, sandy hair, tan jacket, navy trousers.; Dr. Chen A middle-aged female museum curator with gray-black hair, round glasses, wine-colored jacket.. No text in image.",
+            "animation": "fade_in",
+            "image": "assets/stories/en/B2/illustrations/en-b2-001_scene_01.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "When Salma began her internship at the city museum, she expected to spend most of her time cataloguing objects. Instead, she noticed that visitors often entered with enthusiasm but left after only a few minutes. Some looked **confused** by the winding corridors, while others could not understand why ordinary household tools were displayed behind glass. Oliver, another volunteer, suggested that the museum's **collection** was fascinating but its **presentation** discouraged people from exploring. Salma decided to observe a typical morning before proposing changes, because she did not want to judge the staff unfairly."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Perhaps the problem is not the objects themselves, she said."
+                  }
+                ],
+                "translation_ar": "عندما بدأت سلمى تدريبها في المتحف توقعت قضاء وقتها في فهرسة القطع، لكنها لاحظت أن الزوار يدخلون بحماس ويغادرون سريعًا. حيرتهم الممرات المتشابكة ولم يفهموا سبب عرض أدوات منزلية خلف الزجاج. رأى أوليفر أن المجموعة مدهشة لكن طريقة العرض تربك الزوار. قررت سلمى مراقبة الوضع قبل اقتراح أي تغيير. قالت إن المشكلة ربما ليست في القطع نفسها."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "During her first week, Salma recorded several recurring **obstacles**. The entrance desk provided no simple route, information panels used technical vocabulary, and the audio guide was available in only one language. Yet she also discovered a serious **constraint**: the museum had a small budget and could not renovate its historic building easily. Oliver proposed collecting **feedback** from visitors rather than guessing what improvements would matter most. Together they prepared short, optional questions that respected privacy and took less than two minutes to answer."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We need evidence before we ask for money, he said."
+                  }
+                ],
+                "translation_ar": "في الأسبوع الأول سجلت سلمى عوائق متكررة: لا يوجد مسار بسيط، واللوحات معقدة، والدليل الصوتي بلغة واحدة. وعرفت أن الميزانية محدودة وأن ترميم المبنى التاريخي صعب. اقترح أوليفر جمع آراء الزوار بدل التخمين، فأعدا أسئلة اختيارية قصيرة تحترم الخصوصية. قال إنهما يحتاجان إلى أدلة قبل طلب التمويل."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "A museum office with Dr Chen showing Salma and Oliver a collection inventory, maps and old photographs on a wide table. Rich hand-painted museum watercolor scene, consistent cast Salma A nineteen-year-old woman with medium olive skin, curly dark hair tied back, indigo blouse and slate trousers.; Oliver A twenty-year-old man with fair skin, sandy hair, tan jacket, navy trousers.; Dr. Chen A middle-aged female museum curator with gray-black hair, round glasses, wine-colored jacket.. No text in image.",
+            "animation": "pan_left",
+            "image": "assets/stories/en/B2/illustrations/en-b2-001_scene_02.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "One afternoon, a visitor who used a walking stick explained that she had missed an entire exhibition because the signs were difficult to follow. Another family said their children enjoyed the pictures but found the descriptions **overwhelming**. Salma noticed how different experiences revealed different problems, and she resisted the temptation to choose a single convenient solution. Dr. Chen, the museum **curator**, welcomed their notes but warned that any changes must preserve the original **artifacts**. She challenged the volunteers to suggest improvements that were both practical and respectful."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We should begin with the visitor's journey, Salma replied."
+                  }
+                ],
+                "translation_ar": "أخبرت زائرة تستخدم عصًا سلمى أنها لم تجد قاعة كاملة بسبب الإشارات المربكة، وقالت أسرة إن الأوصاف معقدة للأطفال. أدركت سلمى اختلاف احتياجات الناس. رحبت أمينة المتحف الدكتورة تشن بالملاحظات، لكنها شددت على ضرورة الحفاظ على القطع الأصلية. طلبت حلولًا عملية تحترم تاريخ المكان. قالت سلمى إن البداية يجب أن تكون رحلة الزائر."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Oliver studied the museum floor plan and discovered that the simplest **route** passed through three rooms arranged around a central courtyard. He suggested giving visitors a clear choice between a short introduction and a longer exploration. Salma proposed simple **labels** that explained what objects had meant to the people who used them, rather than listing dates alone. Dr. Chen insisted that every interpretation should be checked against reliable **sources**, since an attractive story could still be historically incorrect. The group agreed to test their ideas on paper first."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Accuracy should be part of the design, Oliver said."
+                  }
+                ],
+                "translation_ar": "درس أوليفر خريطة المتحف ووجد مسارًا بسيطًا عبر ثلاث قاعات. اقترح خيار زيارة قصيرة وآخر مطولًا. أرادت سلمى بطاقات تشرح وظيفة القطع ومعناها لأصحابها بدل الاقتصار على التواريخ. أكدت الدكتورة تشن ضرورة مراجعة كل تفسير في مصادر موثوقة، لأن القصة الجذابة قد تكون خاطئة. اتفقوا على اختبار الأفكار على الورق. قال أوليفر إن الدقة جزء من التصميم."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Before making permanent changes, the team created a temporary **prototype** with removable arrows, large-print explanations, and a small illustrated map. They invited volunteers of different ages to try the route without receiving instructions. The results were unexpectedly mixed: navigation improved, but some signs still blocked important **details** in the exhibition. Salma learned that a successful **experiment** could reveal new problems instead of merely confirming an idea. Dr. Chen praised the team's willingness to revise their work rather than defend every decision."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "It is better to discover mistakes now, Salma admitted."
+                  }
+                ],
+                "translation_ar": "قبل تغيير المتحف نهائيًا صنع الفريق نموذجًا تجريبيًا بإشارات قابلة للإزالة وشروح بحروف كبيرة وخريطة مصورة. جربه متطوعون من أعمار مختلفة دون توجيه. تحسن التنقل، لكن بعض اللوحات حجبت تفاصيل مهمة. فهمت سلمى أن التجربة قد تكشف مشكلات جديدة بدل تأكيد الفكرة. امتدحت الدكتورة تشن استعداد الفريق للمراجعة. قالت سلمى إن اكتشاف الأخطاء الآن أفضل."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "A Museum That Listens",
+        "title_ar": "متحف يصغي",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Salma and Oliver testing a redesigned accessible visitor route with different visitors, clear symbols and tactile diagram in bright exhibition hall. Rich hand-painted museum watercolor scene, consistent cast Salma A nineteen-year-old woman with medium olive skin, curly dark hair tied back, indigo blouse and slate trousers.; Oliver A twenty-year-old man with fair skin, sandy hair, tan jacket, navy trousers.; Dr. Chen A middle-aged female museum curator with gray-black hair, round glasses, wine-colored jacket.. No text in image.",
+            "animation": "parallax",
+            "image": "assets/stories/en/B2/illustrations/en-b2-001_scene_03.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "At the second trial, Oliver rearranged the signs and introduced a **tactile** model for visitors who preferred exploring shapes through touch. The model represented the room's layout rather than any original object, so the **conservation** rules remained intact. Meanwhile, Salma worked with a local translator on concise descriptions in two additional languages. She knew that an inaccurate **translation** could change the meaning of a historical event, so she asked the curator to review each version carefully before it appeared in public. The team carefully recorded what they learned, knowing that successful public spaces depend on shared responsibility."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Being welcoming also requires being precise, Oliver observed."
+                  }
+                ],
+                "translation_ar": "في التجربة الثانية نقل أوليفر اللوحات وأضاف نموذجًا ملموسًا للقاعات لا للقطع الأصلية، فحافظ على قواعد الصيانة. تعاونت سلمى مع مترجم محلي لإعداد أوصاف موجزة بلغتين أخريين. كانت تعرف أن ترجمة غير دقيقة تغير معنى الحدث التاريخي، لذا طلبت مراجعة النسخ قبل النشر. قال أوليفر إن الترحيب بالناس يتطلب الدقة أيضًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "As more visitors tested the redesigned route, the museum collected anonymous **responses** about clarity, comfort, and enjoyment. The shorter trail proved especially popular with school groups, while experienced visitors appreciated being able to explore beyond it. However, a **disagreement** emerged when one trustee argued that simpler language would reduce the museum's academic quality. Dr. Chen invited him to compare the old descriptions with the revised **interpretations** and examine their sources. Afterward, he acknowledged that accessible writing did not have to be inaccurate."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Clear language can explain complex history, Salma said."
+                  }
+                ],
+                "translation_ar": "عندما اختبر مزيد من الزوار المسار جمع المتحف ردودًا مجهولة عن الوضوح والراحة. أحبّت المجموعات المدرسية المسار القصير، وأعجب آخرون بإمكان الاستكشاف المطول. اعترض أحد الأمناء على اللغة المبسطة لأنها قد تضعف القيمة العلمية. دعته الدكتورة تشن إلى مقارنة الأوصاف ومصادرها فاعترف بأن الوضوح لا يناقض الدقة. قالت سلمى إن اللغة المفهومة تشرح التاريخ المعقد."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Open museum courtyard with many families and senior visitors, Salma and Oliver beside curator Dr Chen, inviting and warm morning light. Rich hand-painted museum watercolor scene, consistent cast Salma A nineteen-year-old woman with medium olive skin, curly dark hair tied back, indigo blouse and slate trousers.; Oliver A twenty-year-old man with fair skin, sandy hair, tan jacket, navy trousers.; Dr. Chen A middle-aged female museum curator with gray-black hair, round glasses, wine-colored jacket.. No text in image.",
+            "animation": "zoom_in_slow",
+            "image": "assets/stories/en/B2/illustrations/en-b2-001_scene_04.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "With modest funding from a local charity, the museum installed clearer navigation signs and recorded its revised audio guide. Salma helped ensure the new material was available both digitally and on printed **cards**, so visitors without smartphones were not excluded. Oliver trained volunteers to offer assistance without making **assumptions** about anyone's abilities. The curator established an ongoing **evaluation** process, because she believed the museum should keep responding as its community changed. For the first time, the volunteers felt that their project had become a lasting service rather than a temporary display."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Now the museum can continue learning, Oliver said."
+                  }
+                ],
+                "translation_ar": "بتمويل محدود وضع المتحف إشارات أوضح وسجل دليلًا صوتيًا منقحًا. ضمنت سلمى وجود بطاقات مطبوعة إلى جانب المواد الرقمية كي لا يُستبعد من لا يملك هاتفًا. درب أوليفر المتطوعين على تقديم المساعدة دون افتراضات عن قدرات الآخرين. وضعت أمينة المتحف عملية تقييم دائمة لمواكبة احتياجات المجتمع. شعر المتطوعان بأن عملهما أصبح خدمة طويلة الأمد."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "On opening weekend, Salma watched a grandfather lead his grandchildren through an exhibition about ordinary family life a century earlier. They stopped to discuss a sewing machine, comparing its purpose with objects in their own home. The conversation reminded her that heritage becomes meaningful when people can connect it to personal **experience**. Later, Dr. Chen thanked the students for challenging the museum's **habits** without dismissing its expertise. Salma understood that true **accessibility** was not a final achievement but a commitment to welcoming new questions and unfamiliar perspectives."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Our visitors are part of the story, she said."
+                  }
+                ],
+                "translation_ar": "في عطلة الافتتاح شاهدت سلمى جدًّا يشرح لأحفاده ماكينة خياطة من القرن الماضي ويقارنها بأشياء في منزلهم. ذكّرها ذلك بأن التراث يكتسب معناه عندما يرتبط بتجارب الناس. شكرت الدكتورة تشن الطالبين لأنهما راجعا عادات المتحف دون التقليل من خبرة العاملين. أدركت سلمى أن إتاحة الوصول التزام مستمر وليس إنجازًا ينتهي. قالت إن الزوار جزء من القصة."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "confused",
+        "meaning_ar": "مرتبك",
+        "example": "When Salma began her internship at the city museum, she expected to spend most of her time cataloguing objects. Instead, she noticed that visitors often entered with enthusiasm but left after only a few minutes. Some looked confused by the winding corridors, while others could not understand why ordinary household tools were displayed behind glass. Oliver, another volunteer, suggested that the museum's collection was fascinating but its presentation discouraged people from exploring. Salma decided to observe a typical morning before proposing changes, because she did not want to judge the staff unfairly."
+      },
+      {
+        "word": "collection",
+        "meaning_ar": "مقتنيات",
+        "example": "When Salma began her internship at the city museum, she expected to spend most of her time cataloguing objects. Instead, she noticed that visitors often entered with enthusiasm but left after only a few minutes. Some looked confused by the winding corridors, while others could not understand why ordinary household tools were displayed behind glass. Oliver, another volunteer, suggested that the museum's collection was fascinating but its presentation discouraged people from exploring. Salma decided to observe a typical morning before proposing changes, because she did not want to judge the staff unfairly."
+      },
+      {
+        "word": "presentation",
+        "meaning_ar": "عرض",
+        "example": "When Salma began her internship at the city museum, she expected to spend most of her time cataloguing objects. Instead, she noticed that visitors often entered with enthusiasm but left after only a few minutes. Some looked confused by the winding corridors, while others could not understand why ordinary household tools were displayed behind glass. Oliver, another volunteer, suggested that the museum's collection was fascinating but its presentation discouraged people from exploring. Salma decided to observe a typical morning before proposing changes, because she did not want to judge the staff unfairly."
+      },
+      {
+        "word": "obstacles",
+        "meaning_ar": "عوائق",
+        "example": "During her first week, Salma recorded several recurring obstacles. The entrance desk provided no simple route, information panels used technical vocabulary, and the audio guide was available in only one language. Yet she also discovered a serious constraint: the museum had a small budget and could not renovate its historic building easily. Oliver proposed collecting feedback from visitors rather than guessing what improvements would matter most. Together they prepared short, optional questions that respected privacy and took less than two minutes to answer."
+      },
+      {
+        "word": "constraint",
+        "meaning_ar": "قيد",
+        "example": "During her first week, Salma recorded several recurring obstacles. The entrance desk provided no simple route, information panels used technical vocabulary, and the audio guide was available in only one language. Yet she also discovered a serious constraint: the museum had a small budget and could not renovate its historic building easily. Oliver proposed collecting feedback from visitors rather than guessing what improvements would matter most. Together they prepared short, optional questions that respected privacy and took less than two minutes to answer."
+      },
+      {
+        "word": "feedback",
+        "meaning_ar": "ملاحظات",
+        "example": "During her first week, Salma recorded several recurring obstacles. The entrance desk provided no simple route, information panels used technical vocabulary, and the audio guide was available in only one language. Yet she also discovered a serious constraint: the museum had a small budget and could not renovate its historic building easily. Oliver proposed collecting feedback from visitors rather than guessing what improvements would matter most. Together they prepared short, optional questions that respected privacy and took less than two minutes to answer."
+      },
+      {
+        "word": "overwhelming",
+        "meaning_ar": "مرهق",
+        "example": "One afternoon, a visitor who used a walking stick explained that she had missed an entire exhibition because the signs were difficult to follow. Another family said their children enjoyed the pictures but found the descriptions overwhelming. Salma noticed how different experiences revealed different problems, and she resisted the temptation to choose a single convenient solution. Dr. Chen, the museum curator, welcomed their notes but warned that any changes must preserve the original artifacts. She challenged the volunteers to suggest improvements that were both practical and respectful."
+      },
+      {
+        "word": "curator",
+        "meaning_ar": "أمين متحف",
+        "example": "One afternoon, a visitor who used a walking stick explained that she had missed an entire exhibition because the signs were difficult to follow. Another family said their children enjoyed the pictures but found the descriptions overwhelming. Salma noticed how different experiences revealed different problems, and she resisted the temptation to choose a single convenient solution. Dr. Chen, the museum curator, welcomed their notes but warned that any changes must preserve the original artifacts. She challenged the volunteers to suggest improvements that were both practical and respectful."
+      },
+      {
+        "word": "artifacts",
+        "meaning_ar": "قطع تاريخية",
+        "example": "One afternoon, a visitor who used a walking stick explained that she had missed an entire exhibition because the signs were difficult to follow. Another family said their children enjoyed the pictures but found the descriptions overwhelming. Salma noticed how different experiences revealed different problems, and she resisted the temptation to choose a single convenient solution. Dr. Chen, the museum curator, welcomed their notes but warned that any changes must preserve the original artifacts. She challenged the volunteers to suggest improvements that were both practical and respectful."
+      },
+      {
+        "word": "route",
+        "meaning_ar": "مسار",
+        "example": "Oliver studied the museum floor plan and discovered that the simplest route passed through three rooms arranged around a central courtyard. He suggested giving visitors a clear choice between a short introduction and a longer exploration. Salma proposed simple labels that explained what objects had meant to the people who used them, rather than listing dates alone. Dr. Chen insisted that every interpretation should be checked against reliable sources, since an attractive story could still be historically incorrect. The group agreed to test their ideas on paper first."
+      },
+      {
+        "word": "labels",
+        "meaning_ar": "بطاقات تعريف",
+        "example": "Oliver studied the museum floor plan and discovered that the simplest route passed through three rooms arranged around a central courtyard. He suggested giving visitors a clear choice between a short introduction and a longer exploration. Salma proposed simple labels that explained what objects had meant to the people who used them, rather than listing dates alone. Dr. Chen insisted that every interpretation should be checked against reliable sources, since an attractive story could still be historically incorrect. The group agreed to test their ideas on paper first."
+      },
+      {
+        "word": "sources",
+        "meaning_ar": "مصادر",
+        "example": "Oliver studied the museum floor plan and discovered that the simplest route passed through three rooms arranged around a central courtyard. He suggested giving visitors a clear choice between a short introduction and a longer exploration. Salma proposed simple labels that explained what objects had meant to the people who used them, rather than listing dates alone. Dr. Chen insisted that every interpretation should be checked against reliable sources, since an attractive story could still be historically incorrect. The group agreed to test their ideas on paper first."
+      },
+      {
+        "word": "prototype",
+        "meaning_ar": "نموذج أولي",
+        "example": "Before making permanent changes, the team created a temporary prototype with removable arrows, large-print explanations, and a small illustrated map. They invited volunteers of different ages to try the route without receiving instructions. The results were unexpectedly mixed: navigation improved, but some signs still blocked important details in the exhibition. Salma learned that a successful experiment could reveal new problems instead of merely confirming an idea. Dr. Chen praised the team's willingness to revise their work rather than defend every decision."
+      },
+      {
+        "word": "details",
+        "meaning_ar": "تفاصيل",
+        "example": "Before making permanent changes, the team created a temporary prototype with removable arrows, large-print explanations, and a small illustrated map. They invited volunteers of different ages to try the route without receiving instructions. The results were unexpectedly mixed: navigation improved, but some signs still blocked important details in the exhibition. Salma learned that a successful experiment could reveal new problems instead of merely confirming an idea. Dr. Chen praised the team's willingness to revise their work rather than defend every decision."
+      },
+      {
+        "word": "experiment",
+        "meaning_ar": "تجربة",
+        "example": "Before making permanent changes, the team created a temporary prototype with removable arrows, large-print explanations, and a small illustrated map. They invited volunteers of different ages to try the route without receiving instructions. The results were unexpectedly mixed: navigation improved, but some signs still blocked important details in the exhibition. Salma learned that a successful experiment could reveal new problems instead of merely confirming an idea. Dr. Chen praised the team's willingness to revise their work rather than defend every decision."
+      },
+      {
+        "word": "tactile",
+        "meaning_ar": "ملموس",
+        "example": "At the second trial, Oliver rearranged the signs and introduced a tactile model for visitors who preferred exploring shapes through touch. The model represented the room's layout rather than any original object, so the conservation rules remained intact. Meanwhile, Salma worked with a local translator on concise descriptions in two additional languages. She knew that an inaccurate translation could change the meaning of a historical event, so she asked the curator to review each version carefully before it appeared in public. The team carefully recorded what they learned, knowing that successful public spaces depend on shared responsibility."
+      },
+      {
+        "word": "conservation",
+        "meaning_ar": "حفظ وصيانة",
+        "example": "At the second trial, Oliver rearranged the signs and introduced a tactile model for visitors who preferred exploring shapes through touch. The model represented the room's layout rather than any original object, so the conservation rules remained intact. Meanwhile, Salma worked with a local translator on concise descriptions in two additional languages. She knew that an inaccurate translation could change the meaning of a historical event, so she asked the curator to review each version carefully before it appeared in public. The team carefully recorded what they learned, knowing that successful public spaces depend on shared responsibility."
+      },
+      {
+        "word": "translation",
+        "meaning_ar": "ترجمة",
+        "example": "At the second trial, Oliver rearranged the signs and introduced a tactile model for visitors who preferred exploring shapes through touch. The model represented the room's layout rather than any original object, so the conservation rules remained intact. Meanwhile, Salma worked with a local translator on concise descriptions in two additional languages. She knew that an inaccurate translation could change the meaning of a historical event, so she asked the curator to review each version carefully before it appeared in public. The team carefully recorded what they learned, knowing that successful public spaces depend on shared responsibility."
+      },
+      {
+        "word": "responses",
+        "meaning_ar": "استجابات",
+        "example": "As more visitors tested the redesigned route, the museum collected anonymous responses about clarity, comfort, and enjoyment. The shorter trail proved especially popular with school groups, while experienced visitors appreciated being able to explore beyond it. However, a disagreement emerged when one trustee argued that simpler language would reduce the museum's academic quality. Dr. Chen invited him to compare the old descriptions with the revised interpretations and examine their sources. Afterward, he acknowledged that accessible writing did not have to be inaccurate."
+      },
+      {
+        "word": "disagreement",
+        "meaning_ar": "خلاف",
+        "example": "As more visitors tested the redesigned route, the museum collected anonymous responses about clarity, comfort, and enjoyment. The shorter trail proved especially popular with school groups, while experienced visitors appreciated being able to explore beyond it. However, a disagreement emerged when one trustee argued that simpler language would reduce the museum's academic quality. Dr. Chen invited him to compare the old descriptions with the revised interpretations and examine their sources. Afterward, he acknowledged that accessible writing did not have to be inaccurate."
+      },
+      {
+        "word": "interpretations",
+        "meaning_ar": "تفسيرات",
+        "example": "As more visitors tested the redesigned route, the museum collected anonymous responses about clarity, comfort, and enjoyment. The shorter trail proved especially popular with school groups, while experienced visitors appreciated being able to explore beyond it. However, a disagreement emerged when one trustee argued that simpler language would reduce the museum's academic quality. Dr. Chen invited him to compare the old descriptions with the revised interpretations and examine their sources. Afterward, he acknowledged that accessible writing did not have to be inaccurate."
+      },
+      {
+        "word": "cards",
+        "meaning_ar": "بطاقات",
+        "example": "With modest funding from a local charity, the museum installed clearer navigation signs and recorded its revised audio guide. Salma helped ensure the new material was available both digitally and on printed cards, so visitors without smartphones were not excluded. Oliver trained volunteers to offer assistance without making assumptions about anyone's abilities. The curator established an ongoing evaluation process, because she believed the museum should keep responding as its community changed. For the first time, the volunteers felt that their project had become a lasting service rather than a temporary display."
+      },
+      {
+        "word": "assumptions",
+        "meaning_ar": "افتراضات",
+        "example": "With modest funding from a local charity, the museum installed clearer navigation signs and recorded its revised audio guide. Salma helped ensure the new material was available both digitally and on printed cards, so visitors without smartphones were not excluded. Oliver trained volunteers to offer assistance without making assumptions about anyone's abilities. The curator established an ongoing evaluation process, because she believed the museum should keep responding as its community changed. For the first time, the volunteers felt that their project had become a lasting service rather than a temporary display."
+      },
+      {
+        "word": "evaluation",
+        "meaning_ar": "تقييم",
+        "example": "With modest funding from a local charity, the museum installed clearer navigation signs and recorded its revised audio guide. Salma helped ensure the new material was available both digitally and on printed cards, so visitors without smartphones were not excluded. Oliver trained volunteers to offer assistance without making assumptions about anyone's abilities. The curator established an ongoing evaluation process, because she believed the museum should keep responding as its community changed. For the first time, the volunteers felt that their project had become a lasting service rather than a temporary display."
+      },
+      {
+        "word": "experience",
+        "meaning_ar": "تجربة شخصية",
+        "example": "On opening weekend, Salma watched a grandfather lead his grandchildren through an exhibition about ordinary family life a century earlier. They stopped to discuss a sewing machine, comparing its purpose with objects in their own home. The conversation reminded her that heritage becomes meaningful when people can connect it to personal experience. Later, Dr. Chen thanked the students for challenging the museum's habits without dismissing its expertise. Salma understood that true accessibility was not a final achievement but a commitment to welcoming new questions and unfamiliar perspectives."
+      },
+      {
+        "word": "habits",
+        "meaning_ar": "عادات",
+        "example": "On opening weekend, Salma watched a grandfather lead his grandchildren through an exhibition about ordinary family life a century earlier. They stopped to discuss a sewing machine, comparing its purpose with objects in their own home. The conversation reminded her that heritage becomes meaningful when people can connect it to personal experience. Later, Dr. Chen thanked the students for challenging the museum's habits without dismissing its expertise. Salma understood that true accessibility was not a final achievement but a commitment to welcoming new questions and unfamiliar perspectives."
+      },
+      {
+        "word": "accessibility",
+        "meaning_ar": "إمكانية الوصول",
+        "example": "On opening weekend, Salma watched a grandfather lead his grandchildren through an exhibition about ordinary family life a century earlier. They stopped to discuss a sewing machine, comparing its purpose with objects in their own home. The conversation reminded her that heritage becomes meaningful when people can connect it to personal experience. Later, Dr. Chen thanked the students for challenging the museum's habits without dismissing its expertise. Salma understood that true accessibility was not a final achievement but a commitment to welcoming new questions and unfamiliar perspectives."
+      }
+    ],
+    "questions": [
+      {
+        "q": "Why did some visitors leave early?",
+        "options": [
+          "The museum was closed",
+          "The exhibits and layout were confusing",
+          "The tickets were expensive",
+          "There were no objects"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What prevented major renovations?",
+        "options": [
+          "A broken lift",
+          "Rain",
+          "Historic building restrictions and low budget",
+          "Few paintings"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "What did Dr. Chen insist on?",
+        "options": [
+          "Removing artifacts",
+          "Changing every date",
+          "Replacing glass cases",
+          "Protecting original objects"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "How were design ideas tested?",
+        "options": [
+          "A temporary prototype",
+          "A radio advertisement",
+          "A new shopping center",
+          "A full renovation"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Why was the tactile model appropriate?",
+        "options": [
+          "It showed the original artifacts",
+          "It represented the room layout",
+          "It was locked away",
+          "It was expensive"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What worried one trustee?",
+        "options": [
+          "Not enough paintings",
+          "Long opening hours",
+          "Simpler language could reduce academic quality",
+          "Too much space"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "How did Salma help visitors without smartphones?",
+        "options": [
+          "By closing the app",
+          "By lending phones only",
+          "By offering paid tours",
+          "By providing printed cards"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "What did Salma understand at the end?",
+        "options": [
+          "Accessibility requires continued listening",
+          "Old museums never change",
+          "Every visitor is identical",
+          "Historical stories have no meaning"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+}
