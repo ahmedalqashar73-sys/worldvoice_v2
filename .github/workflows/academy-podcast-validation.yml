@@ -25,6 +25,6 @@ jobs:
           cache: true
       - run: flutter pub get
       - name: Analyze podcast modules
-        run: dart analyze lib/features/learn/data/academy_podcast_repository.dart lib/features/learn/presentation/podcast_library_section.dart test/academy_podcast_repository_test.dart test/academy_podcast_reader_test.dart
+        run: flutter analyze
       - name: Verify eight languages, dialogue transcript, reader and controls
         run: flutter test test/academy_podcast_repository_test.dart test/academy_podcast_reader_test.dart
