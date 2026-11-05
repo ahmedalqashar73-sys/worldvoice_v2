@@ -1,0 +1,230 @@
+{
+  "schema": 1,
+  "id": "en-a1-pod-013",
+  "language": "en",
+  "level": "A1",
+  "title": "Favorite Sports",
+  "title_ar": "رياضاتنا المفضلة",
+  "hosts": [
+    "Lina",
+    "Adam"
+  ],
+  "status": "script_ready",
+  "recording_kind": "none",
+  "voice_rights_verified": false,
+  "sync_status": "not_recorded",
+  "source_credit": "Original WorldVoice A1 learning dialogue · text-only; no voice recording has been published.",
+  "dialogue": [
+    {
+      "speaker": "Lina",
+      "text": "Hi, Adam. Do you like sports?",
+      "translation_ar": "مرحبًا يا آدم. هل تحب الرياضة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes, Lina. I play football every week.",
+      "translation_ar": "نعم يا لينا. ألعب كرة القدم كل أسبوع.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Do you play with your friends?",
+      "translation_ar": "هل تلعب مع أصدقائك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes, we play on Friday evenings.",
+      "translation_ar": "نعم، نلعب مساء كل جمعة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Is football your favorite sport?",
+      "translation_ar": "هل كرة القدم رياضتك المفضلة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes, but I also like swimming.",
+      "translation_ar": "نعم، لكنني أحب السباحة أيضًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "I like swimming too.",
+      "translation_ar": "أنا أيضًا أحب السباحة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Can you swim very well?",
+      "translation_ar": "هل تستطيع السباحة جيدًا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Not very well. I am still learning.",
+      "translation_ar": "ليس جيدًا جدًا. ما زلت أتعلم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Where do you take swimming lessons?",
+      "translation_ar": "أين تأخذ دروس السباحة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "At the sports center near my house.",
+      "translation_ar": "في المركز الرياضي القريب من منزلي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "How often do you go there?",
+      "translation_ar": "كم مرة تذهب إلى هناك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "I go there two times a week.",
+      "translation_ar": "أذهب إلى هناك مرتين أسبوعيًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "I prefer walking and riding my bike.",
+      "translation_ar": "أفضل المشي وركوب دراجتي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Do you ride your bike every day?",
+      "translation_ar": "هل تركبين دراجتك كل يوم؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "No, only when the weather is nice.",
+      "translation_ar": "لا، فقط عندما يكون الجو جميلًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Would you like to play basketball?",
+      "translation_ar": "هل تودين لعب كرة السلة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes! I want to learn that too.",
+      "translation_ar": "نعم! أريد أن أتعلمها أيضًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Let's play in the park tomorrow.",
+      "translation_ar": "لنلعب في الحديقة غدًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Great. I will bring a ball.",
+      "translation_ar": "رائع. سأحضر كرة.",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "sport",
+      "meaning_ar": "رياضة"
+    },
+    {
+      "word": "football",
+      "meaning_ar": "كرة القدم"
+    },
+    {
+      "word": "swimming",
+      "meaning_ar": "سباحة"
+    },
+    {
+      "word": "lesson",
+      "meaning_ar": "درس"
+    },
+    {
+      "word": "sports center",
+      "meaning_ar": "مركز رياضي"
+    },
+    {
+      "word": "bike",
+      "meaning_ar": "دراجة"
+    },
+    {
+      "word": "basketball",
+      "meaning_ar": "كرة سلة"
+    },
+    {
+      "word": "ball",
+      "meaning_ar": "كرة"
+    },
+    {
+      "word": "prefer",
+      "meaning_ar": "يفضل"
+    },
+    {
+      "word": "every week",
+      "meaning_ar": "كل أسبوع"
+    }
+  ],
+  "questions": [
+    {
+      "question": "When does Adam play football?",
+      "options": [
+        "Friday evenings",
+        "Monday mornings",
+        "Every day"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "Where are his swimming lessons?",
+      "options": [
+        "At school",
+        "At a sports center",
+        "At the beach"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "What will Adam bring tomorrow?",
+      "options": [
+        "A bicycle",
+        "A ball",
+        "A book"
+      ],
+      "answer": 1
+    }
+  ]
+}

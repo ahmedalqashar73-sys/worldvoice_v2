@@ -1,0 +1,230 @@
+{
+  "schema": 1,
+  "id": "en-a1-pod-006",
+  "language": "en",
+  "level": "A1",
+  "title": "What's the Weather Like?",
+  "title_ar": "كيف حال الطقس؟",
+  "hosts": [
+    "Lina",
+    "Adam"
+  ],
+  "status": "script_ready",
+  "recording_kind": "none",
+  "voice_rights_verified": false,
+  "sync_status": "not_recorded",
+  "source_credit": "Original WorldVoice A1 learning dialogue · text-only; no voice recording has been published.",
+  "dialogue": [
+    {
+      "speaker": "Lina",
+      "text": "Good morning, Adam. Is it sunny today?",
+      "translation_ar": "صباح الخير يا آدم. هل الجو مشمس اليوم؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Good morning, Lina. Yes, the sun is bright.",
+      "translation_ar": "صباح الخير يا لينا. نعم، الشمس ساطعة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "What is the temperature?",
+      "translation_ar": "كم درجة الحرارة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "It is twenty-five degrees.",
+      "translation_ar": "درجة الحرارة خمس وعشرون درجة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "That is warm, but not too hot.",
+      "translation_ar": "هذا دافئ لكنه ليس حارًا جدًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Do you want to walk outside?",
+      "translation_ar": "هل تريد أن تتمشى في الخارج؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Yes, but I need my sunglasses.",
+      "translation_ar": "نعم، لكنني أحتاج إلى نظارتي الشمسية.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Do you like summer?",
+      "translation_ar": "هل تحب الصيف؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "I like summer, but I love spring more.",
+      "translation_ar": "أحب الصيف، لكنني أحب الربيع أكثر.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Why do you love spring?",
+      "translation_ar": "لماذا تحب الربيع؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "The flowers are beautiful, and the air is cool.",
+      "translation_ar": "الزهور جميلة والهواء لطيف.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "I like autumn. The leaves change color.",
+      "translation_ar": "أحب الخريف. تتغير ألوان الأوراق.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "What about winter?",
+      "translation_ar": "وماذا عن الشتاء؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Winter is cold here, and sometimes it rains.",
+      "translation_ar": "الشتاء بارد هنا، وأحيانًا تمطر.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Do you have an umbrella?",
+      "translation_ar": "هل لديك مظلة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes, I keep a small one in my bag.",
+      "translation_ar": "نعم، أحتفظ بمظلة صغيرة في حقيبتي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Look! There are clouds in the sky.",
+      "translation_ar": "انظر! توجد غيوم في السماء.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Maybe it will rain this afternoon.",
+      "translation_ar": "ربما تمطر بعد الظهر.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Let's check the weather before we go.",
+      "translation_ar": "لنتحقق من حالة الطقس قبل أن نذهب.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Good idea. We can walk after lunch.",
+      "translation_ar": "فكرة جيدة. يمكننا المشي بعد الغداء.",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "sunny",
+      "meaning_ar": "مشمس"
+    },
+    {
+      "word": "temperature",
+      "meaning_ar": "درجة الحرارة"
+    },
+    {
+      "word": "warm",
+      "meaning_ar": "دافئ"
+    },
+    {
+      "word": "spring",
+      "meaning_ar": "الربيع"
+    },
+    {
+      "word": "autumn",
+      "meaning_ar": "الخريف"
+    },
+    {
+      "word": "winter",
+      "meaning_ar": "الشتاء"
+    },
+    {
+      "word": "rain",
+      "meaning_ar": "مطر"
+    },
+    {
+      "word": "umbrella",
+      "meaning_ar": "مظلة"
+    },
+    {
+      "word": "cloud",
+      "meaning_ar": "غيمة"
+    },
+    {
+      "word": "weather",
+      "meaning_ar": "الطقس"
+    }
+  ],
+  "questions": [
+    {
+      "question": "What is the temperature today?",
+      "options": [
+        "15 degrees",
+        "25 degrees",
+        "35 degrees"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "Which season does Adam love most?",
+      "options": [
+        "Spring",
+        "Winter",
+        "Autumn"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "What is in Adam's bag?",
+      "options": [
+        "A book",
+        "An umbrella",
+        "A hat"
+      ],
+      "answer": 1
+    }
+  ]
+}

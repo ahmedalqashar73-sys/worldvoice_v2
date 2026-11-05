@@ -26,8 +26,8 @@ void main() {
             e.language == language.code && e.level == level), hasLength(15));
       }
     }
-    expect(list.where((e) => e.hasTranscript), hasLength(5));
-    expect(list.where((e) => e.status == 'planned'), hasLength(715));
+    expect(list.where((e) => e.hasTranscript), hasLength(16));
+    expect(list.where((e) => e.status == 'planned'), hasLength(704));
   });
 
   test('the Anna and Daniel draft stays unchanged and without recording', () async {
@@ -59,6 +59,27 @@ void main() {
     expect(book.questions, hasLength(5));
     expect(book.isPlayable, isFalse);
     expect(book.audioUrl, isNull);
+  });
+
+  test('all 15 English A1 episodes have readable transcripts without fake audio',
+      () async {
+    final entries = await repo.allEpisodes();
+    final a1 = entries.where((e) => e.language == 'en' && e.level == 'A1')
+        .toList(growable: false);
+    expect(a1, hasLength(15));
+    expect(a1.every((e) => e.hasTranscript), isTrue);
+    expect(a1.where((e) => e.status == 'published_audio'), hasLength(3));
+    expect(a1.where((e) => e.status == 'script_ready'), hasLength(12));
+    for (final entry in a1) {
+      final episode = await repo.load(entry);
+      expect(episode.dialogue, isNotEmpty, reason: entry.id);
+      expect(episode.dialogue.every((line) => line.text.isNotEmpty &&
+          line.translationAr.isNotEmpty), isTrue, reason: entry.id);
+      if (entry.status == 'script_ready') {
+        expect(episode.canStream, isFalse, reason: entry.id);
+        expect(episode.isPlayable, isFalse, reason: entry.id);
+      }
+    }
   });
 
   test('VOA Lesson 20 has real source audio and exact credited speakers',

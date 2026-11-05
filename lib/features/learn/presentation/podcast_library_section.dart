@@ -316,14 +316,9 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
           final current = snapshot.data!.where((entry) =>
               entry.language == _selectedLanguage &&
               entry.level == _selectedLevel).toList(growable: false);
-          final available = current.where((e) => e.hasTranscript).toList()
-            ..sort((a, b) {
-              final first = a.status == 'published_audio' ||
-                  a.status == 'published' ? 0 : 1;
-              final second = b.status == 'published_audio' ||
-                  b.status == 'published' ? 0 : 1;
-              return first.compareTo(second);
-            });
+          // Preserve the curriculum order (01–15) rather than moving all
+          // audio recordings ahead of their text-only neighbors.
+          final available = current.where((e) => e.hasTranscript).toList();
           final planned = current.where((e) => !e.hasTranscript).toList();
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -333,7 +328,9 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
                   ar ? 'حلقات $_selectedLevel' : 'Level $_selectedLevel',
                   style: const TextStyle(fontSize: 17,
                       fontWeight: FontWeight.w900))),
-                Text(ar ? '15 حلقة لكل مستوى' : '15 per level',
+                Text(ar
+                    ? '${available.length}/15 نصًا جاهزًا'
+                    : '${available.length}/15 transcripts',
                     style: TextStyle(color: scheme.onSurfaceVariant,
                         fontSize: 11)),
               ]),

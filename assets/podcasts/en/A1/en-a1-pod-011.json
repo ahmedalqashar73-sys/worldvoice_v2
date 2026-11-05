@@ -1,0 +1,230 @@
+{
+  "schema": 1,
+  "id": "en-a1-pod-011",
+  "language": "en",
+  "level": "A1",
+  "title": "Finding a Classroom",
+  "title_ar": "البحث عن قاعة الدرس",
+  "hosts": [
+    "Lina",
+    "Adam"
+  ],
+  "status": "script_ready",
+  "recording_kind": "none",
+  "voice_rights_verified": false,
+  "sync_status": "not_recorded",
+  "source_credit": "Original WorldVoice A1 learning dialogue · text-only; no voice recording has been published.",
+  "dialogue": [
+    {
+      "speaker": "Lina",
+      "text": "Excuse me. Is this the English school?",
+      "translation_ar": "عذرًا. هل هذه مدرسة اللغة الإنجليزية؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes, it is. Are you a new student?",
+      "translation_ar": "نعم، هي كذلك. هل أنت طالب جديد؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Yes. My name is Lina.",
+      "translation_ar": "نعم. اسمي لينا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Welcome, Lina. I'm Adam.",
+      "translation_ar": "أهلًا يا لينا. أنا آدم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Nice to meet you, Adam.",
+      "translation_ar": "تشرفت بمعرفتك يا آدم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Nice to meet you too.",
+      "translation_ar": "وأنا كذلك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "I am looking for classroom twelve.",
+      "translation_ar": "أبحث عن قاعة الدرس رقم اثني عشر.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Classroom twelve is on the second floor.",
+      "translation_ar": "قاعة الدرس رقم اثني عشر في الطابق الثاني.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Where are the stairs?",
+      "translation_ar": "أين السلالم؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Go straight and turn left.",
+      "translation_ar": "اذهبي إلى الأمام ثم انعطفي يسارًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Is there an elevator?",
+      "translation_ar": "هل يوجد مصعد؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes, the elevator is next to the office.",
+      "translation_ar": "نعم، المصعد بجوار المكتب.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "What time does the English lesson start?",
+      "translation_ar": "متى يبدأ درس الإنجليزية؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "It starts at nine thirty.",
+      "translation_ar": "يبدأ الساعة التاسعة والنصف.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Oh, it is already nine twenty.",
+      "translation_ar": "أوه، الساعة الآن التاسعة وعشرون دقيقة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Don't worry. You have ten minutes.",
+      "translation_ar": "لا تقلقي. لديك عشر دقائق.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Thank you for your help.",
+      "translation_ar": "شكرًا لمساعدتك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "You're welcome. Do you have a notebook?",
+      "translation_ar": "على الرحب والسعة. هل لديك دفتر؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Yes, I have a notebook and a pen.",
+      "translation_ar": "نعم، لدي دفتر وقلم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Great. Have a good lesson, Lina!",
+      "translation_ar": "رائع. أتمنى لك درسًا جيدًا يا لينا!",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "school",
+      "meaning_ar": "مدرسة"
+    },
+    {
+      "word": "student",
+      "meaning_ar": "طالب"
+    },
+    {
+      "word": "classroom",
+      "meaning_ar": "قاعة درس"
+    },
+    {
+      "word": "floor",
+      "meaning_ar": "طابق"
+    },
+    {
+      "word": "stairs",
+      "meaning_ar": "سلالم"
+    },
+    {
+      "word": "elevator",
+      "meaning_ar": "مصعد"
+    },
+    {
+      "word": "office",
+      "meaning_ar": "مكتب"
+    },
+    {
+      "word": "lesson",
+      "meaning_ar": "درس"
+    },
+    {
+      "word": "notebook",
+      "meaning_ar": "دفتر"
+    },
+    {
+      "word": "pen",
+      "meaning_ar": "قلم"
+    }
+  ],
+  "questions": [
+    {
+      "question": "Which classroom does Lina need?",
+      "options": [
+        "Classroom ten",
+        "Classroom twelve",
+        "Classroom twenty"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "Which floor is it on?",
+      "options": [
+        "First",
+        "Second",
+        "Third"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "When does the lesson start?",
+      "options": [
+        "Nine thirty",
+        "Eight thirty",
+        "Ten"
+      ],
+      "answer": 0
+    }
+  ]
+}

@@ -1,0 +1,230 @@
+{
+  "schema": 1,
+  "id": "en-a1-pod-008",
+  "language": "en",
+  "level": "A1",
+  "title": "Food We Love",
+  "title_ar": "أطعمة نحبها",
+  "hosts": [
+    "Lina",
+    "Adam"
+  ],
+  "status": "script_ready",
+  "recording_kind": "none",
+  "voice_rights_verified": false,
+  "sync_status": "not_recorded",
+  "source_credit": "Original WorldVoice A1 learning dialogue · text-only; no voice recording has been published.",
+  "dialogue": [
+    {
+      "speaker": "Lina",
+      "text": "I'm hungry, Adam. Are you hungry too?",
+      "translation_ar": "أنا جائعة يا آدم. هل أنت جائع أيضًا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes, Lina. It's time for lunch.",
+      "translation_ar": "نعم يا لينا. حان وقت الغداء.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "What do you want to eat?",
+      "translation_ar": "ماذا تريد أن تأكل؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "I want rice and chicken.",
+      "translation_ar": "أريد أرزًا ودجاجًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "That sounds good. I like fish.",
+      "translation_ar": "يبدو ذلك جيدًا. أنا أحب السمك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Do you eat fish every week?",
+      "translation_ar": "هل تأكلين السمك كل أسبوع؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "No, I eat fish once or twice a month.",
+      "translation_ar": "لا، أتناول السمك مرة أو مرتين في الشهر.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "What do you have for breakfast?",
+      "translation_ar": "ماذا تتناولين على الإفطار؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "I usually eat eggs, bread, and fruit.",
+      "translation_ar": "عادةً أتناول البيض والخبز والفاكهة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "What fruit do you like?",
+      "translation_ar": "ما الفاكهة التي تحبينها؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "I like apples and bananas.",
+      "translation_ar": "أحب التفاح والموز.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "I love oranges. They are sweet.",
+      "translation_ar": "أعشق البرتقال. إنه حلو.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Do you cook at home?",
+      "translation_ar": "هل تطبخ في المنزل؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Sometimes. I make simple vegetable soup.",
+      "translation_ar": "أحيانًا. أعد حساء خضراوات بسيطًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Is the soup difficult to make?",
+      "translation_ar": "هل إعداد الحساء صعب؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "No. I cut vegetables and add water.",
+      "translation_ar": "لا. أقطع الخضراوات وأضيف الماء.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "I want to learn to cook too.",
+      "translation_ar": "أريد أن أتعلم الطبخ أيضًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "We can make dinner together tomorrow.",
+      "translation_ar": "يمكننا إعداد العشاء معًا غدًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Great! I can bring some fresh vegetables.",
+      "translation_ar": "رائع! يمكنني إحضار بعض الخضراوات الطازجة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "And I will bring the bread.",
+      "translation_ar": "وأنا سأحضر الخبز.",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "hungry",
+      "meaning_ar": "جائع"
+    },
+    {
+      "word": "breakfast",
+      "meaning_ar": "إفطار"
+    },
+    {
+      "word": "lunch",
+      "meaning_ar": "غداء"
+    },
+    {
+      "word": "dinner",
+      "meaning_ar": "عشاء"
+    },
+    {
+      "word": "vegetable",
+      "meaning_ar": "خضار"
+    },
+    {
+      "word": "fruit",
+      "meaning_ar": "فاكهة"
+    },
+    {
+      "word": "chicken",
+      "meaning_ar": "دجاج"
+    },
+    {
+      "word": "fish",
+      "meaning_ar": "سمك"
+    },
+    {
+      "word": "soup",
+      "meaning_ar": "حساء"
+    },
+    {
+      "word": "fresh",
+      "meaning_ar": "طازج"
+    }
+  ],
+  "questions": [
+    {
+      "question": "What does Adam want for lunch?",
+      "options": [
+        "Rice and chicken",
+        "Pizza",
+        "Only fruit"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "What does Lina usually eat for breakfast?",
+      "options": [
+        "Fish and soup",
+        "Eggs, bread, and fruit",
+        "Rice"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "What will Lina bring tomorrow?",
+      "options": [
+        "Vegetables",
+        "Milk",
+        "Ice cream"
+      ],
+      "answer": 0
+    }
+  ]
+}

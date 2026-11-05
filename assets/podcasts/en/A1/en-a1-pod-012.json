@@ -1,0 +1,230 @@
+{
+  "schema": 1,
+  "id": "en-a1-pod-012",
+  "language": "en",
+  "level": "A1",
+  "title": "A New Neighbor",
+  "title_ar": "جار جديد",
+  "hosts": [
+    "Lina",
+    "Adam"
+  ],
+  "status": "script_ready",
+  "recording_kind": "none",
+  "voice_rights_verified": false,
+  "sync_status": "not_recorded",
+  "source_credit": "Original WorldVoice A1 learning dialogue · text-only; no voice recording has been published.",
+  "dialogue": [
+    {
+      "speaker": "Lina",
+      "text": "Hello! Are you moving into this building?",
+      "translation_ar": "مرحبًا! هل تنتقل إلى هذا المبنى؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes. I moved here yesterday.",
+      "translation_ar": "نعم. انتقلت إلى هنا أمس.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Welcome! My name is Lina.",
+      "translation_ar": "أهلًا بك! اسمي لينا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Thank you. I'm Adam.",
+      "translation_ar": "شكرًا لك. أنا آدم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Which apartment is yours?",
+      "translation_ar": "أي شقة هي شقتك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Apartment seven, on the third floor.",
+      "translation_ar": "الشقة السابعة، في الطابق الثالث.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "I live in apartment five.",
+      "translation_ar": "أنا أسكن في الشقة الخامسة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "It's nice to meet a new neighbor.",
+      "translation_ar": "من الجميل التعرف إلى جار جديد.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Are you from this city?",
+      "translation_ar": "هل أنت من هذه المدينة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "No, I'm from a small town.",
+      "translation_ar": "لا، أنا من بلدة صغيرة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Do you like the city so far?",
+      "translation_ar": "هل تعجبك المدينة حتى الآن؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes, but everything is new to me.",
+      "translation_ar": "نعم، لكن كل شيء جديد بالنسبة لي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Is there a grocery store nearby?",
+      "translation_ar": "هل يوجد متجر بقالة قريب؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes, there is one across the street.",
+      "translation_ar": "نعم، يوجد متجر في الجهة المقابلة من الشارع.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "What about a bus stop?",
+      "translation_ar": "وماذا عن موقف الحافلات؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "The bus stop is next to the library.",
+      "translation_ar": "موقف الحافلات بجوار المكتبة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "That's helpful. Thank you, Lina.",
+      "translation_ar": "هذه معلومات مفيدة. شكرًا يا لينا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Would you like some tea this evening?",
+      "translation_ar": "هل تود شرب بعض الشاي هذا المساء؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "That is very kind. Yes, thank you.",
+      "translation_ar": "هذا لطف منك. نعم، شكرًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "See you at six, neighbor!",
+      "translation_ar": "أراك الساعة السادسة يا جاري!",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "neighbor",
+      "meaning_ar": "جار"
+    },
+    {
+      "word": "building",
+      "meaning_ar": "مبنى"
+    },
+    {
+      "word": "apartment",
+      "meaning_ar": "شقة"
+    },
+    {
+      "word": "town",
+      "meaning_ar": "بلدة"
+    },
+    {
+      "word": "city",
+      "meaning_ar": "مدينة"
+    },
+    {
+      "word": "nearby",
+      "meaning_ar": "قريب"
+    },
+    {
+      "word": "grocery store",
+      "meaning_ar": "متجر بقالة"
+    },
+    {
+      "word": "street",
+      "meaning_ar": "شارع"
+    },
+    {
+      "word": "bus stop",
+      "meaning_ar": "موقف حافلات"
+    },
+    {
+      "word": "library",
+      "meaning_ar": "مكتبة"
+    }
+  ],
+  "questions": [
+    {
+      "question": "Which apartment is Adam's?",
+      "options": [
+        "Five",
+        "Seven",
+        "Nine"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "Where is the grocery store?",
+      "options": [
+        "Across the street",
+        "Inside the library",
+        "At school"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "When will they have tea?",
+      "options": [
+        "At four",
+        "At five",
+        "At six"
+      ],
+      "answer": 2
+    }
+  ]
+}

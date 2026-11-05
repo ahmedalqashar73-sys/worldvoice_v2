@@ -1,0 +1,230 @@
+{
+  "schema": 1,
+  "id": "en-a1-pod-005",
+  "language": "en",
+  "level": "A1",
+  "title": "My Family and Yours",
+  "title_ar": "عائلتي وعائلتك",
+  "hosts": [
+    "Lina",
+    "Adam"
+  ],
+  "status": "script_ready",
+  "recording_kind": "none",
+  "voice_rights_verified": false,
+  "sync_status": "not_recorded",
+  "source_credit": "Original WorldVoice A1 learning dialogue · text-only; no voice recording has been published.",
+  "dialogue": [
+    {
+      "speaker": "Lina",
+      "text": "Hello, Adam. Do you have a big family?",
+      "translation_ar": "مرحبًا يا آدم. هل لديك عائلة كبيرة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Hello, Lina. Yes, my family is quite big.",
+      "translation_ar": "مرحبًا يا لينا. نعم، عائلتي كبيرة نوعًا ما.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "How many people are in your family?",
+      "translation_ar": "كم شخصًا في عائلتك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "There are six people in my family.",
+      "translation_ar": "يوجد ستة أشخاص في عائلتي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Who are they?",
+      "translation_ar": "من هم؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "My mother, my father, two sisters, my brother, and me.",
+      "translation_ar": "أمي وأبي وأختاي وأخي وأنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Are your sisters older than you?",
+      "translation_ar": "هل أختاك أكبر منك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "One sister is older, and one is younger.",
+      "translation_ar": "إحدى أختَيّ أكبر مني والأخرى أصغر.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "What does your mother do?",
+      "translation_ar": "ماذا تعمل أمك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "She is a teacher. She works at a school.",
+      "translation_ar": "هي معلمة. تعمل في مدرسة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "And what about your father?",
+      "translation_ar": "وماذا عن والدك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "He is a bus driver. He likes his job.",
+      "translation_ar": "هو سائق حافلة. يحب عمله.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Do you live with your family?",
+      "translation_ar": "هل تعيش مع عائلتك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes, we live in a small house near the park.",
+      "translation_ar": "نعم، نعيش في منزل صغير قرب الحديقة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "That sounds nice. I have one brother.",
+      "translation_ar": "هذا جميل. لدي أخ واحد.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Is your brother older or younger?",
+      "translation_ar": "هل أخوك أكبر أم أصغر منك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "He is younger. He is only ten years old.",
+      "translation_ar": "هو أصغر مني. عمره عشر سنوات فقط.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Do you spend time together?",
+      "translation_ar": "هل تقضيان وقتًا معًا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Yes. We play games every Friday.",
+      "translation_ar": "نعم. نلعب الألعاب كل يوم جمعة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Family time is important.",
+      "translation_ar": "الوقت مع العائلة مهم.",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "family",
+      "meaning_ar": "عائلة"
+    },
+    {
+      "word": "older",
+      "meaning_ar": "أكبر سنًا"
+    },
+    {
+      "word": "younger",
+      "meaning_ar": "أصغر سنًا"
+    },
+    {
+      "word": "mother",
+      "meaning_ar": "أم"
+    },
+    {
+      "word": "father",
+      "meaning_ar": "أب"
+    },
+    {
+      "word": "sister",
+      "meaning_ar": "أخت"
+    },
+    {
+      "word": "brother",
+      "meaning_ar": "أخ"
+    },
+    {
+      "word": "teacher",
+      "meaning_ar": "معلم"
+    },
+    {
+      "word": "driver",
+      "meaning_ar": "سائق"
+    },
+    {
+      "word": "together",
+      "meaning_ar": "معًا"
+    }
+  ],
+  "questions": [
+    {
+      "question": "How many people are in Adam's family?",
+      "options": [
+        "Four",
+        "Six",
+        "Eight"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "What is Adam's mother's job?",
+      "options": [
+        "Teacher",
+        "Doctor",
+        "Pilot"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "How old is Lina's brother?",
+      "options": [
+        "Eight",
+        "Ten",
+        "Twelve"
+      ],
+      "answer": 1
+    }
+  ]
+}

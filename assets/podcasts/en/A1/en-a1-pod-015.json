@@ -1,0 +1,230 @@
+{
+  "schema": 1,
+  "id": "en-a1-pod-015",
+  "language": "en",
+  "level": "A1",
+  "title": "A Nice Day at the Park",
+  "title_ar": "يوم جميل في الحديقة",
+  "hosts": [
+    "Lina",
+    "Adam"
+  ],
+  "status": "script_ready",
+  "recording_kind": "none",
+  "voice_rights_verified": false,
+  "sync_status": "not_recorded",
+  "source_credit": "Original WorldVoice A1 learning dialogue · text-only; no voice recording has been published.",
+  "dialogue": [
+    {
+      "speaker": "Lina",
+      "text": "What a lovely day, Adam!",
+      "translation_ar": "يا له من يوم جميل يا آدم!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes, Lina. The sky is blue.",
+      "translation_ar": "نعم يا لينا. السماء زرقاء.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Let's spend the afternoon in the park.",
+      "translation_ar": "لنقضِ فترة بعد الظهر في الحديقة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Good idea. I want some fresh air.",
+      "translation_ar": "فكرة جيدة. أريد بعض الهواء النقي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Look at the trees and flowers!",
+      "translation_ar": "انظر إلى الأشجار والزهور!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "The red flowers are beautiful.",
+      "translation_ar": "الزهور الحمراء جميلة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Do you want to sit on this bench?",
+      "translation_ar": "هل تريد الجلوس على هذا المقعد؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes, let's sit in the shade.",
+      "translation_ar": "نعم، لنجلس في الظل.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "I brought two bottles of water.",
+      "translation_ar": "أحضرت زجاجتي ماء.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Thank you. Walking makes me thirsty.",
+      "translation_ar": "شكرًا لك. المشي يجعلني عطشانًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Can you hear the birds?",
+      "translation_ar": "هل تستطيع سماع الطيور؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes, they are singing in the trees.",
+      "translation_ar": "نعم، إنها تغرد في الأشجار.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "That little dog is very happy.",
+      "translation_ar": "ذلك الكلب الصغير سعيد جدًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "He is playing with a yellow ball.",
+      "translation_ar": "إنه يلعب بكرة صفراء.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Would you like to take a picture?",
+      "translation_ar": "هل تود التقاط صورة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes, I want a picture of the lake.",
+      "translation_ar": "نعم، أريد صورة للبحيرة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "The water looks very clean today.",
+      "translation_ar": "يبدو الماء نظيفًا جدًا اليوم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "We can walk around the lake now.",
+      "translation_ar": "يمكننا المشي حول البحيرة الآن.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Okay, but let's finish our water first.",
+      "translation_ar": "حسنًا، لكن لننهِ ماءنا أولًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "I hope we come back next weekend.",
+      "translation_ar": "آمل أن نعود في عطلة الأسبوع القادمة.",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "park",
+      "meaning_ar": "حديقة"
+    },
+    {
+      "word": "sky",
+      "meaning_ar": "سماء"
+    },
+    {
+      "word": "tree",
+      "meaning_ar": "شجرة"
+    },
+    {
+      "word": "flower",
+      "meaning_ar": "زهرة"
+    },
+    {
+      "word": "bench",
+      "meaning_ar": "مقعد"
+    },
+    {
+      "word": "shade",
+      "meaning_ar": "ظل"
+    },
+    {
+      "word": "thirsty",
+      "meaning_ar": "عطشان"
+    },
+    {
+      "word": "bird",
+      "meaning_ar": "طائر"
+    },
+    {
+      "word": "lake",
+      "meaning_ar": "بحيرة"
+    },
+    {
+      "word": "picture",
+      "meaning_ar": "صورة"
+    }
+  ],
+  "questions": [
+    {
+      "question": "Where do they sit?",
+      "options": [
+        "On a bench",
+        "In a car",
+        "In a classroom"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "What color is the dog's ball?",
+      "options": [
+        "Red",
+        "Yellow",
+        "Blue"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "What does Lina want a picture of?",
+      "options": [
+        "A house",
+        "A lake",
+        "A bus"
+      ],
+      "answer": 1
+    }
+  ]
+}

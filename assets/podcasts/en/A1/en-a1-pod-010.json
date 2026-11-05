@@ -1,0 +1,230 @@
+{
+  "schema": 1,
+  "id": "en-a1-pod-010",
+  "language": "en",
+  "level": "A1",
+  "title": "A Visit to the Market",
+  "title_ar": "زيارة إلى السوق",
+  "hosts": [
+    "Lina",
+    "Adam"
+  ],
+  "status": "script_ready",
+  "recording_kind": "none",
+  "voice_rights_verified": false,
+  "sync_status": "not_recorded",
+  "source_credit": "Original WorldVoice A1 learning dialogue · text-only; no voice recording has been published.",
+  "dialogue": [
+    {
+      "speaker": "Lina",
+      "text": "Hello, Adam. Are you going to the market?",
+      "translation_ar": "مرحبًا يا آدم. هل أنت ذاهب إلى السوق؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes, Lina. I need some vegetables.",
+      "translation_ar": "نعم يا لينا. أحتاج إلى بعض الخضراوات.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Can I come with you?",
+      "translation_ar": "هل يمكنني الذهاب معك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Of course. Let's make a shopping list.",
+      "translation_ar": "بالطبع. لنعد قائمة تسوق.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "We need tomatoes, potatoes, and onions.",
+      "translation_ar": "نحتاج إلى طماطم وبطاطس وبصل.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "How many tomatoes do we need?",
+      "translation_ar": "كم حبة طماطم نحتاج؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "We need five tomatoes, please.",
+      "translation_ar": "نحتاج إلى خمس حبات طماطم، من فضلك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "And how many potatoes?",
+      "translation_ar": "وكم حبة بطاطس؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Four potatoes are enough.",
+      "translation_ar": "أربع حبات بطاطس تكفي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Look at these fresh apples.",
+      "translation_ar": "انظري إلى هذا التفاح الطازج.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "They look delicious. Let's buy three.",
+      "translation_ar": "يبدو لذيذًا. لنشترِ ثلاث حبات.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "How much are the apples?",
+      "translation_ar": "كم سعر التفاح؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "They are two dollars each.",
+      "translation_ar": "سعر الحبة دولاران.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "That is six dollars for three apples.",
+      "translation_ar": "أي ستة دولارات لثلاث حبات تفاح.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Do we need anything else?",
+      "translation_ar": "هل نحتاج إلى أي شيء آخر؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes, we need a bottle of water.",
+      "translation_ar": "نعم، نحتاج إلى زجاجة ماء.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "I have a shopping bag in my hand.",
+      "translation_ar": "لدي حقيبة تسوق في يدي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Good. We don't need a new bag.",
+      "translation_ar": "جيد. لا نحتاج إلى حقيبة جديدة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Let's pay at the counter now.",
+      "translation_ar": "لندفع عند صندوق المحاسبة الآن.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Okay. Then we can go home.",
+      "translation_ar": "حسنًا. ثم يمكننا العودة إلى المنزل.",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "market",
+      "meaning_ar": "سوق"
+    },
+    {
+      "word": "tomato",
+      "meaning_ar": "طماطم"
+    },
+    {
+      "word": "potato",
+      "meaning_ar": "بطاطس"
+    },
+    {
+      "word": "onion",
+      "meaning_ar": "بصل"
+    },
+    {
+      "word": "apple",
+      "meaning_ar": "تفاح"
+    },
+    {
+      "word": "each",
+      "meaning_ar": "لكل واحد"
+    },
+    {
+      "word": "price",
+      "meaning_ar": "سعر"
+    },
+    {
+      "word": "bottle",
+      "meaning_ar": "زجاجة"
+    },
+    {
+      "word": "bag",
+      "meaning_ar": "حقيبة"
+    },
+    {
+      "word": "counter",
+      "meaning_ar": "صندوق المحاسبة"
+    }
+  ],
+  "questions": [
+    {
+      "question": "How many tomatoes do they need?",
+      "options": [
+        "Three",
+        "Four",
+        "Five"
+      ],
+      "answer": 2
+    },
+    {
+      "question": "How much do three apples cost?",
+      "options": [
+        "Six dollars",
+        "Two dollars",
+        "Ten dollars"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "What else do they need?",
+      "options": [
+        "A bottle of water",
+        "A newspaper",
+        "A hat"
+      ],
+      "answer": 0
+    }
+  ]
+}

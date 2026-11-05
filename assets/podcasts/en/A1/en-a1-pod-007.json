@@ -1,0 +1,230 @@
+{
+  "schema": 1,
+  "id": "en-a1-pod-007",
+  "language": "en",
+  "level": "A1",
+  "title": "Choosing a Birthday Gift",
+  "title_ar": "اختيار هدية عيد ميلاد",
+  "hosts": [
+    "Lina",
+    "Adam"
+  ],
+  "status": "script_ready",
+  "recording_kind": "none",
+  "voice_rights_verified": false,
+  "sync_status": "not_recorded",
+  "source_credit": "Original WorldVoice A1 learning dialogue · text-only; no voice recording has been published.",
+  "dialogue": [
+    {
+      "speaker": "Lina",
+      "text": "Hi, Adam. I need to buy a birthday gift.",
+      "translation_ar": "مرحبًا يا آدم. أحتاج إلى شراء هدية عيد ميلاد.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Who is the gift for, Lina?",
+      "translation_ar": "لمن الهدية يا لينا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "It is for my friend Sara.",
+      "translation_ar": "إنها لصديقتي سارة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "When is her birthday?",
+      "translation_ar": "متى عيد ميلادها؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Her birthday is on Saturday.",
+      "translation_ar": "عيد ميلادها يوم السبت.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "What does Sara like?",
+      "translation_ar": "ماذا تحب سارة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "She likes books, music, and flowers.",
+      "translation_ar": "تحب الكتب والموسيقى والزهور.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "We can buy her a nice book.",
+      "translation_ar": "يمكننا شراء كتاب جميل لها.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Yes, but she has many books already.",
+      "translation_ar": "نعم، لكن لديها كتب كثيرة بالفعل.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Does she like green plants?",
+      "translation_ar": "هل تحب النباتات الخضراء؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Yes, she has plants in her room.",
+      "translation_ar": "نعم، لديها نباتات في غرفتها.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Let's choose a small plant for her desk.",
+      "translation_ar": "لنختر نبتة صغيرة لمكتبها.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "How much does this plant cost?",
+      "translation_ar": "كم سعر هذه النبتة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "It costs fifteen dollars.",
+      "translation_ar": "سعرها خمسة عشر دولارًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "That is a good price.",
+      "translation_ar": "هذا سعر جيد.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Should we buy a birthday card too?",
+      "translation_ar": "هل ينبغي أن نشتري بطاقة عيد ميلاد أيضًا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Of course. We can write a kind message.",
+      "translation_ar": "بالطبع. يمكننا كتابة رسالة لطيفة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "What can we write on the card?",
+      "translation_ar": "ماذا يمكننا أن نكتب على البطاقة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "We can write, Happy birthday, Sara!",
+      "translation_ar": "يمكننا أن نكتب: عيد ميلاد سعيد يا سارة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Perfect. She will like our gift.",
+      "translation_ar": "ممتاز. ستعجبها هديتنا.",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "birthday",
+      "meaning_ar": "عيد ميلاد"
+    },
+    {
+      "word": "gift",
+      "meaning_ar": "هدية"
+    },
+    {
+      "word": "friend",
+      "meaning_ar": "صديق"
+    },
+    {
+      "word": "flower",
+      "meaning_ar": "زهرة"
+    },
+    {
+      "word": "plant",
+      "meaning_ar": "نبتة"
+    },
+    {
+      "word": "desk",
+      "meaning_ar": "مكتب"
+    },
+    {
+      "word": "cost",
+      "meaning_ar": "يكلف"
+    },
+    {
+      "word": "price",
+      "meaning_ar": "سعر"
+    },
+    {
+      "word": "card",
+      "meaning_ar": "بطاقة"
+    },
+    {
+      "word": "message",
+      "meaning_ar": "رسالة"
+    }
+  ],
+  "questions": [
+    {
+      "question": "When is Sara's birthday?",
+      "options": [
+        "Monday",
+        "Saturday",
+        "Sunday"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "What do they choose?",
+      "options": [
+        "A small plant",
+        "A red bag",
+        "A toy car"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "How much does the plant cost?",
+      "options": [
+        "Five dollars",
+        "Fifteen dollars",
+        "Fifty dollars"
+      ],
+      "answer": 1
+    }
+  ]
+}

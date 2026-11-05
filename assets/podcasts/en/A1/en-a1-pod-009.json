@@ -1,0 +1,230 @@
+{
+  "schema": 1,
+  "id": "en-a1-pod-009",
+  "language": "en",
+  "level": "A1",
+  "title": "My Weekend Plans",
+  "title_ar": "خططي لعطلة نهاية الأسبوع",
+  "hosts": [
+    "Lina",
+    "Adam"
+  ],
+  "status": "script_ready",
+  "recording_kind": "none",
+  "voice_rights_verified": false,
+  "sync_status": "not_recorded",
+  "source_credit": "Original WorldVoice A1 learning dialogue · text-only; no voice recording has been published.",
+  "dialogue": [
+    {
+      "speaker": "Lina",
+      "text": "Hi, Adam. What are you doing this weekend?",
+      "translation_ar": "مرحبًا يا آدم. ماذا ستفعل في عطلة نهاية الأسبوع؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Hi, Lina. On Friday, I will visit my grandparents.",
+      "translation_ar": "مرحبًا يا لينا. يوم الجمعة سأزور جدي وجدتي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Do they live near you?",
+      "translation_ar": "هل يعيشان بالقرب منك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "No, they live in another part of the city.",
+      "translation_ar": "لا، يعيشان في جزء آخر من المدينة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "How will you get there?",
+      "translation_ar": "كيف ستذهب إلى هناك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "I will take the train in the morning.",
+      "translation_ar": "سأستقل القطار صباحًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "That sounds fun. What about Saturday?",
+      "translation_ar": "هذا يبدو ممتعًا. وماذا عن السبت؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "On Saturday, I want to relax at home.",
+      "translation_ar": "يوم السبت أريد الاسترخاء في المنزل.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Will you watch a movie?",
+      "translation_ar": "هل ستشاهد فيلمًا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes, and I will read my new book.",
+      "translation_ar": "نعم، وسأقرأ كتابي الجديد.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "What are your weekend plans?",
+      "translation_ar": "ما خططك لعطلة نهاية الأسبوع؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "I will go shopping with my sister.",
+      "translation_ar": "سأذهب للتسوق مع أختي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "What do you need to buy?",
+      "translation_ar": "ماذا تحتاجين إلى شراء؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "I need new shoes for school.",
+      "translation_ar": "أحتاج إلى حذاء جديد للمدرسة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Are you free on Saturday afternoon?",
+      "translation_ar": "هل أنت متفرغ بعد ظهر السبت؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes, I have no plans then.",
+      "translation_ar": "نعم، ليس لدي خطط في ذلك الوقت.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Let's meet at the café at four.",
+      "translation_ar": "لنتقابل في المقهى الساعة الرابعة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Okay. I can be there at four.",
+      "translation_ar": "حسنًا. أستطيع الحضور عند الرابعة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "We can have tea and talk.",
+      "translation_ar": "يمكننا شرب الشاي والتحدث.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "See you on Saturday, Lina.",
+      "translation_ar": "أراك يوم السبت يا لينا.",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "weekend",
+      "meaning_ar": "عطلة نهاية الأسبوع"
+    },
+    {
+      "word": "visit",
+      "meaning_ar": "يزور"
+    },
+    {
+      "word": "grandparents",
+      "meaning_ar": "الجد والجدة"
+    },
+    {
+      "word": "train",
+      "meaning_ar": "قطار"
+    },
+    {
+      "word": "relax",
+      "meaning_ar": "يسترخي"
+    },
+    {
+      "word": "movie",
+      "meaning_ar": "فيلم"
+    },
+    {
+      "word": "shopping",
+      "meaning_ar": "تسوق"
+    },
+    {
+      "word": "shoes",
+      "meaning_ar": "حذاء"
+    },
+    {
+      "word": "afternoon",
+      "meaning_ar": "بعد الظهر"
+    },
+    {
+      "word": "meet",
+      "meaning_ar": "يقابل"
+    }
+  ],
+  "questions": [
+    {
+      "question": "Who will Adam visit on Friday?",
+      "options": [
+        "His teacher",
+        "His grandparents",
+        "His cousin"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "What does Lina need to buy?",
+      "options": [
+        "New shoes",
+        "A phone",
+        "A bicycle"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "When will they meet?",
+      "options": [
+        "At two",
+        "At four",
+        "At six"
+      ],
+      "answer": 1
+    }
+  ]
+}

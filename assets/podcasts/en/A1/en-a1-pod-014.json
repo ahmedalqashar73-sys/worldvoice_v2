@@ -1,0 +1,230 @@
+{
+  "schema": 1,
+  "id": "en-a1-pod-014",
+  "language": "en",
+  "level": "A1",
+  "title": "Talking About Our Jobs",
+  "title_ar": "نتحدث عن وظائفنا",
+  "hosts": [
+    "Lina",
+    "Adam"
+  ],
+  "status": "script_ready",
+  "recording_kind": "none",
+  "voice_rights_verified": false,
+  "sync_status": "not_recorded",
+  "source_credit": "Original WorldVoice A1 learning dialogue · text-only; no voice recording has been published.",
+  "dialogue": [
+    {
+      "speaker": "Lina",
+      "text": "Hello, Lina. What do you do?",
+      "translation_ar": "مرحبًا يا لينا. ما عملك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "I am a nurse in a small hospital.",
+      "translation_ar": "أنا ممرضة في مستشفى صغير.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Do you like your job?",
+      "translation_ar": "هل تحبين عملك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes, I like helping people.",
+      "translation_ar": "نعم، أحب مساعدة الناس.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "What time do you start work?",
+      "translation_ar": "متى تبدئين العمل؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "I start at eight in the morning.",
+      "translation_ar": "أبدأ الساعة الثامنة صباحًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "And when do you finish?",
+      "translation_ar": "ومتى تنتهين؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "I finish at four in the afternoon.",
+      "translation_ar": "أنتهي الساعة الرابعة بعد الظهر.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Do you work on weekends?",
+      "translation_ar": "هل تعملين في عطلة نهاية الأسبوع؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Sometimes. Hospitals are always busy.",
+      "translation_ar": "أحيانًا. المستشفيات مشغولة دائمًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "What is your job, Adam?",
+      "translation_ar": "ما عملك يا آدم؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "I work in a bookstore.",
+      "translation_ar": "أعمل في مكتبة لبيع الكتب.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "That sounds interesting.",
+      "translation_ar": "هذا يبدو ممتعًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes, I love books and talking to customers.",
+      "translation_ar": "نعم، أحب الكتب والتحدث مع الزبائن.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "Do you sell books for children?",
+      "translation_ar": "هل تبيعون كتبًا للأطفال؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Yes, and we sell books for adults too.",
+      "translation_ar": "نعم، ونبيع كتبًا للكبار أيضًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "What time does the bookstore open?",
+      "translation_ar": "متى تفتح المكتبة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "It opens at ten in the morning.",
+      "translation_ar": "تفتح الساعة العاشرة صباحًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lina",
+      "text": "I want to buy a book next week.",
+      "translation_ar": "أريد شراء كتاب الأسبوع القادم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Adam",
+      "text": "Come and visit me at the store!",
+      "translation_ar": "تعالي لزيارتي في المتجر!",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "job",
+      "meaning_ar": "وظيفة"
+    },
+    {
+      "word": "nurse",
+      "meaning_ar": "ممرضة"
+    },
+    {
+      "word": "hospital",
+      "meaning_ar": "مستشفى"
+    },
+    {
+      "word": "work",
+      "meaning_ar": "عمل"
+    },
+    {
+      "word": "finish",
+      "meaning_ar": "ينهي"
+    },
+    {
+      "word": "bookstore",
+      "meaning_ar": "مكتبة لبيع الكتب"
+    },
+    {
+      "word": "customer",
+      "meaning_ar": "زبون"
+    },
+    {
+      "word": "children",
+      "meaning_ar": "أطفال"
+    },
+    {
+      "word": "adult",
+      "meaning_ar": "بالغ"
+    },
+    {
+      "word": "open",
+      "meaning_ar": "يفتح"
+    }
+  ],
+  "questions": [
+    {
+      "question": "What is Lina's job?",
+      "options": [
+        "Nurse",
+        "Teacher",
+        "Driver"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "Where does Adam work?",
+      "options": [
+        "At a bank",
+        "At a bookstore",
+        "At a school"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "When does the bookstore open?",
+      "options": [
+        "Eight",
+        "Nine",
+        "Ten"
+      ],
+      "answer": 2
+    }
+  ]
+}
