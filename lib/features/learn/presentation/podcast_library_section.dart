@@ -45,7 +45,7 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
           children: [
             for (final level in AcademyPodcastRepository.levels)
               ChoiceChip(
-                key: ValueKey('podcast-level-' + level),
+                key: ValueKey('podcast-level-$level'),
                 label: Text(level),
                 selected: _selectedLevel == level,
                 onSelected: (_) => setState(() => _selectedLevel = level),
@@ -81,8 +81,8 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 9),
                   child: Text(
-                    ar ? '15 حلقة مخططة للمستوى ' + _selectedLevel
-                        : '15 planned episodes in ' + _selectedLevel,
+                    ar ? '15 حلقة مخططة للمستوى $_selectedLevel'
+                        : '15 planned episodes in $_selectedLevel',
                     style: TextStyle(
                       color: scheme.onSurfaceVariant, fontSize: 12),
                   ),
@@ -94,7 +94,7 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
                       margin: EdgeInsets.zero,
                       clipBehavior: Clip.antiAlias,
                       child: ListTile(
-                        key: ValueKey('podcast-episode-' + episodes[i].id),
+                        key: ValueKey('podcast-episode-${episodes[i].id}'),
                         onTap: episodes[i].hasTranscript
                             ? () => Navigator.of(context).push<void>(
                                 MaterialPageRoute(builder: (_) =>
@@ -193,10 +193,14 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
       if (!loaded.isPlayable) return;
       _positionSubscription = _player.positionStream.listen(_onPosition);
       _stateSubscription = _player.playerStateStream.listen((state) {
-        if (mounted) setState(() {});
+        if (mounted) {
+        setState(() {});
+      }
       });
       await _player.setUrl(loaded.audioUrl!);
-      if (mounted) setState(() => _audioLoaded = true);
+      if (mounted) {
+        setState(() => _audioLoaded = true);
+      }
     } catch (_) {
       if (mounted) setState(() {
         _error = 'تعذر تحميل الحلقة أو ملف الصوت.';
@@ -236,13 +240,16 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
   Future<void> _seekLine(PodcastDialogueLine line) async {
     if (!_audioLoaded || line.startMs == null) return;
     await _player.seek(Duration(milliseconds: line.startMs!));
-    if (!_player.playing) unawaited(_player.play());
+    if (!_player.playing) {
+      unawaited(_player.play());
+    }
   }
 
   String _clock(Duration time) {
     final sec = time.inSeconds;
-    return (sec ~/ 60).toString() + ':' +
-        (sec % 60).toString().padLeft(2, '0');
+    final minutes = sec ~/ 60;
+    final seconds = (sec % 60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
   }
 
   @override
@@ -256,7 +263,6 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
 
   Widget _audioPanel(AcademyPodcastEpisode episode) {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
-    final scheme = Theme.of(context).colorScheme;
     const gold = Color(0xFFF2D68A);
     return Container(
       padding: const EdgeInsets.all(16),
@@ -339,7 +345,7 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
               underline: const SizedBox.shrink(),
               items: const [0.75, 1.0, 1.25].map((value) =>
                 DropdownMenuItem<double>(
-                  value: value, child: Text('' + value.toString() + '×'),
+                  value: value, child: Text('$value×'),
                 )).toList(),
               onChanged: (value) {
                 if (value == null) return;
@@ -535,7 +541,7 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                 const SizedBox(height: 9),
                 Wrap(spacing: 7, runSpacing: 5, children: [
                   for (final word in episode.vocabulary)
-                    Chip(label: Text(word.word + ' · ' + word.meaningAr)),
+                    Chip(label: Text('${word.word} · ${word.meaningAr}')),
                 ]),
                 _quiz(episode),
                 ],
