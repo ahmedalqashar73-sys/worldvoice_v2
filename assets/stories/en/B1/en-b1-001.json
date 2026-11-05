@@ -1,0 +1,438 @@
+{
+  "language": "en",
+  "level": "B1",
+  "story": {
+    "id": "en-b1-001",
+    "title": "The Clockmaker's Notebook",
+    "title_ar": "دفتر صانع الساعات",
+    "moral_ar": "التاريخ المحلي يبقى حيًا عندما يتعاون الناس لحفظه بدل تركه للنسيان.",
+    "art_style": "Hand-painted historical fiction schoolbook watercolor with consistent characters and natural light; no typography in illustrations.",
+    "cover_image_prompt": "A riverside town square with an old clock tower showing stopped hands, Leila in burgundy jacket and Daniel in forest green standing near a weathered wooden notice board, early autumn light.",
+    "character_sheet": [
+      {
+        "name": "Leila",
+        "description": "A seventeen-year-old girl with warm brown skin, dark braided hair, burgundy jacket, cream trousers, practical boots, and curious expression."
+      },
+      {
+        "name": "Daniel",
+        "description": "A seventeen-year-old boy with fair freckled skin, short auburn hair, forest-green sweater, navy trousers and sneakers."
+      },
+      {
+        "name": "Mr. Farid",
+        "description": "An elderly clockmaker in his sixties with silver hair, thin spectacles, navy apron, pale blue shirt, kind but careful eyes."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "The Silent Tower",
+        "title_ar": "البرج الصامت",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "A riverside town square with an old clock tower showing stopped hands, Leila in burgundy jacket and Daniel in forest green standing near a weathered wooden notice board, early autumn light. Hand-painted editorial watercolor, consistent characters: Leila A seventeen-year-old girl with warm brown skin, dark braided hair, burgundy jacket, cream trousers, practical boots, and curious expression.; Daniel A seventeen-year-old boy with fair freckled skin, short auburn hair, forest-green sweater, navy trousers and sneakers.; Mr. Farid An elderly clockmaker in his sixties with silver hair, thin spectacles, navy apron, pale blue shirt, kind but careful eyes.. Original, no lettering, no watermark.",
+            "animation": "fade_in",
+            "image": "assets/stories/en/B1/illustrations/en-b1-001_scene_01.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Every morning, the old tower clock showed the wrong time, but most people in Bellford had stopped noticing. Leila, who was preparing a school project about local **heritage**, thought the silent bell was worth investigating. She invited Daniel to meet her in the square, where a rusty **notice** explained that the tower had once marked every important **occasion** in town."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Perhaps there is a story nobody remembers, she suggested."
+                  }
+                ],
+                "translation_ar": "في كل صباح كانت ساعة البرج القديمة تعرض وقتًا خاطئًا، لكن معظم سكان بيلفورد لم يعودوا يلاحظون ذلك. كانت ليلى تعد مشروعًا مدرسيًا عن التراث المحلي، ورأت أن الجرس الصامت يستحق البحث. دعت دانيال إلى الساحة حيث توضح لافتة صدئة أن البرج كان يحدد مناسبات البلدة المهمة. قالت إن هناك ربما قصة نسيها الجميع."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Daniel searched the town website and discovered a short article about a retired **clockmaker** named Mr. Farid. According to the article, he had repaired the tower for almost forty years before it closed. They followed the narrow street to his workshop, which smelled of wood and machine oil. Inside, hundreds of tiny **gears** rested beside a dusty **cabinet** filled with drawings."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We should ask him politely, Daniel whispered."
+                  }
+                ],
+                "translation_ar": "بحث دانيال في موقع البلدة ووجد مقالًا قصيرًا عن صانع ساعات متقاعد يدعى السيد فريد. ذكر المقال أنه أصلح البرج قرابة أربعين عامًا قبل إغلاقه. تبعا شارعًا ضيقًا إلى ورشته التي تفوح منها رائحة الخشب وزيت الآلات، ووجدا تروسًا صغيرة وخزانة مليئة بالرسومات. همس دانيال بأن عليهما سؤاله بأدب."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Inside a cozy clock repair workshop with brass gears, notebooks and wooden shelves, elderly Mr. Farid shows Leila and Daniel a faded handwritten notebook, window light. Hand-painted editorial watercolor, consistent characters: Leila A seventeen-year-old girl with warm brown skin, dark braided hair, burgundy jacket, cream trousers, practical boots, and curious expression.; Daniel A seventeen-year-old boy with fair freckled skin, short auburn hair, forest-green sweater, navy trousers and sneakers.; Mr. Farid An elderly clockmaker in his sixties with silver hair, thin spectacles, navy apron, pale blue shirt, kind but careful eyes.. Original, no lettering, no watermark.",
+            "animation": "pan_left",
+            "image": "assets/stories/en/B1/illustrations/en-b1-001_scene_02.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Mr. Farid listened carefully to their idea, then brought out a leather **notebook** with yellow pages. The entries described repairs, weather conditions, and even the names of apprentices who once worked beside him. Leila was especially interested in a **diagram** showing a hidden **mechanism** beneath the bell. It appeared that the problem might be smaller than everyone believed."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Could this drawing help us understand what happened? she asked."
+                  }
+                ],
+                "translation_ar": "استمع السيد فريد إلى فكرتهما ثم أخرج دفترًا جلديًا ذا صفحات صفراء. احتوت الصفحات على إصلاحات وأحوال طقس وأسماء متدربين. اهتمت ليلى برسم يوضح آلية مخفية أسفل الجرس. بدا أن المشكلة قد تكون أبسط مما اعتقد الجميع. سألته إن كان الرسم يساعدهم على فهم ما حدث."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "However, the clockmaker warned them that old equipment could be **fragile**, and entering the tower without permission would be dangerous. They agreed to contact the town council and request a supervised **inspection** instead. Daniel wrote a clear **proposal** explaining the historical value of the tower and the need for professional support. Together they checked each sentence before sending it to the council."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Safety must come before curiosity, Daniel said."
+                  }
+                ],
+                "translation_ar": "لكن صانع الساعات حذرهما من هشاشة المعدات القديمة وخطورة دخول البرج بلا إذن. اتفقا على طلب فحص بإشراف مختصين من المجلس البلدي. كتب دانيال مقترحًا يوضح القيمة التاريخية للبرج والحاجة إلى دعم مهني. راجعا كل جملة قبل إرسالها. قال دانيال إن السلامة أهم من الفضول."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "At school, the pair created a small **exhibition** using copies of photographs from Mr. Farid's workshop. They also interviewed older residents, who remembered hearing the bell during celebrations and difficult winters. Their teacher helped them organize the stories into a short **presentation** about shared **memory**. The students were surprised that one broken clock could connect so many different generations."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Now people may want to save it, Leila said."
+                  }
+                ],
+                "translation_ar": "في المدرسة نظّم الاثنان معرضًا صغيرًا لنسخ صور من ورشة السيد فريد. وأجريا مقابلات مع سكان كبار تذكروا الجرس في الاحتفالات والشتاء القاسي. ساعدتهما المعلمة في إعداد عرض عن الذاكرة المشتركة. فوجئ الطلاب بأن ساعة معطلة تربط أجيالًا مختلفة. قالت ليلى إن الناس قد يرغبون الآن في إنقاذها."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "When the Bell Returned",
+        "title_ar": "عندما عاد صوت الجرس",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Leila and Daniel examine a clock tower mechanism with the clockmaker nearby, gears and ropes under the huge clock face, careful safe inspection, afternoon light. Hand-painted editorial watercolor, consistent characters: Leila A seventeen-year-old girl with warm brown skin, dark braided hair, burgundy jacket, cream trousers, practical boots, and curious expression.; Daniel A seventeen-year-old boy with fair freckled skin, short auburn hair, forest-green sweater, navy trousers and sneakers.; Mr. Farid An elderly clockmaker in his sixties with silver hair, thin spectacles, navy apron, pale blue shirt, kind but careful eyes.. Original, no lettering, no watermark.",
+            "animation": "parallax",
+            "image": "assets/stories/en/B1/illustrations/en-b1-001_scene_03.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Two weeks later, the council approved a careful **restoration** led by trained engineers. Mr. Farid joined the team as an adviser, and Leila and Daniel watched from a safe platform. The workers discovered that a loose metal **connection** had stopped the bell, while the clock itself needed cleaning and adjustment. Nobody tried to rush the **process**, because every old part required patient attention."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "It is more delicate than I imagined, Daniel admitted."
+                  }
+                ],
+                "translation_ar": "بعد أسبوعين وافق المجلس على ترميم حذر بقيادة مهندسين مختصين. انضم السيد فريد مستشارًا، وشاهد ليلى ودانيال العمل من منصة آمنة. اكتشف العمال أن وصلة معدنية مرتخية أوقفت الجرس وأن الساعة احتاجت إلى تنظيف وضبط. لم يستعجل أحد العمل لأن كل قطعة قديمة تتطلب عناية. قال دانيال إن الأمر أدق مما تصور."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "While the engineers worked, the teenagers helped record the tower's history in a digital **archive**. They scanned the notebook with the clockmaker's permission and added dates to the photographs. Leila noticed a **signature** on the oldest page and discovered that it belonged to Mr. Farid's grandfather. The unexpected **discovery** made the project feel personal for everyone involved."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Your family helped build this tradition, she told him."
+                  }
+                ],
+                "translation_ar": "أثناء عمل المهندسين ساعد المراهقان في توثيق تاريخ البرج بأرشيف رقمي. مسحا صفحات الدفتر بإذن صانع الساعات وأضافا التواريخ إلى الصور. لاحظت ليلى توقيعًا قديمًا واكتشفت أنه لجد السيد فريد. جعل هذا الاكتشاف المشروع شخصيًا للجميع. قالت له إن عائلته ساهمت في بناء هذا التقليد."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "The restored tower bell rings above a welcoming town square where residents gather, Leila and Daniel beside Mr. Farid smiling, clear blue sunset light. Hand-painted editorial watercolor, consistent characters: Leila A seventeen-year-old girl with warm brown skin, dark braided hair, burgundy jacket, cream trousers, practical boots, and curious expression.; Daniel A seventeen-year-old boy with fair freckled skin, short auburn hair, forest-green sweater, navy trousers and sneakers.; Mr. Farid An elderly clockmaker in his sixties with silver hair, thin spectacles, navy apron, pale blue shirt, kind but careful eyes.. Original, no lettering, no watermark.",
+            "animation": "zoom_in_slow",
+            "image": "assets/stories/en/B1/illustrations/en-b1-001_scene_04.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "On the morning of the public test, a small crowd gathered below the clock face. The engineer checked the **equipment** once more and gave the agreed **signal**. For a moment, everyone stood quietly; then a clear bell rang across the square. Mr. Farid closed his eyes and smiled as the familiar sound **echoed** between the buildings."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "That is the sound my grandfather described, Daniel said."
+                  }
+                ],
+                "translation_ar": "صباح الاختبار العام تجمع عدد من السكان تحت واجهة الساعة. فحص المهندس المعدات مرة أخرى وأعطى الإشارة المتفق عليها. وقف الجميع بهدوء للحظة، ثم دوى الجرس في الساحة. أغلق السيد فريد عينيه وابتسم عندما تردد الصوت بين المباني. قال دانيال إن هذا هو الصوت الذي وصفه جده."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The mayor thanked the repair team and announced that the tower would open for guided visits after a final **safety** review. Leila and Daniel received permission to display their research in the community center. Their teacher praised the project's careful **research**, but she also reminded them that the town's **achievement** belonged to everyone who had helped."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We asked questions, but the community found the answer, Leila replied."
+                  }
+                ],
+                "translation_ar": "شكر رئيس البلدية فريق الإصلاح وأعلن فتح البرج للزيارات المرشدة بعد مراجعة السلامة النهائية. حصلت ليلى ودانيال على إذن لعرض بحثهما في المركز المجتمعي. امتدحت المعلمة بحثهما الدقيق، وذكّرتهما بأن الإنجاز للمدينة كلها. أجابت ليلى بأنهما طرحا الأسئلة لكن المجتمع وجد الإجابة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "That evening, Leila returned to the square and listened as the bell marked six o'clock. She understood that **preserving** history did not simply mean protecting buildings; it also meant listening to people and sharing their experiences. Daniel suggested starting a monthly **volunteer** group to care for other local places. Their new **responsibility** felt exciting rather than frightening, because they knew cooperation could make a real difference."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "There are more stories waiting for us, Daniel said."
+                  }
+                ],
+                "translation_ar": "في المساء عادت ليلى إلى الساحة وسمعت الجرس يعلن السادسة. فهمت أن حفظ التاريخ لا يقتصر على حماية المباني بل يشمل الاستماع إلى الناس ومشاركة تجاربهم. اقترح دانيال مجموعة تطوعية شهرية لرعاية أماكن محلية أخرى. شعرا بحماس تجاه المسؤولية الجديدة لأن التعاون يصنع فرقًا. قال دانيال إن قصصًا أخرى تنتظرهما."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "heritage",
+        "meaning_ar": "تراث",
+        "example": "Every morning, the old tower clock showed the wrong time, but most people in Bellford had stopped noticing. Leila, who was preparing a school project about local heritage, thought the silent bell was worth investigating. She invited Daniel to meet her in the square, where a rusty notice explained that the tower had once marked every important occasion in town."
+      },
+      {
+        "word": "notice",
+        "meaning_ar": "إعلان",
+        "example": "Every morning, the old tower clock showed the wrong time, but most people in Bellford had stopped noticing. Leila, who was preparing a school project about local heritage, thought the silent bell was worth investigating. She invited Daniel to meet her in the square, where a rusty notice explained that the tower had once marked every important occasion in town."
+      },
+      {
+        "word": "occasion",
+        "meaning_ar": "مناسبة",
+        "example": "Every morning, the old tower clock showed the wrong time, but most people in Bellford had stopped noticing. Leila, who was preparing a school project about local heritage, thought the silent bell was worth investigating. She invited Daniel to meet her in the square, where a rusty notice explained that the tower had once marked every important occasion in town."
+      },
+      {
+        "word": "clockmaker",
+        "meaning_ar": "صانع ساعات",
+        "example": "Daniel searched the town website and discovered a short article about a retired clockmaker named Mr. Farid. According to the article, he had repaired the tower for almost forty years before it closed. They followed the narrow street to his workshop, which smelled of wood and machine oil. Inside, hundreds of tiny gears rested beside a dusty cabinet filled with drawings."
+      },
+      {
+        "word": "gears",
+        "meaning_ar": "تروس",
+        "example": "Daniel searched the town website and discovered a short article about a retired clockmaker named Mr. Farid. According to the article, he had repaired the tower for almost forty years before it closed. They followed the narrow street to his workshop, which smelled of wood and machine oil. Inside, hundreds of tiny gears rested beside a dusty cabinet filled with drawings."
+      },
+      {
+        "word": "cabinet",
+        "meaning_ar": "خزانة",
+        "example": "Daniel searched the town website and discovered a short article about a retired clockmaker named Mr. Farid. According to the article, he had repaired the tower for almost forty years before it closed. They followed the narrow street to his workshop, which smelled of wood and machine oil. Inside, hundreds of tiny gears rested beside a dusty cabinet filled with drawings."
+      },
+      {
+        "word": "notebook",
+        "meaning_ar": "دفتر",
+        "example": "Mr. Farid listened carefully to their idea, then brought out a leather notebook with yellow pages. The entries described repairs, weather conditions, and even the names of apprentices who once worked beside him. Leila was especially interested in a diagram showing a hidden mechanism beneath the bell. It appeared that the problem might be smaller than everyone believed."
+      },
+      {
+        "word": "diagram",
+        "meaning_ar": "رسم تخطيطي",
+        "example": "Mr. Farid listened carefully to their idea, then brought out a leather notebook with yellow pages. The entries described repairs, weather conditions, and even the names of apprentices who once worked beside him. Leila was especially interested in a diagram showing a hidden mechanism beneath the bell. It appeared that the problem might be smaller than everyone believed."
+      },
+      {
+        "word": "mechanism",
+        "meaning_ar": "آلية",
+        "example": "Mr. Farid listened carefully to their idea, then brought out a leather notebook with yellow pages. The entries described repairs, weather conditions, and even the names of apprentices who once worked beside him. Leila was especially interested in a diagram showing a hidden mechanism beneath the bell. It appeared that the problem might be smaller than everyone believed."
+      },
+      {
+        "word": "fragile",
+        "meaning_ar": "هش",
+        "example": "However, the clockmaker warned them that old equipment could be fragile, and entering the tower without permission would be dangerous. They agreed to contact the town council and request a supervised inspection instead. Daniel wrote a clear proposal explaining the historical value of the tower and the need for professional support. Together they checked each sentence before sending it to the council."
+      },
+      {
+        "word": "inspection",
+        "meaning_ar": "فحص",
+        "example": "However, the clockmaker warned them that old equipment could be fragile, and entering the tower without permission would be dangerous. They agreed to contact the town council and request a supervised inspection instead. Daniel wrote a clear proposal explaining the historical value of the tower and the need for professional support. Together they checked each sentence before sending it to the council."
+      },
+      {
+        "word": "proposal",
+        "meaning_ar": "مقترح",
+        "example": "However, the clockmaker warned them that old equipment could be fragile, and entering the tower without permission would be dangerous. They agreed to contact the town council and request a supervised inspection instead. Daniel wrote a clear proposal explaining the historical value of the tower and the need for professional support. Together they checked each sentence before sending it to the council."
+      },
+      {
+        "word": "exhibition",
+        "meaning_ar": "معرض",
+        "example": "At school, the pair created a small exhibition using copies of photographs from Mr. Farid's workshop. They also interviewed older residents, who remembered hearing the bell during celebrations and difficult winters. Their teacher helped them organize the stories into a short presentation about shared memory. The students were surprised that one broken clock could connect so many different generations."
+      },
+      {
+        "word": "presentation",
+        "meaning_ar": "عرض تقديمي",
+        "example": "At school, the pair created a small exhibition using copies of photographs from Mr. Farid's workshop. They also interviewed older residents, who remembered hearing the bell during celebrations and difficult winters. Their teacher helped them organize the stories into a short presentation about shared memory. The students were surprised that one broken clock could connect so many different generations."
+      },
+      {
+        "word": "memory",
+        "meaning_ar": "ذاكرة",
+        "example": "At school, the pair created a small exhibition using copies of photographs from Mr. Farid's workshop. They also interviewed older residents, who remembered hearing the bell during celebrations and difficult winters. Their teacher helped them organize the stories into a short presentation about shared memory. The students were surprised that one broken clock could connect so many different generations."
+      },
+      {
+        "word": "restoration",
+        "meaning_ar": "ترميم",
+        "example": "Two weeks later, the council approved a careful restoration led by trained engineers. Mr. Farid joined the team as an adviser, and Leila and Daniel watched from a safe platform. The workers discovered that a loose metal connection had stopped the bell, while the clock itself needed cleaning and adjustment. Nobody tried to rush the process, because every old part required patient attention."
+      },
+      {
+        "word": "connection",
+        "meaning_ar": "وصلة",
+        "example": "Two weeks later, the council approved a careful restoration led by trained engineers. Mr. Farid joined the team as an adviser, and Leila and Daniel watched from a safe platform. The workers discovered that a loose metal connection had stopped the bell, while the clock itself needed cleaning and adjustment. Nobody tried to rush the process, because every old part required patient attention."
+      },
+      {
+        "word": "process",
+        "meaning_ar": "عملية",
+        "example": "Two weeks later, the council approved a careful restoration led by trained engineers. Mr. Farid joined the team as an adviser, and Leila and Daniel watched from a safe platform. The workers discovered that a loose metal connection had stopped the bell, while the clock itself needed cleaning and adjustment. Nobody tried to rush the process, because every old part required patient attention."
+      },
+      {
+        "word": "archive",
+        "meaning_ar": "أرشيف",
+        "example": "While the engineers worked, the teenagers helped record the tower's history in a digital archive. They scanned the notebook with the clockmaker's permission and added dates to the photographs. Leila noticed a signature on the oldest page and discovered that it belonged to Mr. Farid's grandfather. The unexpected discovery made the project feel personal for everyone involved."
+      },
+      {
+        "word": "signature",
+        "meaning_ar": "توقيع",
+        "example": "While the engineers worked, the teenagers helped record the tower's history in a digital archive. They scanned the notebook with the clockmaker's permission and added dates to the photographs. Leila noticed a signature on the oldest page and discovered that it belonged to Mr. Farid's grandfather. The unexpected discovery made the project feel personal for everyone involved."
+      },
+      {
+        "word": "discovery",
+        "meaning_ar": "اكتشاف",
+        "example": "While the engineers worked, the teenagers helped record the tower's history in a digital archive. They scanned the notebook with the clockmaker's permission and added dates to the photographs. Leila noticed a signature on the oldest page and discovered that it belonged to Mr. Farid's grandfather. The unexpected discovery made the project feel personal for everyone involved."
+      },
+      {
+        "word": "equipment",
+        "meaning_ar": "معدات",
+        "example": "On the morning of the public test, a small crowd gathered below the clock face. The engineer checked the equipment once more and gave the agreed signal. For a moment, everyone stood quietly; then a clear bell rang across the square. Mr. Farid closed his eyes and smiled as the familiar sound echoed between the buildings."
+      },
+      {
+        "word": "signal",
+        "meaning_ar": "إشارة",
+        "example": "On the morning of the public test, a small crowd gathered below the clock face. The engineer checked the equipment once more and gave the agreed signal. For a moment, everyone stood quietly; then a clear bell rang across the square. Mr. Farid closed his eyes and smiled as the familiar sound echoed between the buildings."
+      },
+      {
+        "word": "echoed",
+        "meaning_ar": "تردد صداه",
+        "example": "On the morning of the public test, a small crowd gathered below the clock face. The engineer checked the equipment once more and gave the agreed signal. For a moment, everyone stood quietly; then a clear bell rang across the square. Mr. Farid closed his eyes and smiled as the familiar sound echoed between the buildings."
+      },
+      {
+        "word": "safety",
+        "meaning_ar": "سلامة",
+        "example": "The mayor thanked the repair team and announced that the tower would open for guided visits after a final safety review. Leila and Daniel received permission to display their research in the community center. Their teacher praised the project's careful research, but she also reminded them that the town's achievement belonged to everyone who had helped."
+      },
+      {
+        "word": "research",
+        "meaning_ar": "بحث",
+        "example": "The mayor thanked the repair team and announced that the tower would open for guided visits after a final safety review. Leila and Daniel received permission to display their research in the community center. Their teacher praised the project's careful research, but she also reminded them that the town's achievement belonged to everyone who had helped."
+      },
+      {
+        "word": "achievement",
+        "meaning_ar": "إنجاز",
+        "example": "The mayor thanked the repair team and announced that the tower would open for guided visits after a final safety review. Leila and Daniel received permission to display their research in the community center. Their teacher praised the project's careful research, but she also reminded them that the town's achievement belonged to everyone who had helped."
+      },
+      {
+        "word": "preserving",
+        "meaning_ar": "حفظ",
+        "example": "That evening, Leila returned to the square and listened as the bell marked six o'clock. She understood that preserving history did not simply mean protecting buildings; it also meant listening to people and sharing their experiences. Daniel suggested starting a monthly volunteer group to care for other local places. Their new responsibility felt exciting rather than frightening, because they knew cooperation could make a real difference."
+      },
+      {
+        "word": "volunteer",
+        "meaning_ar": "متطوع",
+        "example": "That evening, Leila returned to the square and listened as the bell marked six o'clock. She understood that preserving history did not simply mean protecting buildings; it also meant listening to people and sharing their experiences. Daniel suggested starting a monthly volunteer group to care for other local places. Their new responsibility felt exciting rather than frightening, because they knew cooperation could make a real difference."
+      },
+      {
+        "word": "responsibility",
+        "meaning_ar": "مسؤولية",
+        "example": "That evening, Leila returned to the square and listened as the bell marked six o'clock. She understood that preserving history did not simply mean protecting buildings; it also meant listening to people and sharing their experiences. Daniel suggested starting a monthly volunteer group to care for other local places. Their new responsibility felt exciting rather than frightening, because they knew cooperation could make a real difference."
+      }
+    ],
+    "questions": [
+      {
+        "q": "What first attracted Leila's attention?",
+        "options": [
+          "The tower's silent bell",
+          "A lost bicycle",
+          "A library fire",
+          "A school concert"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Who had repaired the clock for many years?",
+        "options": [
+          "Daniel's father",
+          "Mr. Farid",
+          "Leila's teacher",
+          "The mayor"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What did the notebook contain?",
+        "options": [
+          "Recipes",
+          "Train tickets",
+          "Repair notes and diagrams",
+          "School marks"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "Why did they ask the council for permission?",
+        "options": [
+          "To sell the clock",
+          "To organize a party",
+          "To paint the square",
+          "To arrange a safe inspection"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "What did older residents remember?",
+        "options": [
+          "The sound of the bell",
+          "A football match",
+          "A parade of boats",
+          "A new cinema"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What caused the bell to stop?",
+        "options": [
+          "Heavy snow",
+          "A loose connection",
+          "A missing door",
+          "A broken sign"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "Whose signature was in the notebook?",
+        "options": [
+          "The mayor's",
+          "Daniel's",
+          "Mr. Farid's grandfather's",
+          "Leila's"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "What did the teenagers decide to do afterward?",
+        "options": [
+          "Move away",
+          "Sell the notebook",
+          "Close the tower",
+          "Start a volunteer group"
+        ],
+        "answer": 3
+      }
+    ]
+  }
+}
