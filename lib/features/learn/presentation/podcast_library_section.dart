@@ -429,6 +429,16 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
   }
 
   Future<void> _initialize() async {
+    if (mounted) {
+      setState(() {
+        _error = null;
+        _audioLoaded = false;
+      });
+    }
+    await _positionSubscription?.cancel();
+    await _stateSubscription?.cancel();
+    _positionSubscription = null;
+    _stateSubscription = null;
     try {
       final loaded = await widget.repository.load(widget.entry);
       if (!mounted) return;
@@ -450,14 +460,16 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
         await _player.setFilePath(local.path);
       } else {
         try {
-          await _player.setUrl(loaded.audioUrl!);
+          await _player.setUrl(loaded.audioUrl!)
+              .timeout(const Duration(seconds: 22));
         } catch (_) {
           final backup = Uri.tryParse(loaded.backupAudioUrl ?? '');
           if (backup == null || backup.scheme != 'https' ||
               backup.host.isEmpty) {
             rethrow;
           }
-          await _player.setUrl(backup.toString());
+          await _player.setUrl(backup.toString())
+              .timeout(const Duration(seconds: 22));
         }
       }
       if (mounted) {
@@ -749,10 +761,22 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                 style: const TextStyle(
                     color: Color(0xFFE0EEE5), fontSize: 11, height: 1.4)),
           ],
-          if (_error != null)
-            Padding(padding: const EdgeInsets.only(top: 8),
+          if (_error != null) ...[
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
               child: Text(_error!,
-                style: const TextStyle(color: Colors.white70))),
+                style: const TextStyle(color: Colors.white70)),
+            ),
+            if (episode.canStream)
+              TextButton.icon(
+                key: const ValueKey('podcast-retry-audio'),
+                onPressed: _initialize,
+                icon: const Icon(Icons.refresh_rounded,
+                  color: Color(0xFFF4D790)),
+                label: Text(ar ? 'إعادة محاولة تحميل الصوت' : 'Retry audio',
+                  style: const TextStyle(color: Color(0xFFF4D790))),
+              ),
+          ],
         ],
       ),
     );
