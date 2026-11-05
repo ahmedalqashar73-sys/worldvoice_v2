@@ -1,0 +1,433 @@
+{
+  "language": "en",
+  "level": "C2",
+  "story": {
+    "id": "en-c2-002",
+    "title": "The Hill That Moved Overnight",
+    "title_ar": "التل الذي تحرك ليلًا",
+    "moral_ar": "التصرف المسؤول تحت عدم اليقين يقوم على الأدلة والتواصل الواضح وخطط طوارئ تحترم احتياجات السكان.",
+    "art_style": "Original advanced literary watercolors of geotechnical fieldwork and mountain communities, no captions.",
+    "cover_image_prompt": "Steep hillside town after heavy rain, new road cracks above homes, geologist Asha in teal field jacket and engineer Mateo in brown work coat stand behind a safety barrier.",
+    "character_sheet": [
+      {
+        "name": "Asha",
+        "description": "A 34-year-old geologist with medium brown skin, short curly dark hair, teal field jacket and hiking boots."
+      },
+      {
+        "name": "Mateo",
+        "description": "A 38-year-old engineer with light olive skin, short black hair, brown work coat and notebook."
+      },
+      {
+        "name": "Dalia",
+        "description": "A 42-year-old schoolteacher with tan skin, long dark braid, saffron cardigan and navy trousers."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "The Crack in the Road",
+        "title_ar": "الشق في الطريق",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Steep hillside town after heavy rain, new road cracks above homes, geologist Asha in teal field jacket and engineer Mateo in brown work coat stand behind a safety barrier.. Original atmospheric literary watercolor, consistent character identity, no labels.",
+            "animation": "fade_in",
+            "image": "assets/stories/en/C2/illustrations/en-c2-002_scene_01.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "After a night of relentless rain, Asha noticed a thin crack running across the road above Pinewell. She had come to the hillside town to study soil movement, but the new fracture suggested an immediate problem. Some residents treated it as routine damage, while others feared the entire slope might collapse. Asha inspected the visible **displacement** from a safe position, photographed the nearby **escarpment**, and compared the scene with older images provided by the council. She warned Mateo, the town engineer, that extraordinary **rainfall** could destabilize slopes without producing a clear timetable for failure. His first instinct was to repair the road quickly and reopen it. Asha insisted that the unknown risk required a temporary closure and a professional assessment before machinery entered the area. Neither wanted to alarm the community unnecessarily, yet waiting for certainty could itself become a dangerous decision."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We cannot predict the exact minute, but we can choose what not to risk, Asha said."
+                  }
+                ],
+                "translation_ar": "بعد ليلة من الأمطار الغزيرة لاحظت آشا شقًا جديدًا في الطريق فوق بلدة باينويل. صوّرت الإزاحة في التربة وقارنتها بصور قديمة، بينما اختلف السكان بين اعتبارها ضررًا عاديًا والخوف من انهيار المنحدر. حذرت مهندس البلدة ماتيو من أن المطر الشديد قد يزعزع الأرض دون إمكان تحديد ساعة الانهيار. أراد إصلاح الطريق سريعًا، لكنها أصرت على إغلاق مؤقت وفحص متخصص. كان القرار صعبًا لأن الانتظار حتى اليقين قد يزيد الخطر."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The first measurements showed that several points on the slope had moved slightly, although the pattern was not uniform. Mateo asked whether they could issue a reassuring statement while the results were checked. Asha explained that **uncertainty** did not mean every outcome was equally likely, nor did it justify inventing precise probabilities. The monitoring team established a **threshold** for additional inspections and described what observations would trigger an immediate warning. A local schoolteacher, Dalia, asked how families would interpret technical measurements without training. Together they drafted an accessible **bulletin** that distinguished what was observed, what remained unknown, and what residents should do if officials ordered an evacuation. Asha also asked that messages reach people without smartphones, since a warning hidden inside an app could fail precisely when it mattered most. They wanted the warning system to be usable even by people who could not attend meetings or read technical reports online."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We need a warning people understand, not a report they cannot use, Mateo agreed."
+                  }
+                ],
+                "translation_ar": "أظهرت القياسات تحرك بعض نقاط المنحدر بنسب متفاوتة. أراد ماتيو رسالة مطمئنة، لكن آشا أوضحت أن عدم اليقين لا يبرر اختراع نسب دقيقة. وضع الفريق عتبات لفحوص إضافية ومعايير للتحذير. سألت المعلمة داليا كيف سيفهم السكان الأرقام الفنية. كتبوا نشرة تميز المشاهدات والمجهول والخطوات المطلوبة في حال الإخلاء، مع ضمان وصول الرسائل إلى من لا يستخدمون الهواتف الذكية. أدرك ماتيو أن التحذير المفيد يجب أن يكون مفهومًا لا معقدًا."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Community briefing inside hill town school, teacher Dalia and Asha review a slope movement chart with engineer Mateo and concerned residents.. Original atmospheric literary watercolor, consistent character identity, no labels.",
+            "animation": "pan_left",
+            "image": "assets/stories/en/C2/illustrations/en-c2-002_scene_02.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "When the council announced the road closure, shopkeepers protested that lost traffic would damage their income during the busiest weekend of the season. Others accused officials of exaggerating a threat in order to appear cautious. Mateo felt the political **pressure** immediately, while Asha worried that technical explanations were becoming trapped inside arguments about **credibility**. She invited business owners to a briefing where they could examine the evidence and question its limits. The team discussed alternatives for deliveries and emergency services rather than dismissing economic concerns as irrelevant. Dalia observed that some residents associated evacuation with permanent **displacement**, recalling earlier decisions that had left families without adequate support. That history changed the conversation: officials needed not only a safety order but a credible explanation of temporary accommodation, transport and the conditions under which people could return."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Safety will not be trusted if we ignore what people stand to lose, Asha acknowledged."
+                  }
+                ],
+                "translation_ar": "احتج أصحاب المتاجر على إغلاق الطريق وخسارة الزبائن، واتهم آخرون السلطات بالمبالغة. شعر ماتيو بالضغط السياسي وخشيت آشا على مصداقية البيانات. دعت التجار إلى جلسة شرح وناقش الفريق بدائل التوصيل والخدمات. ذكّرت داليا المسؤولين بأن كلمة إخلاء تعيد للسكان ذكريات تهجير سابق بلا دعم. غير ذلك النقاش: لم يعد يكفي أمر السلامة، بل احتاج الناس إلى خطة للسكن المؤقت والنقل وشروط العودة. قالت آشا إن تجاهل خسائر السكان يضعف الثقة بالسلامة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The weather improved briefly, and the visible crack stopped widening for several hours. Some commentators declared the danger over, but Asha cautioned that short-term **stability** did not establish long-term security. She compared groundwater observations with the rate of movement and explained why delayed failures were possible after the rain ceased. Mateo commissioned a second independent **assessment**, accepting the risk of criticism for spending additional funds. Dalia helped organize a public question session in which specialists answered concerns without promising that the hill would never move again. The engineers proposed a **contingency** plan with evacuation routes, assistance for residents with limited mobility and clearly identified decision-makers. Each measure was documented before the next storm, allowing the community to see who would act and how disagreements between specialists would be resolved. This also helped the town avoid spending its limited budget on measures that sounded impressive but lacked a defensible technical basis."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "The worst reassurance would be one based on only a few quiet hours, Mateo said."
+                  }
+                ],
+                "translation_ar": "تحسن الجو وتوقف اتساع الشق ساعات، فأعلن بعض المعلقين انتهاء الخطر. لكن آشا نبهت إلى أن الاستقرار المؤقت لا يثبت السلامة الطويلة، وأن الانهيارات قد تتأخر بعد المطر. طلب ماتيو تقييمًا مستقلًا ثانيًا رغم التكلفة. نظمت داليا لقاء للأسئلة دون وعود مستحيلة. وضع المهندسون خطة طوارئ تشمل مسارات الإخلاء ومساعدة محدودي الحركة والمسؤوليات المحددة. وثقوا الإجراءات قبل العاصفة التالية. قال ماتيو إن الطمأنة المبنية على ساعات هادئة قد تكون أخطر من الاعتراف بالمجهول."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "A sudden change in the instruments prompted officials to evacuate a small number of houses closest to the unstable ground. The order was **precautionary**, not a claim that collapse was certain, and this distinction mattered to families deciding what to take. Volunteers assisted residents under the direction of trained emergency staff, avoiding dangerous attempts to inspect the slope themselves. Dalia coordinated clear updates through the school and community center, while Mateo tracked the **logistics** of transport and temporary accommodation. Asha remained focused on the measurements, knowing that an unexpected decrease in movement could not alone justify a return. One family complained that the process felt abrupt and impersonal. Rather than dismissing the criticism, the officials recorded it and improved their **communication** procedures before the next briefing, recognizing that an appropriate safety decision could still be poorly explained."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "People deserve an explanation even when there is very little time, Dalia said."
+                  }
+                ],
+                "translation_ar": "دفعت تغيرات مفاجئة في الأجهزة السلطات إلى إخلاء عدد محدود من المنازل القريبة احترازيًا، لا لأن الانهيار مؤكد. ساعد متطوعون تحت إشراف الطوارئ، ونظمت داليا رسائل واضحة عبر المدرسة والمركز المجتمعي، بينما تابع ماتيو النقل والإقامة المؤقتة. لم تعتبر آشا انخفاض الحركة سببًا كافيًا للعودة. اشتكت أسرة من قسوة التنفيذ، فسجل المسؤولون الملاحظة وحسّنوا التواصل. قالت داليا إن الناس يستحقون شرحًا حتى في الوقت الضيق."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "Living with the Hill",
+        "title_ar": "العيش قرب التل",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Safe hillside engineering inspection with survey instruments, Asha and Mateo standing by closed mountain road and warning barriers after a small slide.. Original atmospheric literary watercolor, consistent character identity, no labels.",
+            "animation": "parallax",
+            "image": "assets/stories/en/C2/illustrations/en-c2-002_scene_03.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Two days later, part of the upper slope slipped into an empty section of the closed road. There were no injuries, but photographs of the damaged surface circulated rapidly, often without explanations of what had happened. Asha examined the **evidence** and warned that the incident did not prove every earlier prediction correct. Some assumptions had held; others required **revision** in light of the actual movement. Mateo resisted the urge to claim complete vindication, because the council still faced questions about protecting buildings farther downhill. Dalia helped the school prepare a short lesson on how warnings are evaluated after an event, highlighting the difference between a successful **precaution** and an infallible forecast. The team emphasized that responsible risk management combined incomplete information with actions designed to reduce harm, then reviewed whether its decisions had been proportionate and timely."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "A safe outcome does not mean our process cannot improve, Mateo reminded the council."
+                  }
+                ],
+                "translation_ar": "بعد يومين انزلق جزء من المنحدر إلى طريق مغلق وخالٍ، فلم تقع إصابات. انتشرت الصور بلا سياق، وحذرت آشا من اعتبار الحادثة إثباتًا لكل توقع. صححت بعض الافتراضات في ضوء الحركة الفعلية. رفض ماتيو إعلان انتصار كامل لأن أسئلة سلامة المنازل بقيت. ساعدت داليا الطلاب على فهم الفرق بين احتياط ناجح وتنبؤ معصوم. راجع الفريق تناسب قراراته وتوقيتها. قال ماتيو إن النتيجة الآمنة لا تعني أن العملية لا تحتاج إلى تحسين."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Once the immediate danger passed, residents asked why earlier maintenance reports had not identified the vulnerable road. An independent reviewer found that different departments had recorded related signs but failed to connect the information. The problem involved institutional **fragmentation** as well as geology. Mateo accepted responsibility for improving records and proposed a shared **register** of slope observations that could be examined across agencies. Asha recommended simple long-term measurements and procedures for updating the risk map, warning against treating a new technological platform as an automatic solution. Dalia asked that the revised **governance** include public reporting and opportunities to challenge assumptions, because residents had borne the consequences of organizational failure. The council agreed to publish a schedule of reviews and to identify named officials responsible for acting when warning signs emerged. That experience shifted the council's attention from isolated incidents to the systems that determined whether information led to timely decisions."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "A hazard becomes more dangerous when information remains trapped between offices, Asha explained."
+                  }
+                ],
+                "translation_ar": "بعد زوال الخطر المباشر سأل السكان عن سبب غياب التحذير في تقارير الصيانة السابقة. اكتشف مراجع مستقل أن جهات مختلفة سجلت إشارات متفرقة دون جمعها. كان الخلل مؤسسيًا بقدر ما كان جيولوجيًا. قبل ماتيو مسؤولية تحسين السجلات واقترح سجلًا مشتركًا لمراقبة المنحدر. أوصت آشا بقياسات دورية وتحذرت من اعتبار منصة تقنية حلًا سحريًا. طالبت داليا بتقارير عامة وفرص للاعتراض. وافق المجلس على جدول مراجعات ومسؤولين محددين للتحرك عند ظهور الإشارات."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Newly rerouted mountain town road through green hills, Asha Mateo and Dalia reflect at safe viewpoint, town below in evening light.. Original atmospheric literary watercolor, consistent character identity, no labels.",
+            "animation": "zoom_in_slow",
+            "image": "assets/stories/en/C2/illustrations/en-c2-002_scene_04.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The town then faced a more difficult choice about whether to rebuild the damaged road in its original location. Engineers compared alternative routes and stabilization work, while residents questioned the social cost of changing familiar journeys. Asha explained the technical **trade-offs**, including maintenance, environmental effects and the limits of predicting future storms. Mateo led a public review in which proposals were displayed with approximate costs and **assumptions**, rather than presented as a single inevitable solution. Dalia ensured that people who relied on public transport could contribute their experiences. The final decision favored a longer but more resilient route, accompanied by improved access to nearby services. Some residents remained dissatisfied, yet the process created a visible record of how competing **priorities** had been weighed and which commitments the council had accepted for future monitoring."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "There may be no perfect route, but there should be a decision we can explain, Mateo said."
+                  }
+                ],
+                "translation_ar": "اضطرت البلدة للاختيار بين إصلاح الطريق في مكانه أو بناء مسار آخر. قارن المهندسون الخيارات من حيث الصيانة والبيئة والمخاطر، وناقش الناس أثر تغيير طريقهم المعتاد. عرض ماتيو التكاليف والافتراضات بدل فرض حل وحيد، وحرصت داليا على سماع مستخدمي النقل العام. اختير طريق أطول وأكثر قدرة على الصمود مع تحسين الوصول للخدمات. بقي بعض السكان غير راضين، لكن سجلًا واضحًا أظهر كيف وُزنت الأولويات وما التزمت به البلدية."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Six months after the slide, Dalia invited the emergency team to discuss lessons with students and families. She wanted the conversation to include the people who had found the evacuation frightening, not only those who praised it. Asha presented the limits of the original measurements and explained how revised monitoring had changed the town's **preparedness**. Mateo described the new shared records and admitted where cooperation between agencies remained difficult. Their **candor** surprised listeners accustomed to official speeches that acknowledged only successes. A student asked whether future residents would ever be completely safe. Asha answered that landscapes were dynamic and no responsible expert could promise the absence of risk. What mattered was a continuing **capacity** to recognize change, communicate uncertainty and respond before people were harmed. The meeting ended with questions, not an illusion of final certainty."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Learning to act wisely without certainty is not weakness; it is part of living responsibly, Asha said."
+                  }
+                ],
+                "translation_ar": "بعد ستة أشهر جمعت داليا فريق الطوارئ مع الأسر والطلاب، بمن فيهم من خافوا من الإخلاء. شرحت آشا حدود القياسات الأولى وتحسن الاستعداد، وقدم ماتيو السجلات المشتركة واعترف بالصعوبات المتبقية. فوجئ السكان بصراحتهم. سأل طالب إن كانت البلدة ستكون آمنة تمامًا، فأوضحت آشا أن الطبيعة متغيرة ولا يمكن الوعد بانعدام الخطر. الأهم بناء قدرة مستمرة على ملاحظة التغير والتواصل والتصرف قبل الضرر. انتهى اللقاء بأسئلة لا بيقين زائف."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "On her final visit, Asha walked along the new route and looked across the damaged hillside from a designated viewpoint. Vegetation had begun returning, although the scar left by the slide remained visible. Mateo told her that the council had incorporated independent **scrutiny** into its annual infrastructure reviews. Dalia was preparing another community exercise, determined that emergency planning should become ordinary civic knowledge rather than a forgotten document. Asha reflected on the difference between preventing every disaster and building **resilience** in the face of uncertain conditions. The town could not eliminate every hazard, but it had learned to connect evidence with clear responsibilities and public understanding. She considered that an achievement of **collective judgment**, not individual heroism. As they left, Mateo asked whether she could finally promise no further movement. Asha smiled and answered that the more useful promise was to keep measuring, communicating and learning together."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Then we will keep asking better questions, Mateo agreed."
+                  }
+                ],
+                "translation_ar": "في زيارتها الأخيرة نظرت آشا من نقطة آمنة إلى أثر الانزلاق وقد بدأت النباتات تعود. قال ماتيو إن المجلس أدخل مراجعة مستقلة في فحص البنية التحتية السنوي. كانت داليا تعد تدريبًا مجتمعيًا جديدًا كي لا تُنسى خطط الطوارئ. فكرت آشا في الفرق بين منع كل كارثة وبناء قدرة على الصمود رغم عدم اليقين. لم تستطع البلدة إزالة كل خطر لكنها تعلمت ربط الأدلة بالمسؤوليات والفهم العام. رأت الإنجاز حكمًا جماعيًا لا بطولة فردية. وعندما طلب ماتيو وعدًا بعدم تحرك الأرض، أجابت بأن الوعد الأهم هو مواصلة القياس والتعلم."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "displacement",
+        "meaning_ar": "إزاحة",
+        "example": "After a night of relentless rain, Asha noticed a thin crack running across the road above Pinewell. She had come to the hillside town to study soil movement, but the new fracture suggested an immediate problem. Some residents treated it as routine damage, while others feared the entire slope might collapse. Asha inspected the visible displacement from a safe position, photographed the nearby escarpment, and compared the scene with older images provided by the council. She warned Mateo, the town engineer, that extraordinary rainfall could destabilize slopes without producing a clear timetable for failure. His first instinct was to repair the road quickly and reopen it. Asha insisted that the unknown risk required a temporary closure and a professional assessment before machinery entered the area. Neither wanted to alarm the community unnecessarily, yet waiting for certainty could itself become a dangerous decision."
+      },
+      {
+        "word": "escarpment",
+        "meaning_ar": "منحدر حاد",
+        "example": "After a night of relentless rain, Asha noticed a thin crack running across the road above Pinewell. She had come to the hillside town to study soil movement, but the new fracture suggested an immediate problem. Some residents treated it as routine damage, while others feared the entire slope might collapse. Asha inspected the visible displacement from a safe position, photographed the nearby escarpment, and compared the scene with older images provided by the council. She warned Mateo, the town engineer, that extraordinary rainfall could destabilize slopes without producing a clear timetable for failure. His first instinct was to repair the road quickly and reopen it. Asha insisted that the unknown risk required a temporary closure and a professional assessment before machinery entered the area. Neither wanted to alarm the community unnecessarily, yet waiting for certainty could itself become a dangerous decision."
+      },
+      {
+        "word": "rainfall",
+        "meaning_ar": "هطول الأمطار",
+        "example": "After a night of relentless rain, Asha noticed a thin crack running across the road above Pinewell. She had come to the hillside town to study soil movement, but the new fracture suggested an immediate problem. Some residents treated it as routine damage, while others feared the entire slope might collapse. Asha inspected the visible displacement from a safe position, photographed the nearby escarpment, and compared the scene with older images provided by the council. She warned Mateo, the town engineer, that extraordinary rainfall could destabilize slopes without producing a clear timetable for failure. His first instinct was to repair the road quickly and reopen it. Asha insisted that the unknown risk required a temporary closure and a professional assessment before machinery entered the area. Neither wanted to alarm the community unnecessarily, yet waiting for certainty could itself become a dangerous decision."
+      },
+      {
+        "word": "uncertainty",
+        "meaning_ar": "عدم يقين",
+        "example": "The first measurements showed that several points on the slope had moved slightly, although the pattern was not uniform. Mateo asked whether they could issue a reassuring statement while the results were checked. Asha explained that uncertainty did not mean every outcome was equally likely, nor did it justify inventing precise probabilities. The monitoring team established a threshold for additional inspections and described what observations would trigger an immediate warning. A local schoolteacher, Dalia, asked how families would interpret technical measurements without training. Together they drafted an accessible bulletin that distinguished what was observed, what remained unknown, and what residents should do if officials ordered an evacuation. Asha also asked that messages reach people without smartphones, since a warning hidden inside an app could fail precisely when it mattered most. They wanted the warning system to be usable even by people who could not attend meetings or read technical reports online."
+      },
+      {
+        "word": "threshold",
+        "meaning_ar": "عتبة",
+        "example": "The first measurements showed that several points on the slope had moved slightly, although the pattern was not uniform. Mateo asked whether they could issue a reassuring statement while the results were checked. Asha explained that uncertainty did not mean every outcome was equally likely, nor did it justify inventing precise probabilities. The monitoring team established a threshold for additional inspections and described what observations would trigger an immediate warning. A local schoolteacher, Dalia, asked how families would interpret technical measurements without training. Together they drafted an accessible bulletin that distinguished what was observed, what remained unknown, and what residents should do if officials ordered an evacuation. Asha also asked that messages reach people without smartphones, since a warning hidden inside an app could fail precisely when it mattered most. They wanted the warning system to be usable even by people who could not attend meetings or read technical reports online."
+      },
+      {
+        "word": "bulletin",
+        "meaning_ar": "نشرة",
+        "example": "The first measurements showed that several points on the slope had moved slightly, although the pattern was not uniform. Mateo asked whether they could issue a reassuring statement while the results were checked. Asha explained that uncertainty did not mean every outcome was equally likely, nor did it justify inventing precise probabilities. The monitoring team established a threshold for additional inspections and described what observations would trigger an immediate warning. A local schoolteacher, Dalia, asked how families would interpret technical measurements without training. Together they drafted an accessible bulletin that distinguished what was observed, what remained unknown, and what residents should do if officials ordered an evacuation. Asha also asked that messages reach people without smartphones, since a warning hidden inside an app could fail precisely when it mattered most. They wanted the warning system to be usable even by people who could not attend meetings or read technical reports online."
+      },
+      {
+        "word": "pressure",
+        "meaning_ar": "ضغط",
+        "example": "When the council announced the road closure, shopkeepers protested that lost traffic would damage their income during the busiest weekend of the season. Others accused officials of exaggerating a threat in order to appear cautious. Mateo felt the political pressure immediately, while Asha worried that technical explanations were becoming trapped inside arguments about credibility. She invited business owners to a briefing where they could examine the evidence and question its limits. The team discussed alternatives for deliveries and emergency services rather than dismissing economic concerns as irrelevant. Dalia observed that some residents associated evacuation with permanent displacement, recalling earlier decisions that had left families without adequate support. That history changed the conversation: officials needed not only a safety order but a credible explanation of temporary accommodation, transport and the conditions under which people could return."
+      },
+      {
+        "word": "credibility",
+        "meaning_ar": "مصداقية",
+        "example": "When the council announced the road closure, shopkeepers protested that lost traffic would damage their income during the busiest weekend of the season. Others accused officials of exaggerating a threat in order to appear cautious. Mateo felt the political pressure immediately, while Asha worried that technical explanations were becoming trapped inside arguments about credibility. She invited business owners to a briefing where they could examine the evidence and question its limits. The team discussed alternatives for deliveries and emergency services rather than dismissing economic concerns as irrelevant. Dalia observed that some residents associated evacuation with permanent displacement, recalling earlier decisions that had left families without adequate support. That history changed the conversation: officials needed not only a safety order but a credible explanation of temporary accommodation, transport and the conditions under which people could return."
+      },
+      {
+        "word": "stability",
+        "meaning_ar": "استقرار",
+        "example": "The weather improved briefly, and the visible crack stopped widening for several hours. Some commentators declared the danger over, but Asha cautioned that short-term stability did not establish long-term security. She compared groundwater observations with the rate of movement and explained why delayed failures were possible after the rain ceased. Mateo commissioned a second independent assessment, accepting the risk of criticism for spending additional funds. Dalia helped organize a public question session in which specialists answered concerns without promising that the hill would never move again. The engineers proposed a contingency plan with evacuation routes, assistance for residents with limited mobility and clearly identified decision-makers. Each measure was documented before the next storm, allowing the community to see who would act and how disagreements between specialists would be resolved. This also helped the town avoid spending its limited budget on measures that sounded impressive but lacked a defensible technical basis."
+      },
+      {
+        "word": "assessment",
+        "meaning_ar": "تقييم",
+        "example": "The weather improved briefly, and the visible crack stopped widening for several hours. Some commentators declared the danger over, but Asha cautioned that short-term stability did not establish long-term security. She compared groundwater observations with the rate of movement and explained why delayed failures were possible after the rain ceased. Mateo commissioned a second independent assessment, accepting the risk of criticism for spending additional funds. Dalia helped organize a public question session in which specialists answered concerns without promising that the hill would never move again. The engineers proposed a contingency plan with evacuation routes, assistance for residents with limited mobility and clearly identified decision-makers. Each measure was documented before the next storm, allowing the community to see who would act and how disagreements between specialists would be resolved. This also helped the town avoid spending its limited budget on measures that sounded impressive but lacked a defensible technical basis."
+      },
+      {
+        "word": "contingency",
+        "meaning_ar": "خطة احتمالية",
+        "example": "The weather improved briefly, and the visible crack stopped widening for several hours. Some commentators declared the danger over, but Asha cautioned that short-term stability did not establish long-term security. She compared groundwater observations with the rate of movement and explained why delayed failures were possible after the rain ceased. Mateo commissioned a second independent assessment, accepting the risk of criticism for spending additional funds. Dalia helped organize a public question session in which specialists answered concerns without promising that the hill would never move again. The engineers proposed a contingency plan with evacuation routes, assistance for residents with limited mobility and clearly identified decision-makers. Each measure was documented before the next storm, allowing the community to see who would act and how disagreements between specialists would be resolved. This also helped the town avoid spending its limited budget on measures that sounded impressive but lacked a defensible technical basis."
+      },
+      {
+        "word": "precautionary",
+        "meaning_ar": "احترازي",
+        "example": "A sudden change in the instruments prompted officials to evacuate a small number of houses closest to the unstable ground. The order was precautionary, not a claim that collapse was certain, and this distinction mattered to families deciding what to take. Volunteers assisted residents under the direction of trained emergency staff, avoiding dangerous attempts to inspect the slope themselves. Dalia coordinated clear updates through the school and community center, while Mateo tracked the logistics of transport and temporary accommodation. Asha remained focused on the measurements, knowing that an unexpected decrease in movement could not alone justify a return. One family complained that the process felt abrupt and impersonal. Rather than dismissing the criticism, the officials recorded it and improved their communication procedures before the next briefing, recognizing that an appropriate safety decision could still be poorly explained."
+      },
+      {
+        "word": "logistics",
+        "meaning_ar": "لوجستيات",
+        "example": "A sudden change in the instruments prompted officials to evacuate a small number of houses closest to the unstable ground. The order was precautionary, not a claim that collapse was certain, and this distinction mattered to families deciding what to take. Volunteers assisted residents under the direction of trained emergency staff, avoiding dangerous attempts to inspect the slope themselves. Dalia coordinated clear updates through the school and community center, while Mateo tracked the logistics of transport and temporary accommodation. Asha remained focused on the measurements, knowing that an unexpected decrease in movement could not alone justify a return. One family complained that the process felt abrupt and impersonal. Rather than dismissing the criticism, the officials recorded it and improved their communication procedures before the next briefing, recognizing that an appropriate safety decision could still be poorly explained."
+      },
+      {
+        "word": "communication",
+        "meaning_ar": "تواصل",
+        "example": "A sudden change in the instruments prompted officials to evacuate a small number of houses closest to the unstable ground. The order was precautionary, not a claim that collapse was certain, and this distinction mattered to families deciding what to take. Volunteers assisted residents under the direction of trained emergency staff, avoiding dangerous attempts to inspect the slope themselves. Dalia coordinated clear updates through the school and community center, while Mateo tracked the logistics of transport and temporary accommodation. Asha remained focused on the measurements, knowing that an unexpected decrease in movement could not alone justify a return. One family complained that the process felt abrupt and impersonal. Rather than dismissing the criticism, the officials recorded it and improved their communication procedures before the next briefing, recognizing that an appropriate safety decision could still be poorly explained."
+      },
+      {
+        "word": "evidence",
+        "meaning_ar": "أدلة",
+        "example": "Two days later, part of the upper slope slipped into an empty section of the closed road. There were no injuries, but photographs of the damaged surface circulated rapidly, often without explanations of what had happened. Asha examined the evidence and warned that the incident did not prove every earlier prediction correct. Some assumptions had held; others required revision in light of the actual movement. Mateo resisted the urge to claim complete vindication, because the council still faced questions about protecting buildings farther downhill. Dalia helped the school prepare a short lesson on how warnings are evaluated after an event, highlighting the difference between a successful precaution and an infallible forecast. The team emphasized that responsible risk management combined incomplete information with actions designed to reduce harm, then reviewed whether its decisions had been proportionate and timely."
+      },
+      {
+        "word": "revision",
+        "meaning_ar": "مراجعة وتصحيح",
+        "example": "Two days later, part of the upper slope slipped into an empty section of the closed road. There were no injuries, but photographs of the damaged surface circulated rapidly, often without explanations of what had happened. Asha examined the evidence and warned that the incident did not prove every earlier prediction correct. Some assumptions had held; others required revision in light of the actual movement. Mateo resisted the urge to claim complete vindication, because the council still faced questions about protecting buildings farther downhill. Dalia helped the school prepare a short lesson on how warnings are evaluated after an event, highlighting the difference between a successful precaution and an infallible forecast. The team emphasized that responsible risk management combined incomplete information with actions designed to reduce harm, then reviewed whether its decisions had been proportionate and timely."
+      },
+      {
+        "word": "precaution",
+        "meaning_ar": "احتياط",
+        "example": "Two days later, part of the upper slope slipped into an empty section of the closed road. There were no injuries, but photographs of the damaged surface circulated rapidly, often without explanations of what had happened. Asha examined the evidence and warned that the incident did not prove every earlier prediction correct. Some assumptions had held; others required revision in light of the actual movement. Mateo resisted the urge to claim complete vindication, because the council still faced questions about protecting buildings farther downhill. Dalia helped the school prepare a short lesson on how warnings are evaluated after an event, highlighting the difference between a successful precaution and an infallible forecast. The team emphasized that responsible risk management combined incomplete information with actions designed to reduce harm, then reviewed whether its decisions had been proportionate and timely."
+      },
+      {
+        "word": "fragmentation",
+        "meaning_ar": "تجزؤ",
+        "example": "Once the immediate danger passed, residents asked why earlier maintenance reports had not identified the vulnerable road. An independent reviewer found that different departments had recorded related signs but failed to connect the information. The problem involved institutional fragmentation as well as geology. Mateo accepted responsibility for improving records and proposed a shared register of slope observations that could be examined across agencies. Asha recommended simple long-term measurements and procedures for updating the risk map, warning against treating a new technological platform as an automatic solution. Dalia asked that the revised governance include public reporting and opportunities to challenge assumptions, because residents had borne the consequences of organizational failure. The council agreed to publish a schedule of reviews and to identify named officials responsible for acting when warning signs emerged. That experience shifted the council's attention from isolated incidents to the systems that determined whether information led to timely decisions."
+      },
+      {
+        "word": "register",
+        "meaning_ar": "سجل",
+        "example": "Once the immediate danger passed, residents asked why earlier maintenance reports had not identified the vulnerable road. An independent reviewer found that different departments had recorded related signs but failed to connect the information. The problem involved institutional fragmentation as well as geology. Mateo accepted responsibility for improving records and proposed a shared register of slope observations that could be examined across agencies. Asha recommended simple long-term measurements and procedures for updating the risk map, warning against treating a new technological platform as an automatic solution. Dalia asked that the revised governance include public reporting and opportunities to challenge assumptions, because residents had borne the consequences of organizational failure. The council agreed to publish a schedule of reviews and to identify named officials responsible for acting when warning signs emerged. That experience shifted the council's attention from isolated incidents to the systems that determined whether information led to timely decisions."
+      },
+      {
+        "word": "governance",
+        "meaning_ar": "حوكمة",
+        "example": "Once the immediate danger passed, residents asked why earlier maintenance reports had not identified the vulnerable road. An independent reviewer found that different departments had recorded related signs but failed to connect the information. The problem involved institutional fragmentation as well as geology. Mateo accepted responsibility for improving records and proposed a shared register of slope observations that could be examined across agencies. Asha recommended simple long-term measurements and procedures for updating the risk map, warning against treating a new technological platform as an automatic solution. Dalia asked that the revised governance include public reporting and opportunities to challenge assumptions, because residents had borne the consequences of organizational failure. The council agreed to publish a schedule of reviews and to identify named officials responsible for acting when warning signs emerged. That experience shifted the council's attention from isolated incidents to the systems that determined whether information led to timely decisions."
+      },
+      {
+        "word": "trade-offs",
+        "meaning_ar": "مقايضات",
+        "example": "The town then faced a more difficult choice about whether to rebuild the damaged road in its original location. Engineers compared alternative routes and stabilization work, while residents questioned the social cost of changing familiar journeys. Asha explained the technical trade-offs, including maintenance, environmental effects and the limits of predicting future storms. Mateo led a public review in which proposals were displayed with approximate costs and assumptions, rather than presented as a single inevitable solution. Dalia ensured that people who relied on public transport could contribute their experiences. The final decision favored a longer but more resilient route, accompanied by improved access to nearby services. Some residents remained dissatisfied, yet the process created a visible record of how competing priorities had been weighed and which commitments the council had accepted for future monitoring."
+      },
+      {
+        "word": "assumptions",
+        "meaning_ar": "افتراضات",
+        "example": "The town then faced a more difficult choice about whether to rebuild the damaged road in its original location. Engineers compared alternative routes and stabilization work, while residents questioned the social cost of changing familiar journeys. Asha explained the technical trade-offs, including maintenance, environmental effects and the limits of predicting future storms. Mateo led a public review in which proposals were displayed with approximate costs and assumptions, rather than presented as a single inevitable solution. Dalia ensured that people who relied on public transport could contribute their experiences. The final decision favored a longer but more resilient route, accompanied by improved access to nearby services. Some residents remained dissatisfied, yet the process created a visible record of how competing priorities had been weighed and which commitments the council had accepted for future monitoring."
+      },
+      {
+        "word": "priorities",
+        "meaning_ar": "أولويات",
+        "example": "The town then faced a more difficult choice about whether to rebuild the damaged road in its original location. Engineers compared alternative routes and stabilization work, while residents questioned the social cost of changing familiar journeys. Asha explained the technical trade-offs, including maintenance, environmental effects and the limits of predicting future storms. Mateo led a public review in which proposals were displayed with approximate costs and assumptions, rather than presented as a single inevitable solution. Dalia ensured that people who relied on public transport could contribute their experiences. The final decision favored a longer but more resilient route, accompanied by improved access to nearby services. Some residents remained dissatisfied, yet the process created a visible record of how competing priorities had been weighed and which commitments the council had accepted for future monitoring."
+      },
+      {
+        "word": "preparedness",
+        "meaning_ar": "استعداد",
+        "example": "Six months after the slide, Dalia invited the emergency team to discuss lessons with students and families. She wanted the conversation to include the people who had found the evacuation frightening, not only those who praised it. Asha presented the limits of the original measurements and explained how revised monitoring had changed the town's preparedness. Mateo described the new shared records and admitted where cooperation between agencies remained difficult. Their candor surprised listeners accustomed to official speeches that acknowledged only successes. A student asked whether future residents would ever be completely safe. Asha answered that landscapes were dynamic and no responsible expert could promise the absence of risk. What mattered was a continuing capacity to recognize change, communicate uncertainty and respond before people were harmed. The meeting ended with questions, not an illusion of final certainty."
+      },
+      {
+        "word": "candor",
+        "meaning_ar": "صراحة",
+        "example": "Six months after the slide, Dalia invited the emergency team to discuss lessons with students and families. She wanted the conversation to include the people who had found the evacuation frightening, not only those who praised it. Asha presented the limits of the original measurements and explained how revised monitoring had changed the town's preparedness. Mateo described the new shared records and admitted where cooperation between agencies remained difficult. Their candor surprised listeners accustomed to official speeches that acknowledged only successes. A student asked whether future residents would ever be completely safe. Asha answered that landscapes were dynamic and no responsible expert could promise the absence of risk. What mattered was a continuing capacity to recognize change, communicate uncertainty and respond before people were harmed. The meeting ended with questions, not an illusion of final certainty."
+      },
+      {
+        "word": "capacity",
+        "meaning_ar": "قدرة",
+        "example": "Six months after the slide, Dalia invited the emergency team to discuss lessons with students and families. She wanted the conversation to include the people who had found the evacuation frightening, not only those who praised it. Asha presented the limits of the original measurements and explained how revised monitoring had changed the town's preparedness. Mateo described the new shared records and admitted where cooperation between agencies remained difficult. Their candor surprised listeners accustomed to official speeches that acknowledged only successes. A student asked whether future residents would ever be completely safe. Asha answered that landscapes were dynamic and no responsible expert could promise the absence of risk. What mattered was a continuing capacity to recognize change, communicate uncertainty and respond before people were harmed. The meeting ended with questions, not an illusion of final certainty."
+      },
+      {
+        "word": "scrutiny",
+        "meaning_ar": "تدقيق",
+        "example": "On her final visit, Asha walked along the new route and looked across the damaged hillside from a designated viewpoint. Vegetation had begun returning, although the scar left by the slide remained visible. Mateo told her that the council had incorporated independent scrutiny into its annual infrastructure reviews. Dalia was preparing another community exercise, determined that emergency planning should become ordinary civic knowledge rather than a forgotten document. Asha reflected on the difference between preventing every disaster and building resilience in the face of uncertain conditions. The town could not eliminate every hazard, but it had learned to connect evidence with clear responsibilities and public understanding. She considered that an achievement of collective judgment, not individual heroism. As they left, Mateo asked whether she could finally promise no further movement. Asha smiled and answered that the more useful promise was to keep measuring, communicating and learning together."
+      },
+      {
+        "word": "resilience",
+        "meaning_ar": "صمود",
+        "example": "On her final visit, Asha walked along the new route and looked across the damaged hillside from a designated viewpoint. Vegetation had begun returning, although the scar left by the slide remained visible. Mateo told her that the council had incorporated independent scrutiny into its annual infrastructure reviews. Dalia was preparing another community exercise, determined that emergency planning should become ordinary civic knowledge rather than a forgotten document. Asha reflected on the difference between preventing every disaster and building resilience in the face of uncertain conditions. The town could not eliminate every hazard, but it had learned to connect evidence with clear responsibilities and public understanding. She considered that an achievement of collective judgment, not individual heroism. As they left, Mateo asked whether she could finally promise no further movement. Asha smiled and answered that the more useful promise was to keep measuring, communicating and learning together."
+      },
+      {
+        "word": "collective judgment",
+        "meaning_ar": "حكم جماعي",
+        "example": "On her final visit, Asha walked along the new route and looked across the damaged hillside from a designated viewpoint. Vegetation had begun returning, although the scar left by the slide remained visible. Mateo told her that the council had incorporated independent scrutiny into its annual infrastructure reviews. Dalia was preparing another community exercise, determined that emergency planning should become ordinary civic knowledge rather than a forgotten document. Asha reflected on the difference between preventing every disaster and building resilience in the face of uncertain conditions. The town could not eliminate every hazard, but it had learned to connect evidence with clear responsibilities and public understanding. She considered that an achievement of collective judgment, not individual heroism. As they left, Mateo asked whether she could finally promise no further movement. Asha smiled and answered that the more useful promise was to keep measuring, communicating and learning together."
+      }
+    ],
+    "questions": [
+      {
+        "q": "Why was the hillside road temporarily closed?",
+        "options": [
+          "For tourism",
+          "Its movement could create an immediate safety risk",
+          "To increase traffic",
+          "Because of an election"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What did Asha explain about uncertainty?",
+        "options": [
+          "It meant every outcome was equal",
+          "It made all warnings useless",
+          "It did not justify false precision",
+          "It meant no action was possible"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "What did Dalia highlight about evacuation?",
+        "options": [
+          "It was always permanent",
+          "It only affected tourists",
+          "It required no support",
+          "Past experiences influenced residents' trust"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "Why did the team request a second assessment?",
+        "options": [
+          "A short quiet period did not prove long-term safety",
+          "They disliked the first expert",
+          "To delay school",
+          "To protect a construction budget"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What did the precautionary evacuation mean?",
+        "options": [
+          "Collapse was certain",
+          "People were moved before risk became unacceptable",
+          "All roads were unsafe",
+          "The town was abandoned"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What did the small slope failure demonstrate?",
+        "options": [
+          "All predictions were perfect",
+          "The hill had stopped forever",
+          "Safety decisions could be reviewed against evidence",
+          "No further reviews were necessary"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "What institutional weakness did the independent review find?",
+        "options": [
+          "Too many residents",
+          "A lack of maps",
+          "High rainfall alone",
+          "Related warning signs were held by separate departments"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "What was the lasting lesson?",
+        "options": [
+          "Responsible preparation and shared judgment matter despite uncertainty",
+          "Experts can guarantee zero risk",
+          "Every road must close permanently",
+          "Public questions weaken decisions"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+}
