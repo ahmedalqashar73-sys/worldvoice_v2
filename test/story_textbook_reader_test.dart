@@ -4,48 +4,68 @@ import 'package:worldvoice/features/learn/data/story_library_repository.dart';
 import 'package:worldvoice/features/learn/presentation/story_textbook_reader_screen.dart';
 
 void main() {
-  testWidgets('textbook shows chapter, definition, and chapter transition',
+  testWidgets('textbook is one vertical scroll with vocabulary and chapters',
       (tester) async {
     final repository = StoryLibraryRepository();
     final entry = (await repository.loadIndex())
         .firstWhere((e) => e.id == 'en-a1-001');
-
     await tester.pumpWidget(MaterialApp(
       home: StoryTextbookReaderScreen(
-        entry: entry,
-        repository: repository,
-      ),
+        entry: entry, repository: repository),
     ));
     await tester.pumpAndSettle();
-
+    expect(find.byKey(const ValueKey('textbook-story-scroll')),
+        findsOneWidget);
+    expect(find.byType(PageView), findsNothing);
     expect(find.text('The Saturday Garden'), findsOneWidget);
-    expect(find.text('Chapter 1: The Dry Garden'), findsOneWidget);
-    expect(find.byKey(const ValueKey('textbook-image-0')), findsOneWidget);
-
-    // Paragraph content is below the large illustration; scroll it into view.
+    expect(find.byKey(const ValueKey('textbook-chapter-1')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('textbook-image-0')),
+        findsOneWidget);
+    final scroll = tester.state<ScrollableState>(
+      find.descendant(
+        of: find.byKey(const ValueKey('textbook-story-scroll')),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    expect(scroll.position.pixels, 0);
     await tester.drag(
       find.byKey(const ValueKey('textbook-image-0')),
-      const Offset(0, -460),
+      const Offset(0, -420),
     );
     await tester.pumpAndSettle();
+    expect(scroll.position.pixels, greaterThan(0));
     final keyword = find.text('morning');
-    expect(keyword, findsOneWidget);
     await tester.ensureVisible(keyword);
-    await tester.pumpAndSettle();
     await tester.tap(keyword);
     await tester.pumpAndSettle();
     expect(find.text('صباح'), findsOneWidget);
     await tester.tap(find.text('OK'));
     await tester.pumpAndSettle();
-
-    for (var i = 0; i < 5; i++) {
-      await tester.tap(find.byKey(const ValueKey('textbook-next')));
-      await tester.pumpAndSettle();
-      expect(find.text('${i + 2} / 12'), findsOneWidget);
-    }
-    expect(find.text('Chapter 2'), findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('textbook-next-chapter')));
+    final paragraphTranslation =
+        find.byKey(const ValueKey('textbook-translation-0:0:0'));
+    await tester.ensureVisible(paragraphTranslation);
+    await tester.tap(paragraphTranslation);
     await tester.pumpAndSettle();
-    expect(find.text('Chapter 2: The Garden Team'), findsOneWidget);
+    expect(find.textContaining('في صباح السبت'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('textbook-chapter-2')),
+      350,
+      scrollable: find.descendant(
+        of: find.byKey(const ValueKey('textbook-story-scroll')),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    expect(find.byKey(const ValueKey('textbook-chapter-2')),
+        findsOneWidget);
+    await tester.drag(
+      find.byKey(const ValueKey('textbook-story-scroll')),
+      const Offset(0, 420),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(PageView), findsNothing);
+    expect(find.byKey(const ValueKey('textbook-play')), findsOneWidget);
+    expect(find.byKey(const ValueKey('textbook-speed')), findsOneWidget);
   });
 }
