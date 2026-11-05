@@ -13,7 +13,8 @@
       "title": "Meeting a New Friend",
       "status": "script_ready",
       "asset": "assets/podcasts/en/A1/en-a1-pod-001.json",
-      "title_ar": "التعارف مع صديق جديد"
+      "title_ar": "التعارف مع صديق جديد",
+      "language": "en"
     },
     {
       "id": "en-a1-pod-002",
@@ -21,7 +22,8 @@
       "title": "A Morning at Home",
       "status": "planned",
       "asset": null,
-      "title_ar": "صباح في المنزل"
+      "title_ar": "صباح في المنزل",
+      "language": "en"
     },
     {
       "id": "en-a1-pod-003",
@@ -29,7 +31,8 @@
       "title": "At the Coffee Shop",
       "status": "planned",
       "asset": null,
-      "title_ar": "في المقهى"
+      "title_ar": "في المقهى",
+      "language": "en"
     },
     {
       "id": "en-a1-pod-004",
@@ -37,7 +40,8 @@
       "title": "Where Is the Bus Stop?",
       "status": "planned",
       "asset": null,
-      "title_ar": "أين موقف الحافلة؟"
+      "title_ar": "أين موقف الحافلة؟",
+      "language": "en"
     },
     {
       "id": "en-a1-pod-005",
@@ -45,7 +49,8 @@
       "title": "My Family and Yours",
       "status": "planned",
       "asset": null,
-      "title_ar": "عائلتي وعائلتك"
+      "title_ar": "عائلتي وعائلتك",
+      "language": "en"
     },
     {
       "id": "en-a1-pod-006",
@@ -53,7 +58,8 @@
       "title": "What's the Weather Like?",
       "status": "planned",
       "asset": null,
-      "title_ar": "كيف حال الطقس؟"
+      "title_ar": "كيف حال الطقس؟",
+      "language": "en"
     },
     {
       "id": "en-a1-pod-007",
@@ -61,7 +67,8 @@
       "title": "Choosing a Birthday Gift",
       "status": "planned",
       "asset": null,
-      "title_ar": "اختيار هدية عيد ميلاد"
+      "title_ar": "اختيار هدية عيد ميلاد",
+      "language": "en"
     },
     {
       "id": "en-a1-pod-008",
@@ -69,7 +76,8 @@
       "title": "Food We Love",
       "status": "planned",
       "asset": null,
-      "title_ar": "أطعمة نحبها"
+      "title_ar": "أطعمة نحبها",
+      "language": "en"
     },
     {
       "id": "en-a1-pod-009",
@@ -77,7 +85,8 @@
       "title": "My Weekend Plans",
       "status": "planned",
       "asset": null,
-      "title_ar": "خططي لعطلة نهاية الأسبوع"
+      "title_ar": "خططي لعطلة نهاية الأسبوع",
+      "language": "en"
     },
     {
       "id": "en-a1-pod-010",
@@ -85,7 +94,8 @@
       "title": "A Visit to the Market",
       "status": "planned",
       "asset": null,
-      "title_ar": "زيارة إلى السوق"
+      "title_ar": "زيارة إلى السوق",
+      "language": "en"
     },
     {
       "id": "en-a1-pod-011",
@@ -93,7 +103,8 @@
       "title": "Finding a Classroom",
       "status": "planned",
       "asset": null,
-      "title_ar": "البحث عن قاعة الدرس"
+      "title_ar": "البحث عن قاعة الدرس",
+      "language": "en"
     },
     {
       "id": "en-a1-pod-012",
@@ -101,7 +112,8 @@
       "title": "A New Neighbor",
       "status": "planned",
       "asset": null,
-      "title_ar": "جار جديد"
+      "title_ar": "جار جديد",
+      "language": "en"
     },
     {
       "id": "en-a1-pod-013",
@@ -109,7 +121,8 @@
       "title": "Favorite Sports",
       "status": "planned",
       "asset": null,
-      "title_ar": "رياضاتنا المفضلة"
+      "title_ar": "رياضاتنا المفضلة",
+      "language": "en"
     },
     {
       "id": "en-a1-pod-014",
@@ -117,7 +130,8 @@
       "title": "Talking About Our Jobs",
       "status": "planned",
       "asset": null,
-      "title_ar": "نتحدث عن وظائفنا"
+      "title_ar": "نتحدث عن وظائفنا",
+      "language": "en"
     },
     {
       "id": "en-a1-pod-015",
@@ -125,7 +139,8 @@
       "title": "A Nice Day at the Park",
       "status": "planned",
       "asset": null,
-      "title_ar": "يوم جميل في الحديقة"
+      "title_ar": "يوم جميل في الحديقة",
+      "language": "en"
     },
     {
       "id": "en-a2-pod-001",
@@ -133,7 +148,8 @@
       "title": "Planning a Weekend Trip",
       "status": "planned",
       "asset": null,
-      "title_ar": "التخطيط لرحلة في عطلة الأسبوع"
+      "title_ar": "التخطيط لرحلة في عطلة الأسبوع",
+      "language": "en"
     },
     {
       "id": "en-a2-pod-002",
@@ -141,7 +157,8 @@
       "title": "Cooking Together",
       "status": "planned",
       "asset": null,
-      "title_ar": "الطبخ معًا"
+      "title_ar": "الطبخ معًا",
+      "language": "en"
     },
     {
       "id": "en-a2-pod-003",
@@ -149,7 +166,8 @@
       "title": "The Train Is Late",
       "status": "planned",
       "asset": null,
-      "title_ar": "تأخر القطار"
+      "title_ar": "تأخر القطار",
+      "language": "en"
     },
     {
       "id": "en-a2-pod-004",
@@ -157,7 +175,8 @@
       "title": "A Surprise Invitation",
       "status": "planned",
       "asset": null,
-      "title_ar": "دعوة مفاجئة"
+      "title_ar": "دعوة مفاجئة",
+      "language": "en"
     },
     {
       "id": "en-a2-pod-005",
@@ -165,7 +184,8 @@
       "title": "Choosing a New Phone",
       "status": "planned",
       "asset": null,
-      "title_ar": "اختيار هاتف جديد"
+      "title_ar": "اختيار هاتف جديد",
+      "language": "en"
     },
     {
       "id": "en-a2-pod-006",
@@ -173,7 +193,8 @@
       "title": "A Busy Day at Work",
       "status": "planned",
       "asset": null,
-      "title_ar": "يوم مزدحم في العمل"
+      "title_ar": "يوم مزدحم في العمل",
+      "language": "en"
     },
     {
       "id": "en-a2-pod-007",
@@ -181,7 +202,8 @@
       "title": "Learning to Drive",
       "status": "planned",
       "asset": null,
-      "title_ar": "تعلم قيادة السيارة"
+      "title_ar": "تعلم قيادة السيارة",
+      "language": "en"
     },
     {
       "id": "en-a2-pod-008",
@@ -189,7 +211,8 @@
       "title": "A Visit to the Doctor",
       "status": "planned",
       "asset": null,
-      "title_ar": "زيارة إلى الطبيب"
+      "title_ar": "زيارة إلى الطبيب",
+      "language": "en"
     },
     {
       "id": "en-a2-pod-009",
@@ -197,7 +220,8 @@
       "title": "Helping a Friend Move",
       "status": "planned",
       "asset": null,
-      "title_ar": "مساعدة صديق في الانتقال"
+      "title_ar": "مساعدة صديق في الانتقال",
+      "language": "en"
     },
     {
       "id": "en-a2-pod-010",
@@ -205,7 +229,8 @@
       "title": "What Should We Watch?",
       "status": "planned",
       "asset": null,
-      "title_ar": "ماذا نشاهد؟"
+      "title_ar": "ماذا نشاهد؟",
+      "language": "en"
     },
     {
       "id": "en-a2-pod-011",
@@ -213,7 +238,8 @@
       "title": "Shopping on a Budget",
       "status": "planned",
       "asset": null,
-      "title_ar": "التسوق بميزانية محدودة"
+      "title_ar": "التسوق بميزانية محدودة",
+      "language": "en"
     },
     {
       "id": "en-a2-pod-012",
@@ -221,7 +247,8 @@
       "title": "A Day at the Museum",
       "status": "planned",
       "asset": null,
-      "title_ar": "يوم في المتحف"
+      "title_ar": "يوم في المتحف",
+      "language": "en"
     },
     {
       "id": "en-a2-pod-013",
@@ -229,7 +256,8 @@
       "title": "A Small Travel Mistake",
       "status": "planned",
       "asset": null,
-      "title_ar": "خطأ صغير أثناء السفر"
+      "title_ar": "خطأ صغير أثناء السفر",
+      "language": "en"
     },
     {
       "id": "en-a2-pod-014",
@@ -237,7 +265,8 @@
       "title": "Our Favorite Traditions",
       "status": "planned",
       "asset": null,
-      "title_ar": "تقاليدنا المفضلة"
+      "title_ar": "تقاليدنا المفضلة",
+      "language": "en"
     },
     {
       "id": "en-a2-pod-015",
@@ -245,7 +274,8 @@
       "title": "Organizing a Study Group",
       "status": "planned",
       "asset": null,
-      "title_ar": "تنظيم مجموعة للدراسة"
+      "title_ar": "تنظيم مجموعة للدراسة",
+      "language": "en"
     },
     {
       "id": "en-b1-pod-001",
@@ -253,7 +283,8 @@
       "title": "My First Day in a New City",
       "status": "planned",
       "asset": null,
-      "title_ar": "يومي الأول في مدينة جديدة"
+      "title_ar": "يومي الأول في مدينة جديدة",
+      "language": "en"
     },
     {
       "id": "en-b1-pod-002",
@@ -261,7 +292,8 @@
       "title": "Working from Home",
       "status": "planned",
       "asset": null,
-      "title_ar": "العمل من المنزل"
+      "title_ar": "العمل من المنزل",
+      "language": "en"
     },
     {
       "id": "en-b1-pod-003",
@@ -269,7 +301,8 @@
       "title": "A Trip That Went Wrong",
       "status": "planned",
       "asset": null,
-      "title_ar": "رحلة لم تسر كما خططنا"
+      "title_ar": "رحلة لم تسر كما خططنا",
+      "language": "en"
     },
     {
       "id": "en-b1-pod-004",
@@ -277,7 +310,8 @@
       "title": "Should We Spend Less?",
       "status": "planned",
       "asset": null,
-      "title_ar": "هل ينبغي أن ننفق أقل؟"
+      "title_ar": "هل ينبغي أن ننفق أقل؟",
+      "language": "en"
     },
     {
       "id": "en-b1-pod-005",
@@ -285,7 +319,8 @@
       "title": "How We Learn Languages",
       "status": "planned",
       "asset": null,
-      "title_ar": "كيف نتعلم اللغات؟"
+      "title_ar": "كيف نتعلم اللغات؟",
+      "language": "en"
     },
     {
       "id": "en-b1-pod-006",
@@ -293,7 +328,8 @@
       "title": "Making Friends Abroad",
       "status": "planned",
       "asset": null,
-      "title_ar": "تكوين صداقات في الخارج"
+      "title_ar": "تكوين صداقات في الخارج",
+      "language": "en"
     },
     {
       "id": "en-b1-pod-007",
@@ -301,7 +337,8 @@
       "title": "Planning a Community Event",
       "status": "planned",
       "asset": null,
-      "title_ar": "التخطيط لفعالية مجتمعية"
+      "title_ar": "التخطيط لفعالية مجتمعية",
+      "language": "en"
     },
     {
       "id": "en-b1-pod-008",
@@ -309,7 +346,8 @@
       "title": "Changing a Daily Habit",
       "status": "planned",
       "asset": null,
-      "title_ar": "تغيير عادة يومية"
+      "title_ar": "تغيير عادة يومية",
+      "language": "en"
     },
     {
       "id": "en-b1-pod-009",
@@ -317,7 +355,8 @@
       "title": "Why We Love Stories",
       "status": "planned",
       "asset": null,
-      "title_ar": "لماذا نحب القصص؟"
+      "title_ar": "لماذا نحب القصص؟",
+      "language": "en"
     },
     {
       "id": "en-b1-pod-010",
@@ -325,7 +364,8 @@
       "title": "A Difficult Conversation",
       "status": "planned",
       "asset": null,
-      "title_ar": "محادثة صعبة"
+      "title_ar": "محادثة صعبة",
+      "language": "en"
     },
     {
       "id": "en-b1-pod-011",
@@ -333,7 +373,8 @@
       "title": "Volunteering on Saturday",
       "status": "planned",
       "asset": null,
-      "title_ar": "التطوع يوم السبت"
+      "title_ar": "التطوع يوم السبت",
+      "language": "en"
     },
     {
       "id": "en-b1-pod-012",
@@ -341,7 +382,8 @@
       "title": "Choosing the Right Career",
       "status": "planned",
       "asset": null,
-      "title_ar": "اختيار المهنة المناسبة"
+      "title_ar": "اختيار المهنة المناسبة",
+      "language": "en"
     },
     {
       "id": "en-b1-pod-013",
@@ -349,7 +391,8 @@
       "title": "A Social Media Break",
       "status": "planned",
       "asset": null,
-      "title_ar": "استراحة من وسائل التواصل"
+      "title_ar": "استراحة من وسائل التواصل",
+      "language": "en"
     },
     {
       "id": "en-b1-pod-014",
@@ -357,7 +400,8 @@
       "title": "Dealing with a Delay",
       "status": "planned",
       "asset": null,
-      "title_ar": "التعامل مع التأخير"
+      "title_ar": "التعامل مع التأخير",
+      "language": "en"
     },
     {
       "id": "en-b1-pod-015",
@@ -365,7 +409,8 @@
       "title": "Our City in Ten Years",
       "status": "planned",
       "asset": null,
-      "title_ar": "مدينتنا بعد عشر سنوات"
+      "title_ar": "مدينتنا بعد عشر سنوات",
+      "language": "en"
     },
     {
       "id": "en-b2-pod-001",
@@ -373,7 +418,8 @@
       "title": "Is Remote Work Better?",
       "status": "planned",
       "asset": null,
-      "title_ar": "هل العمل عن بعد أفضل؟"
+      "title_ar": "هل العمل عن بعد أفضل؟",
+      "language": "en"
     },
     {
       "id": "en-b2-pod-002",
@@ -381,7 +427,8 @@
       "title": "Travel and Local Culture",
       "status": "planned",
       "asset": null,
-      "title_ar": "السفر والثقافة المحلية"
+      "title_ar": "السفر والثقافة المحلية",
+      "language": "en"
     },
     {
       "id": "en-b2-pod-003",
@@ -389,7 +436,8 @@
       "title": "What Makes a Good Teacher?",
       "status": "planned",
       "asset": null,
-      "title_ar": "ما الذي يصنع معلمًا جيدًا؟"
+      "title_ar": "ما الذي يصنع معلمًا جيدًا؟",
+      "language": "en"
     },
     {
       "id": "en-b2-pod-004",
@@ -397,7 +445,8 @@
       "title": "Technology and Personal Privacy",
       "status": "planned",
       "asset": null,
-      "title_ar": "التقنية والخصوصية الشخصية"
+      "title_ar": "التقنية والخصوصية الشخصية",
+      "language": "en"
     },
     {
       "id": "en-b2-pod-005",
@@ -405,7 +454,8 @@
       "title": "A More Sustainable Lifestyle",
       "status": "planned",
       "asset": null,
-      "title_ar": "أسلوب حياة أكثر استدامة"
+      "title_ar": "أسلوب حياة أكثر استدامة",
+      "language": "en"
     },
     {
       "id": "en-b2-pod-006",
@@ -413,7 +463,8 @@
       "title": "Should Cities Limit Cars?",
       "status": "planned",
       "asset": null,
-      "title_ar": "هل ينبغي للمدن الحد من السيارات؟"
+      "title_ar": "هل ينبغي للمدن الحد من السيارات؟",
+      "language": "en"
     },
     {
       "id": "en-b2-pod-007",
@@ -421,7 +472,8 @@
       "title": "Why People Change Careers",
       "status": "planned",
       "asset": null,
-      "title_ar": "لماذا يغير الناس وظائفهم؟"
+      "title_ar": "لماذا يغير الناس وظائفهم؟",
+      "language": "en"
     },
     {
       "id": "en-b2-pod-008",
@@ -429,7 +481,8 @@
       "title": "Can Social Media Build Community?",
       "status": "planned",
       "asset": null,
-      "title_ar": "هل تبني وسائل التواصل مجتمعًا؟"
+      "title_ar": "هل تبني وسائل التواصل مجتمعًا؟",
+      "language": "en"
     },
     {
       "id": "en-b2-pod-009",
@@ -437,7 +490,8 @@
       "title": "The Value of Creative Hobbies",
       "status": "planned",
       "asset": null,
-      "title_ar": "قيمة الهوايات الإبداعية"
+      "title_ar": "قيمة الهوايات الإبداعية",
+      "language": "en"
     },
     {
       "id": "en-b2-pod-010",
@@ -445,7 +499,8 @@
       "title": "Saving Money Without Missing Life",
       "status": "planned",
       "asset": null,
-      "title_ar": "الادخار دون تفويت متع الحياة"
+      "title_ar": "الادخار دون تفويت متع الحياة",
+      "language": "en"
     },
     {
       "id": "en-b2-pod-011",
@@ -453,7 +508,8 @@
       "title": "Learning from Failure",
       "status": "planned",
       "asset": null,
-      "title_ar": "التعلم من الفشل"
+      "title_ar": "التعلم من الفشل",
+      "language": "en"
     },
     {
       "id": "en-b2-pod-012",
@@ -461,7 +517,8 @@
       "title": "What Makes News Trustworthy?",
       "status": "planned",
       "asset": null,
-      "title_ar": "ما الذي يجعل الأخبار موثوقة؟"
+      "title_ar": "ما الذي يجعل الأخبار موثوقة؟",
+      "language": "en"
     },
     {
       "id": "en-b2-pod-013",
@@ -469,7 +526,8 @@
       "title": "The Challenge of Teamwork",
       "status": "planned",
       "asset": null,
-      "title_ar": "تحديات العمل الجماعي"
+      "title_ar": "تحديات العمل الجماعي",
+      "language": "en"
     },
     {
       "id": "en-b2-pod-014",
@@ -477,7 +535,8 @@
       "title": "Food Traditions in a Global World",
       "status": "planned",
       "asset": null,
-      "title_ar": "تقاليد الطعام في عالم متصل"
+      "title_ar": "تقاليد الطعام في عالم متصل",
+      "language": "en"
     },
     {
       "id": "en-b2-pod-015",
@@ -485,7 +544,8 @@
       "title": "How AI Changes Everyday Work",
       "status": "planned",
       "asset": null,
-      "title_ar": "كيف يغير الذكاء الاصطناعي العمل اليومي؟"
+      "title_ar": "كيف يغير الذكاء الاصطناعي العمل اليومي؟",
+      "language": "en"
     },
     {
       "id": "en-c1-pod-001",
@@ -493,7 +553,8 @@
       "title": "Language and Identity",
       "status": "planned",
       "asset": null,
-      "title_ar": "اللغة والهوية"
+      "title_ar": "اللغة والهوية",
+      "language": "en"
     },
     {
       "id": "en-c1-pod-002",
@@ -501,7 +562,8 @@
       "title": "Whose History Gets Told?",
       "status": "planned",
       "asset": null,
-      "title_ar": "من يروي التاريخ؟"
+      "title_ar": "من يروي التاريخ؟",
+      "language": "en"
     },
     {
       "id": "en-c1-pod-003",
@@ -509,7 +571,8 @@
       "title": "When Algorithms Make Choices",
       "status": "planned",
       "asset": null,
-      "title_ar": "عندما تتخذ الخوارزميات القرارات"
+      "title_ar": "عندما تتخذ الخوارزميات القرارات",
+      "language": "en"
     },
     {
       "id": "en-c1-pod-004",
@@ -517,7 +580,8 @@
       "title": "The Future of Public Spaces",
       "status": "planned",
       "asset": null,
-      "title_ar": "مستقبل المساحات العامة"
+      "title_ar": "مستقبل المساحات العامة",
+      "language": "en"
     },
     {
       "id": "en-c1-pod-005",
@@ -525,7 +589,8 @@
       "title": "Privacy Versus Convenience",
       "status": "planned",
       "asset": null,
-      "title_ar": "الخصوصية مقابل الراحة"
+      "title_ar": "الخصوصية مقابل الراحة",
+      "language": "en"
     },
     {
       "id": "en-c1-pod-006",
@@ -533,7 +598,8 @@
       "title": "How to Talk About Uncertainty",
       "status": "planned",
       "asset": null,
-      "title_ar": "كيف نتحدث عن عدم اليقين؟"
+      "title_ar": "كيف نتحدث عن عدم اليقين؟",
+      "language": "en"
     },
     {
       "id": "en-c1-pod-007",
@@ -541,7 +607,8 @@
       "title": "The Ethics of Travel",
       "status": "planned",
       "asset": null,
-      "title_ar": "أخلاقيات السفر"
+      "title_ar": "أخلاقيات السفر",
+      "language": "en"
     },
     {
       "id": "en-c1-pod-008",
@@ -549,7 +616,8 @@
       "title": "What Counts as Meaningful Work?",
       "status": "planned",
       "asset": null,
-      "title_ar": "ما معنى العمل الهادف؟"
+      "title_ar": "ما معنى العمل الهادف؟",
+      "language": "en"
     },
     {
       "id": "en-c1-pod-009",
@@ -557,7 +625,8 @@
       "title": "Can Art Bring Communities Together?",
       "status": "planned",
       "asset": null,
-      "title_ar": "هل يمكن للفن أن يجمع المجتمعات؟"
+      "title_ar": "هل يمكن للفن أن يجمع المجتمعات؟",
+      "language": "en"
     },
     {
       "id": "en-c1-pod-010",
@@ -565,7 +634,8 @@
       "title": "The Problem with Easy Answers",
       "status": "planned",
       "asset": null,
-      "title_ar": "مشكلة الإجابات السهلة"
+      "title_ar": "مشكلة الإجابات السهلة",
+      "language": "en"
     },
     {
       "id": "en-c1-pod-011",
@@ -573,7 +643,8 @@
       "title": "Education and Equal Opportunity",
       "status": "planned",
       "asset": null,
-      "title_ar": "التعليم وتكافؤ الفرص"
+      "title_ar": "التعليم وتكافؤ الفرص",
+      "language": "en"
     },
     {
       "id": "en-c1-pod-012",
@@ -581,7 +652,8 @@
       "title": "Trust in Public Information",
       "status": "planned",
       "asset": null,
-      "title_ar": "الثقة في المعلومات العامة"
+      "title_ar": "الثقة في المعلومات العامة",
+      "language": "en"
     },
     {
       "id": "en-c1-pod-013",
@@ -589,7 +661,8 @@
       "title": "Community Responses to Climate Change",
       "status": "planned",
       "asset": null,
-      "title_ar": "استجابة المجتمعات لتغير المناخ"
+      "title_ar": "استجابة المجتمعات لتغير المناخ",
+      "language": "en"
     },
     {
       "id": "en-c1-pod-014",
@@ -597,7 +670,8 @@
       "title": "Who Should Be Accountable?",
       "status": "planned",
       "asset": null,
-      "title_ar": "من يتحمل المسؤولية؟"
+      "title_ar": "من يتحمل المسؤولية؟",
+      "language": "en"
     },
     {
       "id": "en-c1-pod-015",
@@ -605,7 +679,8 @@
       "title": "Why Listening Changes Arguments",
       "status": "planned",
       "asset": null,
-      "title_ar": "كيف يغير الإصغاء طريقة النقاش؟"
+      "title_ar": "كيف يغير الإصغاء طريقة النقاش؟",
+      "language": "en"
     },
     {
       "id": "en-c2-pod-001",
@@ -613,7 +688,8 @@
       "title": "When Evidence Is Incomplete",
       "status": "planned",
       "asset": null,
-      "title_ar": "حين تكون الأدلة غير مكتملة"
+      "title_ar": "حين تكون الأدلة غير مكتملة",
+      "language": "en"
     },
     {
       "id": "en-c2-pod-002",
@@ -621,7 +697,8 @@
       "title": "Fairness Beyond Average Results",
       "status": "planned",
       "asset": null,
-      "title_ar": "الإنصاف أبعد من متوسط النتائج"
+      "title_ar": "الإنصاف أبعد من متوسط النتائج",
+      "language": "en"
     },
     {
       "id": "en-c2-pod-003",
@@ -629,7 +706,8 @@
       "title": "Who Owns Cultural Stories?",
       "status": "planned",
       "asset": null,
-      "title_ar": "من يملك القصص الثقافية؟"
+      "title_ar": "من يملك القصص الثقافية؟",
+      "language": "en"
     },
     {
       "id": "en-c2-pod-004",
@@ -637,7 +715,8 @@
       "title": "The Limits of Technological Solutions",
       "status": "planned",
       "asset": null,
-      "title_ar": "حدود الحلول التقنية"
+      "title_ar": "حدود الحلول التقنية",
+      "language": "en"
     },
     {
       "id": "en-c2-pod-005",
@@ -645,7 +724,8 @@
       "title": "Freedom of Expression and Responsibility",
       "status": "planned",
       "asset": null,
-      "title_ar": "حرية التعبير والمسؤولية"
+      "title_ar": "حرية التعبير والمسؤولية",
+      "language": "en"
     },
     {
       "id": "en-c2-pod-006",
@@ -653,7 +733,8 @@
       "title": "Risk and Public Decision-Making",
       "status": "planned",
       "asset": null,
-      "title_ar": "المخاطر وصناعة القرار العام"
+      "title_ar": "المخاطر وصناعة القرار العام",
+      "language": "en"
     },
     {
       "id": "en-c2-pod-007",
@@ -661,7 +742,8 @@
       "title": "Scientific Integrity Under Pressure",
       "status": "planned",
       "asset": null,
-      "title_ar": "النزاهة العلمية تحت الضغط"
+      "title_ar": "النزاهة العلمية تحت الضغط",
+      "language": "en"
     },
     {
       "id": "en-c2-pod-008",
@@ -669,7 +751,8 @@
       "title": "Language as a Form of Power",
       "status": "planned",
       "asset": null,
-      "title_ar": "اللغة بوصفها قوة"
+      "title_ar": "اللغة بوصفها قوة",
+      "language": "en"
     },
     {
       "id": "en-c2-pod-009",
@@ -677,7 +760,8 @@
       "title": "Ethics of Collecting Personal Data",
       "status": "planned",
       "asset": null,
-      "title_ar": "أخلاقيات جمع البيانات الشخصية"
+      "title_ar": "أخلاقيات جمع البيانات الشخصية",
+      "language": "en"
     },
     {
       "id": "en-c2-pod-010",
@@ -685,7 +769,8 @@
       "title": "The Trade-offs of Urban Development",
       "status": "planned",
       "asset": null,
-      "title_ar": "مقايضات التنمية الحضرية"
+      "title_ar": "مقايضات التنمية الحضرية",
+      "language": "en"
     },
     {
       "id": "en-c2-pod-011",
@@ -693,7 +778,8 @@
       "title": "Who Benefits from Innovation?",
       "status": "planned",
       "asset": null,
-      "title_ar": "من يستفيد من الابتكار؟"
+      "title_ar": "من يستفيد من الابتكار؟",
+      "language": "en"
     },
     {
       "id": "en-c2-pod-012",
@@ -701,7 +787,8 @@
       "title": "What Society Owes Future Generations",
       "status": "planned",
       "asset": null,
-      "title_ar": "واجب المجتمع تجاه الأجيال القادمة"
+      "title_ar": "واجب المجتمع تجاه الأجيال القادمة",
+      "language": "en"
     },
     {
       "id": "en-c2-pod-013",
@@ -709,7 +796,8 @@
       "title": "The Meaning of Consent",
       "status": "planned",
       "asset": null,
-      "title_ar": "معنى الموافقة"
+      "title_ar": "معنى الموافقة",
+      "language": "en"
     },
     {
       "id": "en-c2-pod-014",
@@ -717,7 +805,8 @@
       "title": "Building Agreement Without Consensus",
       "status": "planned",
       "asset": null,
-      "title_ar": "بناء الاتفاق دون إجماع"
+      "title_ar": "بناء الاتفاق دون إجماع",
+      "language": "en"
     },
     {
       "id": "en-c2-pod-015",
@@ -725,7 +814,165 @@
       "title": "Why Good Judgement Resists Certainty",
       "status": "planned",
       "asset": null,
-      "title_ar": "لماذا يقاوم الحكم الجيد اليقين الزائف"
+      "title_ar": "لماذا يقاوم الحكم الجيد اليقين الزائف",
+      "language": "en"
+    }
+  ],
+  "languages": [
+    {
+      "code": "en",
+      "native_name": "English",
+      "name_ar": "الإنجليزية",
+      "flag": "🇬🇧"
+    },
+    {
+      "code": "es",
+      "native_name": "Español",
+      "name_ar": "الإسبانية",
+      "flag": "🇪🇸"
+    },
+    {
+      "code": "fr",
+      "native_name": "Français",
+      "name_ar": "الفرنسية",
+      "flag": "🇫🇷"
+    },
+    {
+      "code": "ko",
+      "native_name": "한국어",
+      "name_ar": "الكورية",
+      "flag": "🇰🇷"
+    },
+    {
+      "code": "ja",
+      "native_name": "日本語",
+      "name_ar": "اليابانية",
+      "flag": "🇯🇵"
+    },
+    {
+      "code": "zh",
+      "native_name": "中文",
+      "name_ar": "الصينية",
+      "flag": "🇨🇳"
+    },
+    {
+      "code": "de",
+      "native_name": "Deutsch",
+      "name_ar": "الألمانية",
+      "flag": "🇩🇪"
+    },
+    {
+      "code": "ar",
+      "native_name": "العربية",
+      "name_ar": "العربية",
+      "flag": "🇸🇦"
+    }
+  ],
+  "episodes_per_level": 15,
+  "language_tracks": [
+    {
+      "code": "en",
+      "levels": [
+        "A1",
+        "A2",
+        "B1",
+        "B2",
+        "C1",
+        "C2"
+      ],
+      "episodes_per_level": 15,
+      "recording_status": "first_transcript_only"
+    },
+    {
+      "code": "es",
+      "levels": [
+        "A1",
+        "A2",
+        "B1",
+        "B2",
+        "C1",
+        "C2"
+      ],
+      "episodes_per_level": 15,
+      "recording_status": "not_recorded"
+    },
+    {
+      "code": "fr",
+      "levels": [
+        "A1",
+        "A2",
+        "B1",
+        "B2",
+        "C1",
+        "C2"
+      ],
+      "episodes_per_level": 15,
+      "recording_status": "not_recorded"
+    },
+    {
+      "code": "ko",
+      "levels": [
+        "A1",
+        "A2",
+        "B1",
+        "B2",
+        "C1",
+        "C2"
+      ],
+      "episodes_per_level": 15,
+      "recording_status": "not_recorded"
+    },
+    {
+      "code": "ja",
+      "levels": [
+        "A1",
+        "A2",
+        "B1",
+        "B2",
+        "C1",
+        "C2"
+      ],
+      "episodes_per_level": 15,
+      "recording_status": "not_recorded"
+    },
+    {
+      "code": "zh",
+      "levels": [
+        "A1",
+        "A2",
+        "B1",
+        "B2",
+        "C1",
+        "C2"
+      ],
+      "episodes_per_level": 15,
+      "recording_status": "not_recorded"
+    },
+    {
+      "code": "de",
+      "levels": [
+        "A1",
+        "A2",
+        "B1",
+        "B2",
+        "C1",
+        "C2"
+      ],
+      "episodes_per_level": 15,
+      "recording_status": "not_recorded"
+    },
+    {
+      "code": "ar",
+      "levels": [
+        "A1",
+        "A2",
+        "B1",
+        "B2",
+        "C1",
+        "C2"
+      ],
+      "episodes_per_level": 15,
+      "recording_status": "not_recorded"
     }
   ]
 }
