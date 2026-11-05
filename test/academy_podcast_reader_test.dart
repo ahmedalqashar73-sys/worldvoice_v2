@@ -111,7 +111,13 @@ void main() {
     expect(sentence, findsOneWidget);
     final text = tester.widget<Text>(sentence);
     final onSurface = Theme.of(tester.element(sentence)).colorScheme.onSurface;
-    expect(text.style?.color, onSurface);
+    expect(text.style?.color, const Color(0xFFF5F8F5));
+    expect(onSurface, isNot(Colors.transparent));
+    final row = find.byKey(const ValueKey('podcast-dialogue-line-0'));
+    expect(row, findsOneWidget);
+    expect(tester.widget<Material>(row).color, const Color(0xFF22302A));
+    expect(find.byKey(const ValueKey('podcast-line-text-0')), findsOneWidget);
+    expect(find.text('Anna'), findsWidgets);
     expect(find.byKey(const ValueKey('podcast-sticky-player')), findsNothing);
     final follow = find.byKey(const ValueKey('podcast-auto-follow-toggle'));
     expect(tester.widget<IconButton>(follow).tooltip, 'Disable auto-follow');

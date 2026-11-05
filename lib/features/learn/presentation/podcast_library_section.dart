@@ -428,7 +428,9 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
   bool _showArabic = false;
   bool _autoFollow = true;
   String? _error;
-  int? _activeIndex;
+  // Sentence changes must not rebuild the entire (long) transcript.
+  final ValueNotifier<int?> _activeLine = ValueNotifier<int?>(null);
+  final ValueNotifier<bool> _isPlaying = ValueNotifier<bool>(false);
   double _speed = 1.0;
   double _fontSize = 17.0;
   final Map<int, int> _answers = <int, int>{};
@@ -450,6 +452,8 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
     await _stateSubscription?.cancel();
     _positionSubscription = null;
     _stateSubscription = null;
+    _activeLine.value = null;
+    _isPlaying.value = false;
     try {
       final loaded = await widget.repository.load(widget.entry);
       if (!mounted) return;
@@ -461,9 +465,8 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
       if (!loaded.canStream) return;
       _positionSubscription = _player.positionStream.listen(_onPosition);
       _stateSubscription = _player.playerStateStream.listen((state) {
-        if (mounted) {
-          setState(() {});
-        }
+        // Only the play/pause icon listens to this, not the transcript.
+        if (mounted) _isPlaying.value = state.playing;
       });
       final local = await _offlineAudioFile(loaded);
       final offline = await local.exists() && await local.length() > 100000;
@@ -566,18 +569,32 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
   }
 
   void _onPosition(Duration position) {
+    if (!mounted) return;
     final active = _episode?.lineAt(position);
-    if (_activeIndex == active || !mounted) return;
-    setState(() => _activeIndex = active);
+    if (_activeLine.value == active) return;
+    // Do not call setState: otherwise 44+ transcript paragraphs get rebuilt
+    // whenever a new cue is spoken and older Android phones may show blanks.
+    _activeLine.value = active;
     if (!_autoFollow || active == null ||
         active < 0 || active >= _anchors.length) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || !_autoFollow) return;
-      final context = _anchors[active].currentContext;
-      if (context == null) return;
-      Scrollable.ensureVisible(context,
-          alignment: 0.26,
-          duration: const Duration(milliseconds: 300),
+      if (!mounted || !_autoFollow || !_scroll.hasClients) return;
+      final lineContext = _anchors[active].currentContext;
+      if (lineContext == null) return;
+      final render = lineContext.findRenderObject();
+      if (render is RenderBox && render.hasSize) {
+        final screenTop = render.localToGlobal(Offset.zero).dy;
+        final screenBottom = screenTop + render.size.height;
+        final viewport = MediaQuery.sizeOf(context).height;
+        final safeTop = MediaQuery.paddingOf(context).top + kToolbarHeight + 20;
+        // Reserve the sticky player and some breathing room.
+        final safeBottom = viewport - MediaQuery.paddingOf(context).bottom - 154;
+        // Never animate the scroll position when the line is already visible.
+        if (screenTop >= safeTop && screenBottom <= safeBottom) return;
+      }
+      Scrollable.ensureVisible(lineContext,
+          alignment: 0.25,
+          duration: const Duration(milliseconds: 280),
           curve: Curves.easeOutCubic);
     });
   }
@@ -616,6 +633,8 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
     _stateSubscription?.cancel();
     _player.dispose();
     _scroll.dispose();
+    _activeLine.dispose();
+    _isPlaying.dispose();
     super.dispose();
   }
 
@@ -822,15 +841,18 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                 ? total.inMilliseconds : 1;
             return Column(mainAxisSize: MainAxisSize.min, children: [
               Row(children: [
-                IconButton.filled(
-                  key: const ValueKey('podcast-play-pause'),
-                  onPressed: _playPause,
-                  style: IconButton.styleFrom(
-                    backgroundColor: const Color(0xFF1F7958),
-                    foregroundColor: Colors.white,
+                ValueListenableBuilder<bool>(
+                  valueListenable: _isPlaying,
+                  builder: (context, playing, _) => IconButton.filled(
+                    key: const ValueKey('podcast-play-pause'),
+                    onPressed: _playPause,
+                    style: IconButton.styleFrom(
+                      backgroundColor: const Color(0xFF1F7958),
+                      foregroundColor: Colors.white,
+                    ),
+                    icon: Icon(playing
+                        ? Icons.pause_rounded : Icons.play_arrow_rounded),
                   ),
-                  icon: Icon(_player.playing
-                      ? Icons.pause_rounded : Icons.play_arrow_rounded),
                 ),
                 const SizedBox(width: 8),
                 Expanded(child: Column(
@@ -883,91 +905,102 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
   }
 
   Widget _dialogueLine(PodcastDialogueLine line, int i) {
-    final scheme = Theme.of(context).colorScheme;
-    final current = _activeIndex == i && _audioLoaded;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // Explicit high-contrast ink on real Material cards prevents blank
+    // transcript blocks on some devices in dark mode.
+    final ink = isDark ? const Color(0xFFF5F8F5) : const Color(0xFF17271E);
+    final secondary = isDark
+        ? const Color(0xFFC3D6C9) : const Color(0xFF506D59);
+    final surface = isDark
+        ? (i.isEven ? const Color(0xFF22302A) : const Color(0xFF1B2822))
+        : (i.isEven ? const Color(0xFFF2F7F3) : Colors.white);
     final anna = line.speaker == 'Anna';
     final sourceIsArabic = _episode?.language == 'ar';
     final translation = sourceIsArabic
-        ? line.translationEn ?? ''
-        : line.translationAr;
-    return Container(
-      key: _anchors[i],
-      margin: const EdgeInsets.only(bottom: 3),
-      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 14),
-      decoration: BoxDecoration(
-        // Keep a stable surface in dark mode. The active sentence is marked
-        // only by a slim accent, never by a contrasting full-card overlay.
-        color: i.isEven ? scheme.surfaceContainerLow : scheme.surface,
-        border: Border(
-          bottom: BorderSide(color: scheme.outlineVariant
-              .withValues(alpha: .35)),
-          left: BorderSide(
-              color: current
-                  ? const Color(0xFF41B985)
-                  : Colors.transparent,
-              width: 4),
-        ),
-        borderRadius: BorderRadius.circular(9),
-      ),
-      child: InkWell(
-        onTap: _audioLoaded && line.startMs != null
-            ? () => _seekLine(line) : null,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: anna
-                  ? const Color(0xFFF2CEDF)
-                  : const Color(0xFFCFE0F7),
-              child: Icon(anna
-                  ? Icons.face_3_rounded
-                  : line.speaker == 'Marsha'
-                      ? Icons.face_3_outlined
-                      : Icons.face_rounded,
-                color: const Color(0xFF204D3B), size: 21),
-            ),
-            const SizedBox(width: 11),
-            Expanded(child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(children: [
-                  Text(line.speaker,
-                    style: TextStyle(
-                      color: scheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w800, fontSize: 12)),
-                ]),
-                const SizedBox(height: 5),
-                Text(
-                  line.text,
+        ? line.translationEn ?? '' : line.translationAr;
+    final canReplay = _audioLoaded && line.startMs != null;
+    // The dialogue itself is a cached child. Cue updates repaint only the
+    // slim left indicator instead of rebuilding text and avatars.
+    final paragraph = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 13),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: anna
+                ? const Color(0xFFF2CEDF) : const Color(0xFFCFE0F7),
+            child: Icon(anna
+                ? Icons.face_3_rounded
+                : line.speaker == 'Marsha'
+                    ? Icons.face_3_outlined : Icons.face_rounded,
+              color: const Color(0xFF204D3B), size: 21),
+          ),
+          const SizedBox(width: 11),
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(line.speaker,
+                textDirection: TextDirection.ltr,
+                style: TextStyle(color: secondary,
+                  fontWeight: FontWeight.w800, fontSize: 12)),
+              const SizedBox(height: 6),
+              Text(line.text,
+                key: ValueKey('podcast-line-text-$i'),
+                textDirection: sourceIsArabic
+                    ? TextDirection.rtl : TextDirection.ltr,
+                textAlign: TextAlign.start,
+                style: TextStyle(fontSize: _fontSize, height: 1.5,
+                    color: ink, fontWeight: FontWeight.w500),
+              ),
+              if (_showArabic && translation.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(translation,
                   textDirection: sourceIsArabic
-                      ? TextDirection.rtl : TextDirection.ltr,
-                  textAlign: TextAlign.start,
-                  style: TextStyle(fontSize: _fontSize,
-                    height: 1.6,
-                    // Theme foreground stays readable on every surface.
-                    color: scheme.onSurface,
-                    fontWeight: FontWeight.w500),
+                      ? TextDirection.ltr : TextDirection.rtl,
+                  style: TextStyle(fontSize: _fontSize - 2,
+                    height: 1.5, color: secondary),
                 ),
-                if (_showArabic && translation.isNotEmpty) ...[
-                  const SizedBox(height: 7),
-                  Text(
-                    translation,
-                    textDirection: sourceIsArabic
-                        ? TextDirection.ltr : TextDirection.rtl,
-                    style: TextStyle(
-                      fontSize: _fontSize - 2.5, height: 1.6,
-                      color: scheme.onSurfaceVariant),
-                  ),
-                ],
               ],
-            )),
-            if (_audioLoaded && line.startMs != null && !current)
-              Icon(Icons.play_arrow_rounded,
-                color: scheme.outline, size: 17),
+            ],
+          )),
+          if (canReplay) ...[
+            const SizedBox(width: 4),
+            Icon(Icons.play_circle_outline_rounded,
+                color: secondary, size: 18),
           ],
-        ),
+        ],
       ),
+    );
+    return ValueListenableBuilder<int?>(
+      valueListenable: _activeLine,
+      child: paragraph,
+      builder: (context, selected, child) {
+        final current = _audioLoaded && selected == i;
+        return Container(
+          key: _anchors[i],
+          margin: const EdgeInsets.only(bottom: 7),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(13),
+            border: Border(
+              left: BorderSide(
+                  color: current
+                      ? const Color(0xFF39B781) : Colors.transparent,
+                  width: 4),
+            ),
+          ),
+          child: Material(
+            key: ValueKey('podcast-dialogue-line-$i'),
+            color: surface,
+            borderRadius: BorderRadius.circular(12),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: canReplay ? () => _seekLine(line) : null,
+              child: child,
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -1047,7 +1080,15 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
           ? Center(child: _error == null
               ? const CircularProgressIndicator()
               : Text(_error!))
-          : SingleChildScrollView(
+          : NotificationListener<ScrollStartNotification>(
+              onNotification: (notification) {
+                // A manual swipe wins over auto-follow until re-enabled.
+                if (notification.dragDetails != null && _autoFollow) {
+                  setState(() => _autoFollow = false);
+                }
+                return false;
+              },
+              child: SingleChildScrollView(
               controller: _scroll,
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 30),
               child: Column(
@@ -1140,6 +1181,7 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                 ],
                 ],
               ),
+            ),
             ),
     );
   }
