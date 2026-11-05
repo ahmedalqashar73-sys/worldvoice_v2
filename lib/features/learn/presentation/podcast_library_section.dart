@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../data/academy_podcast_repository.dart';
 
@@ -109,7 +110,8 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
   Widget _episodeCard(AcademyPodcastEntry entry, int number, bool ar) {
     final theme = Theme.of(context);
     final enabled = entry.hasTranscript;
-    final isPublished = entry.status == 'published';
+    final isPublished = entry.status == 'published' ||
+        entry.status == 'published_audio';
     return Card(
       margin: const EdgeInsets.only(bottom: 9),
       elevation: 0,
@@ -152,7 +154,7 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
           padding: const EdgeInsets.only(top: 4),
           child: Text(
             isPublished
-                ? (ar ? 'استماع + قراءة متزامنة' : 'Audio + synced reading')
+                ? (ar ? 'صوت VOA الأصلي · النص والترجمة' : 'Original VOA audio · transcript')
                 : enabled
                     ? (ar ? 'اقرأ المحادثة · التسجيل لم يُضف بعد'
                         : 'Read transcript · No recording yet')
@@ -301,7 +303,14 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
           final current = snapshot.data!.where((entry) =>
               entry.language == _selectedLanguage &&
               entry.level == _selectedLevel).toList(growable: false);
-          final available = current.where((e) => e.hasTranscript).toList();
+          final available = current.where((e) => e.hasTranscript).toList()
+            ..sort((a, b) {
+              final first = a.status == 'published_audio' ||
+                  a.status == 'published' ? 0 : 1;
+              final second = b.status == 'published_audio' ||
+                  b.status == 'published' ? 0 : 1;
+              return first.compareTo(second);
+            });
           final planned = current.where((e) => !e.hasTranscript).toList();
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -423,12 +432,12 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
         _anchors = List<GlobalKey>.generate(
             loaded.dialogue.length, (_) => GlobalKey());
       });
-      if (!loaded.isPlayable) return;
+      if (!loaded.canStream) return;
       _positionSubscription = _player.positionStream.listen(_onPosition);
       _stateSubscription = _player.playerStateStream.listen((state) {
         if (mounted) {
-        setState(() {});
-      }
+          setState(() {});
+        }
       });
       await _player.setUrl(loaded.audioUrl!);
       if (mounted) {
@@ -536,20 +545,25 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
             const Icon(Icons.face_3_rounded,
                 color: Color(0xFFF3BED7), size: 20),
             const SizedBox(width: 4),
-            const Text('Anna', style: TextStyle(
-                color: Colors.white, fontWeight: FontWeight.w700)),
+            Text(episode.hosts.isNotEmpty
+                ? episode.hosts.first : 'Anna',
+                style: const TextStyle(color: Colors.white,
+                    fontWeight: FontWeight.w700)),
             const SizedBox(width: 14),
             const Icon(Icons.face_rounded,
                 color: Color(0xFFC5DDFF), size: 20),
             const SizedBox(width: 4),
-            const Text('Daniel', style: TextStyle(
-                color: Colors.white, fontWeight: FontWeight.w700)),
+            Text(episode.hosts.length > 1
+                ? episode.hosts[1] : 'Daniel',
+                style: const TextStyle(color: Colors.white,
+                    fontWeight: FontWeight.w700)),
             const Spacer(),
             const Icon(Icons.schedule, color: Color(0xFFF4D790), size: 16),
             const SizedBox(width: 5),
             Text(ready
                 ? _clock(Duration(milliseconds: episode.durationMs!))
-                : '≈ 05:00',
+                : _clock(Duration(milliseconds:
+                    episode.durationMs ?? 300000)),
                 style: const TextStyle(color: Color(0xFFF4D790),
                     fontWeight: FontWeight.w800)),
           ]),
@@ -568,13 +582,45 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                 const SizedBox(width: 9),
                 Expanded(child: Text(
                   ar
-                      ? 'نص قابل للقراءة الآن. تسجيل الصوت البشري لم يتوفر بعد.'
-                      : 'The transcript is ready. Human audio has not been published.',
+                      ? (episode.canStream
+                          ? 'تعذر تحميل الصوت. افتح المصدر الأصلي أدناه.'
+                          : 'نص قابل للقراءة الآن. التسجيل البشري لم يتوفر بعد.')
+                      : (episode.canStream
+                          ? 'Audio could not load. Open the original source below.'
+                          : 'The transcript is ready. Human audio has not been published.'),
                   style: const TextStyle(
                       color: Colors.white, fontSize: 12, height: 1.5),
                 )),
               ]),
             ),
+          ],
+          if (episode.sourceUrl != null) ...[
+            const SizedBox(height: 12),
+            InkWell(
+              onTap: () async {
+                final uri = Uri.tryParse(episode.sourceUrl!);
+                if (uri != null) {
+                  await launchUrl(uri,
+                      mode: LaunchMode.externalApplication);
+                }
+              },
+              child: const Row(children: [
+                Icon(Icons.open_in_new_rounded,
+                    size: 16, color: Color(0xFFF4D790)),
+                SizedBox(width: 6),
+                Text('VOA Learning English · Original source',
+                    style: TextStyle(color: Color(0xFFF4D790),
+                        fontWeight: FontWeight.w700, fontSize: 12)),
+              ]),
+            ),
+          ],
+          if (episode.canStream && !episode.isPlayable) ...[
+            const SizedBox(height: 8),
+            Text(ar
+                ? 'الصوت والنص الأصلي متاحان. تمييز الجملة تلقائيًا غير مفعل حتى مراجعة توقيتها مع التسجيل.'
+                : 'Original audio and transcript are available. Automatic line highlighting awaits verified timestamps.',
+                style: const TextStyle(
+                    color: Color(0xFFE0EEE5), fontSize: 11, height: 1.4)),
           ],
           if (_error != null)
             Padding(padding: const EdgeInsets.only(top: 8),
@@ -710,7 +756,11 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
               backgroundColor: anna
                   ? const Color(0xFFF2CEDF)
                   : const Color(0xFFCFE0F7),
-              child: Icon(anna ? Icons.face_3_rounded : Icons.face_rounded,
+              child: Icon(anna
+                  ? Icons.face_3_rounded
+                  : line.speaker == 'Marsha'
+                      ? Icons.face_3_outlined
+                      : Icons.face_rounded,
                 color: const Color(0xFF204D3B), size: 21),
             ),
             const SizedBox(width: 11),
@@ -755,7 +805,7 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                 ],
               ],
             )),
-            if (_audioLoaded && !current)
+            if (_audioLoaded && line.startMs != null && !current)
               Icon(Icons.play_arrow_rounded,
                 color: scheme.outline, size: 17),
           ],
