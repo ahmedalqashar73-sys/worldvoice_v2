@@ -447,14 +447,20 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                 for (var choice = 0;
                     choice < episode.questions[i].options.length;
                     choice++)
-                  RadioListTile<int>(
+                  ListTile(
                     dense: true,
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(
+                      _answers[i] == choice
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_unchecked,
+                      color: _answers[i] == choice
+                          ? const Color(0xFF198058)
+                          : scheme.outline,
+                    ),
                     title: Text(episode.questions[i].options[choice],
                         textDirection: TextDirection.ltr),
-                    value: choice,
-                    groupValue: _answers[i],
-                    onChanged: (value) =>
-                        setState(() => _answers[i] = value!),
+                    onTap: () => setState(() => _answers[i] = choice),
                   ),
                 if (_answers.containsKey(i))
                   Text(
