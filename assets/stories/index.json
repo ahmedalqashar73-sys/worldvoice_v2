@@ -17,6 +17,42 @@
       "title_ar": "حديقة يوم السبت",
       "format": "textbook",
       "asset": "assets/stories/en/A1/en-a1-001.json"
+    },
+    {
+      "id": "en-a1-002",
+      "language": "en",
+      "level": "A1",
+      "title": "The Red Bicycle",
+      "title_ar": "الدراجة الحمراء",
+      "format": "textbook",
+      "asset": "assets/stories/en/A1/en-a1-002.json"
+    },
+    {
+      "id": "en-a1-003",
+      "language": "en",
+      "level": "A1",
+      "title": "The Rainy Picnic",
+      "title_ar": "النزهة الممطرة",
+      "format": "textbook",
+      "asset": "assets/stories/en/A1/en-a1-003.json"
+    },
+    {
+      "id": "en-a1-004",
+      "language": "en",
+      "level": "A1",
+      "title": "The Market List",
+      "title_ar": "قائمة السوق",
+      "format": "textbook",
+      "asset": "assets/stories/en/A1/en-a1-004.json"
+    },
+    {
+      "id": "en-a1-005",
+      "language": "en",
+      "level": "A1",
+      "title": "The Little Music Show",
+      "title_ar": "الحفل الموسيقي الصغير",
+      "format": "textbook",
+      "asset": "assets/stories/en/A1/en-a1-005.json"
     }
   ]
 }

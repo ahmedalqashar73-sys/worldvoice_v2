@@ -12,11 +12,51 @@ void main() {
   test('both indexed A1 formats load with their correct readers', () async {
     final repository = StoryLibraryRepository();
     final entries = await repository.storiesFor(language: 'en', level: 'A1');
-    expect(entries, hasLength(2));
+    expect(entries, hasLength(6));
+    expect(entries.where((e) => e.format == 'textbook'), hasLength(5));
     final legacy = entries.firstWhere((e) => e.format == 'legacy');
     final textbook = entries.firstWhere((e) => e.format == 'textbook');
     expect((await repository.loadStory(legacy)).pages, hasLength(9));
     expect((await repository.loadTextbook(textbook)).chapters, hasLength(2));
+  });
+
+
+  test('all five A1 books have exactly ten paragraphs, four illustrations, and 8 questions', () async {
+    final repository = StoryLibraryRepository();
+    final entries = await repository.storiesFor(language: 'en', level: 'A1');
+    final textbooks = entries.where((entry) => entry.format == 'textbook');
+    expect(textbooks, hasLength(5));
+    final ids = <String>{};
+    final titles = <String>{};
+    for (final entry in textbooks) {
+      expect(ids.add(entry.id), isTrue);
+      final book = await repository.loadTextbook(entry);
+      expect(titles.add(book.title), isTrue);
+      expect(book.chapters.map((c) => c.paragraphCount), [5, 5]);
+      expect(book.chapters.map((c) => c.blocks.length), [2, 2]);
+      expect(book.vocabulary.length, greaterThanOrEqualTo(20));
+      expect(book.questions, hasLength(8));
+      for (final chapter in book.chapters) {
+        final speakers = chapter.blocks
+            .expand((b) => b.paragraphs)
+            .expand((p) => p.segments)
+            .map((segment) => segment.speaker).toSet();
+        expect(speakers, contains(StoryTextbookSpeaker.female));
+        expect(speakers, contains(StoryTextbookSpeaker.male));
+        for (final block in chapter.blocks) {
+          expect(block.paragraphs.length, inInclusiveRange(2, 3));
+          expect(block.image, isNotNull);
+          final image = await rootBundle.loadString(block.image!);
+          expect(image, contains('<svg'));
+          for (final paragraph in block.paragraphs) {
+            final wordCount =
+                paragraph.spokenText.trim().split(RegExp(r'\s+')).length;
+            expect(wordCount, inInclusiveRange(25, 40));
+            expect(paragraph.translationAr, isNotEmpty);
+          }
+        }
+      }
+    }
   });
 
   test('Saturday Garden: two chapters, 10 graded paragraphs and four illustrations',

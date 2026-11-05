@@ -98,8 +98,15 @@ class _StoryLibrarySectionState extends State<StoryLibrarySection> {
             if (!snapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
             }
-            final stories = snapshot.data!.where((entry) =>
+            final available = snapshot.data!.where((entry) =>
               entry.language == _language && entry.level == _level)
+              .toList(growable: false);
+            // The old standalone A1 example stays in the repository and
+            // remains readable; show the five curated textbook books in A1.
+            final hasTextbooks =
+                available.any((entry) => entry.format == 'textbook');
+            final stories = available.where((entry) =>
+                !hasTextbooks || entry.format == 'textbook')
               .toList(growable: false);
             if (stories.isEmpty) {
               return Padding(
