@@ -160,6 +160,19 @@
                 "segments": [
                   {
                     "speaker": "NARRATOR",
+                    "text": "Before seeking outside support, the volunteers wrote a careful **proposal** that explained the museum's goals without promising results they could not guarantee. They ranked their **priorities**, placing clearer navigation and accessible audio ahead of expensive decorative changes. Dr. Chen helped them approach a local charity about possible **sponsorship**, while Oliver prepared realistic costs for printing and staff training. Salma appreciated that the museum was taking the community's needs seriously rather than announcing a dramatic redesign. The revised budget left a small amount for evaluating future visitor experiences."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "It is a practical plan, not a perfect fantasy, Oliver said."
+                  }
+                ],
+                "translation_ar": "قبل طلب الدعم الخارجي كتب المتطوعون مقترحًا دقيقًا يشرح أهداف المتحف دون وعود غير مضمونة. رتبوا أولوياتهم فوضعوا الإشارات الواضحة والصوت المتاح قبل الزينة المكلفة. ساعدتهم الدكتورة تشن في التواصل مع جمعية محلية للحصول على رعاية، وأعد أوليفر تقديرًا واقعيًا للطباعة وتدريب الموظفين. أعجبت سلمى بجدية المتحف في الاستجابة لاحتياجات الناس. وتركوا مبلغًا صغيرًا لتقييم التجارب القادمة. قال أوليفر إنها خطة عملية وليست حلمًا مثاليًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
                     "text": "With modest funding from a local charity, the museum installed clearer navigation signs and recorded its revised audio guide. Salma helped ensure the new material was available both digitally and on printed **cards**, so visitors without smartphones were not excluded. Oliver trained volunteers to offer assistance without making **assumptions** about anyone's abilities. The curator established an ongoing **evaluation** process, because she believed the museum should keep responding as its community changed. For the first time, the volunteers felt that their project had become a lasting service rather than a temporary display."
                   },
                   {
@@ -322,6 +335,21 @@
         "word": "accessibility",
         "meaning_ar": "إمكانية الوصول",
         "example": "On opening weekend, Salma watched a grandfather lead his grandchildren through an exhibition about ordinary family life a century earlier. They stopped to discuss a sewing machine, comparing its purpose with objects in their own home. The conversation reminded her that heritage becomes meaningful when people can connect it to personal experience. Later, Dr. Chen thanked the students for challenging the museum's habits without dismissing its expertise. Salma understood that true accessibility was not a final achievement but a commitment to welcoming new questions and unfamiliar perspectives."
+      },
+      {
+        "word": "proposal",
+        "meaning_ar": "مقترح",
+        "example": "Before seeking outside support, the volunteers wrote a careful proposal that explained the museum's goals without promising results they could not guarantee. They ranked their priorities, placing clearer navigation and accessible audio ahead of expensive decorative changes. Dr. Chen helped them approach a local charity about possible sponsorship, while Oliver prepared realistic costs for printing and staff training. Salma appreciated that the museum was taking the community's needs seriously rather than announcing a dramatic redesign. The revised budget left a small amount for evaluating future visitor experiences."
+      },
+      {
+        "word": "priorities",
+        "meaning_ar": "أولويات",
+        "example": "Before seeking outside support, the volunteers wrote a careful proposal that explained the museum's goals without promising results they could not guarantee. They ranked their priorities, placing clearer navigation and accessible audio ahead of expensive decorative changes. Dr. Chen helped them approach a local charity about possible sponsorship, while Oliver prepared realistic costs for printing and staff training. Salma appreciated that the museum was taking the community's needs seriously rather than announcing a dramatic redesign. The revised budget left a small amount for evaluating future visitor experiences."
+      },
+      {
+        "word": "sponsorship",
+        "meaning_ar": "رعاية",
+        "example": "Before seeking outside support, the volunteers wrote a careful proposal that explained the museum's goals without promising results they could not guarantee. They ranked their priorities, placing clearer navigation and accessible audio ahead of expensive decorative changes. Dr. Chen helped them approach a local charity about possible sponsorship, while Oliver prepared realistic costs for printing and staff training. Salma appreciated that the museum was taking the community's needs seriously rather than announcing a dramatic redesign. The revised budget left a small amount for evaluating future visitor experiences."
       }
     ],
     "questions": [
