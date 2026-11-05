@@ -114,20 +114,38 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
       );
 
   Future<void> _openVoaLesson(VoaOriginalLesson lesson) async {
-    if (lesson.existingEpisodeId == null) {
-      if (!mounted) return;
+    if (!mounted) return;
+    // Original VOA episodes 1–12 are deliberately separate from WorldVoice
+    // script-practice slots in the CEFR index. Both audio and bilingual
+    // dialogue are loaded from the *same* VOA lesson, never synthesized.
+    if (lesson.number >= 1 && lesson.number <= 12) {
+      final entry = AcademyPodcastEntry(
+        id: lesson.id,
+        level: 'A1',
+        language: 'en',
+        title: lesson.title,
+        titleAr: lesson.titleAr,
+        status: 'published_audio',
+        asset: 'assets/podcasts/en/A1/${lesson.id}.json',
+      );
       await Navigator.of(context).push<void>(MaterialPageRoute(
-        builder: (_) => VoaOriginalAudioScreen(lesson: lesson)));
+        builder: (_) =>
+            PodcastReaderScreen(entry: entry, repository: _repository)));
       return;
     }
     final available = await _episodes;
     if (!mounted) return;
     final entry = available.where((item) =>
         item.id == lesson.existingEpisodeId).firstOrNull;
-    if (entry == null) return;
-    await Navigator.of(context).push<void>(MaterialPageRoute(
-      builder: (_) =>
-          PodcastReaderScreen(entry: entry, repository: _repository)));
+    if (entry != null) {
+      await Navigator.of(context).push<void>(MaterialPageRoute(
+        builder: (_) =>
+            PodcastReaderScreen(entry: entry, repository: _repository)));
+    } else {
+      // Never hide the authentic VOA recording if a catalog item is missing.
+      await Navigator.of(context).push<void>(MaterialPageRoute(
+        builder: (_) => VoaOriginalAudioScreen(lesson: lesson)));
+    }
   }
 
   Widget _sectionHeader(String label) => Padding(
