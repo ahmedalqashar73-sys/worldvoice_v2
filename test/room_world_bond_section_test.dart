@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:worldvoice/features/rooms/presentation/room_world_bond_section.dart';
+import 'package:worldvoice/features/profile/presentation/world_bond_level_badge.dart';
 
 void main() {
   Widget scene({
@@ -58,6 +59,7 @@ void main() {
     ));
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('worldbond-level-badge-1')), findsOneWidget);
+    expect(tester.widget<WorldBondLevelBadge>(find.byType(WorldBondLevelBadge)).relationshipType, 'friend');
     expect(find.byKey(const ValueKey('room-worldbond-section')), findsOneWidget);
     expect(find.byKey(const ValueKey('room-worldbond-gift-1')), findsNothing);
     expect(find.textContaining('100 كوين'), findsNothing);

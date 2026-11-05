@@ -34,10 +34,10 @@ void main() {
     for (final kind in ['learning', 'language', 'friend', 'duo']) {
       expect(find.byKey(ValueKey('room-chat-bond-$kind')), findsOneWidget);
     }
-    expect(find.text('LV1'), findsOneWidget);
-    expect(find.text('LV3'), findsOneWidget);
-    expect(find.text('LV5'), findsOneWidget);
-    expect(find.text('LV2'), findsOneWidget);
+    expect(find.text('Level 1'), findsOneWidget);
+    expect(find.text('Level 3'), findsOneWidget);
+    expect(find.text('Level 5'), findsOneWidget);
+    expect(find.text('Level 2'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

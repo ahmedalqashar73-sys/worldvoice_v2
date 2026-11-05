@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 
 import 'world_bond_gift_art.dart';
+import 'world_bond_identity.dart';
+import 'world_bond_level_badge.dart';
 
 /// Premium, relationship-only gift. No room/Live catalog or wallet write here:
 /// the WorldBond server endpoint confirms price and performs settlement.
 class WorldBondSpecialGiftTile extends StatelessWidget {
   const WorldBondSpecialGiftTile({
     required this.level,
+    this.relationshipType = 'learning',
     required this.name,
     required this.priceCoins,
     required this.isArabic,
@@ -16,6 +19,7 @@ class WorldBondSpecialGiftTile extends StatelessWidget {
   });
 
   final int level;
+  final String relationshipType;
   final String name;
   final int priceCoins;
   final bool isArabic;
@@ -24,18 +28,8 @@ class WorldBondSpecialGiftTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = switch (level) {
-      1 => const Color(0xFF49D6A2),
-      2 => const Color(0xFF80DEEA),
-      3 => const Color(0xFFC8A3F6),
-      _ => const Color(0xFFFFD681),
-    };
-    final deepAccent = switch (level) {
-      1 => const Color(0xFF195946),
-      2 => const Color(0xFF1B5661),
-      3 => const Color(0xFF453361),
-      _ => const Color(0xFF66481E),
-    };
+    final accent = WorldBondIdentity.accent(relationshipType);
+    final deepAccent = WorldBondIdentity.background(relationshipType);
 
     return Container(
       key: ValueKey('bond-premium-gift-tier-$level'),
@@ -68,7 +62,7 @@ class WorldBondSpecialGiftTile extends StatelessWidget {
                   border: Border.all(
                     color: accent.withValues(alpha: .7)),
                 ),
-                child: WorldBondGiftArt(level: level, size: 79),
+                child: WorldBondGiftArt(level: level, relationshipType: relationshipType, size: 79),
               ),
             ),
             const SizedBox(width: 12),
@@ -84,11 +78,9 @@ class WorldBondSpecialGiftTile extends StatelessWidget {
                       fontSize: 14,
                       fontWeight: FontWeight.w900)),
                   const SizedBox(height: 5),
-                  Text(isArabic ? 'WorldBond • الفئة $level'
-                      : 'WorldBond • Tier $level',
-                    style: TextStyle(
-                      color: accent, fontWeight: FontWeight.w700,
-                      fontSize: 11)),
+                  WorldBondLevelBadge(level: level,
+                    relationshipType: relationshipType, compact: true,
+                    isArabic: isArabic),
                   const SizedBox(height: 7),
                   Row(
                     mainAxisSize: MainAxisSize.min,

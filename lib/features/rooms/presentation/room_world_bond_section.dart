@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import '../../profile/presentation/world_bond_level_badge.dart';
+import '../../profile/presentation/world_bond_identity.dart';
 import '../../profile/presentation/world_bond_screen.dart';
 
 /// Room-card-only preview. The gallery and payment confirmation open on the
@@ -194,7 +195,7 @@ class _RoomWorldBondSectionState extends State<RoomWorldBondSection> {
                                         _RoomBondPartnerAvatar(
                                           partnerId: partnerId, tint: kind.$5)
                                       else
-                                        Icon(kind.$4, size: 26, color: kind.$5),
+                                        WorldBondBadgeArt(relationshipType: kind.$1, size: 42),
                                       const SizedBox(height: 6),
                                       Text(ar ? kind.$2 : kind.$3,
                                         maxLines: 1,
@@ -205,7 +206,7 @@ class _RoomWorldBondSectionState extends State<RoomWorldBondSection> {
                                           fontSize: 12, fontWeight: FontWeight.w800)),
                                       const SizedBox(height: 6),
                                       if (status == 'active')
-                                        WorldBondLevelBadge(level: level,
+                                        WorldBondLevelBadge(level: level, relationshipType: kind.$1,
                                           compact: true, isArabic: ar)
                                       else
                                         Text(

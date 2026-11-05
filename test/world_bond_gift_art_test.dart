@@ -1,27 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:worldvoice/features/profile/presentation/world_bond_gift_art.dart';
 
 void main() {
-  testWidgets('four exclusive WorldBond illustrations are bundled as vectors',
-      (tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: Scaffold(
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              WorldBondGiftArt(level: 1, size: 96),
-              WorldBondGiftArt(level: 2, size: 96),
-              WorldBondGiftArt(level: 3, size: 96),
-              WorldBondGiftArt(level: 4, size: 96),
-            ],
-          ),
-        ),
-      ),
-    ));
-    expect(find.byType(SvgPicture), findsNWidgets(4));
-    await tester.pump(const Duration(seconds: 2));
-    expect(tester.takeException(), isNull);
+  testWidgets('all relationships reuse the same four gift assets with their own tint', (tester) async {
+    for (final type in ['learning', 'language', 'friend', 'duo']) {
+      for (var level = 1; level <= 4; level++) {
+        await tester.pumpWidget(MaterialApp(home: Scaffold(
+          body: WorldBondGiftArt(level: level, relationshipType: type, size: 96),
+        )));
+        final image = tester.widget<Image>(find.byType(Image));
+        expect(((image.image as ResizeImage).imageProvider as AssetImage).assetName,
+          'assets/world_bond/gift_0$level.webp');
+        expect(tester.widget<ShaderMask>(find.byType(ShaderMask)).blendMode,
+          BlendMode.modulate);
+        expect(tester.takeException(), isNull);
+      }
+    }
   });
 }

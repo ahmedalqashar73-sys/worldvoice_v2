@@ -1,101 +1,42 @@
 import 'package:flutter/material.dart';
+import 'world_bond_identity.dart';
 
-/// Visual-only WorldBond relationship badge. Server remains authoritative
-/// for level and XP; the four paid gift tiers are a separate system.
+/// One emblem per relationship; the server level is text beside the emblem.
 class WorldBondLevelBadge extends StatelessWidget {
-  const WorldBondLevelBadge({
-    required this.level,
-    this.compact = false,
-    this.isArabic = true,
-    super.key,
-  });
-
+  const WorldBondLevelBadge({required this.level,
+    this.relationshipType = 'learning', this.compact = false,
+    this.isArabic = true, super.key});
   final int level;
+  final String relationshipType;
   final bool compact;
   final bool isArabic;
 
   @override
   Widget build(BuildContext context) {
     final value = level.clamp(1, 5);
-    final colors = switch (value) {
-      1 => const [Color(0xFF136E58), Color(0xFF34D4A1)],
-      2 => const [Color(0xFF127D9B), Color(0xFF74E9F4)],
-      3 => const [Color(0xFF6635A6), Color(0xFFC49EFF)],
-      4 => const [Color(0xFF996021), Color(0xFFFFDA83)],
-      _ => const [Color(0xFF137F71), Color(0xFFD5A74C)],
-    };
-    final name = isArabic
-        ? switch (value) {
-            1 => 'زمرد',
-            2 => 'سماوي',
-            3 => 'بنفسجي',
-            4 => 'ذهبي',
-            _ => 'ملكي',
-          }
-        : switch (value) {
-            1 => 'Emerald',
-            2 => 'Azure',
-            3 => 'Amethyst',
-            4 => 'Gold',
-            _ => 'Royal',
-          };
-
+    final accent = WorldBondIdentity.accent(relationshipType);
     return Semantics(
-      label: isArabic ? 'شارة رابطة $name المستوى $value'
-          : '$name WorldBond badge level $value',
+      label: isArabic ? 'شارة العلاقة المستوى $value'
+          : 'WorldBond badge level $value',
       child: Container(
         key: ValueKey('worldbond-level-badge-$value'),
-        padding: EdgeInsets.symmetric(
-          horizontal: compact ? 7 : 10,
-          vertical: compact ? 4 : 7,
-        ),
+        padding: EdgeInsets.symmetric(horizontal: compact ? 5 : 9, vertical: 2),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: colors,
-          ),
-          borderRadius: BorderRadius.circular(40),
-          border: Border.all(
-            color: const Color(0xFFFFE7AB),
-            width: 1.2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: colors.first.withValues(alpha: .25),
-              blurRadius: 9,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          gradient: LinearGradient(colors: [
+            WorldBondIdentity.background(relationshipType),
+            const Color(0xFF111C20),
+          ]),
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: accent.withValues(alpha: .65)),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              switch (value) {
-                1 => Icons.spa_rounded,
-                2 => Icons.water_drop_rounded,
-                3 => Icons.auto_awesome_rounded,
-                4 => Icons.workspace_premium_rounded,
-                _ => Icons.workspace_premium_rounded,
-              },
-              size: compact ? 13 : 17,
-              color: Colors.white,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              compact ? 'LV$value' : '$name · LV$value',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: compact ? 10 : 12,
-                fontWeight: FontWeight.w900,
-                shadows: const [
-                  Shadow(color: Color(0x99000000), blurRadius: 3),
-                ],
-              ),
-            ),
-          ],
-        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          WorldBondBadgeArt(relationshipType: relationshipType,
+            size: compact ? 26 : 38),
+          const SizedBox(width: 4),
+          Text('Level $value', textDirection: TextDirection.ltr,
+            style: TextStyle(color: accent, fontSize: compact ? 10 : 12,
+              fontWeight: FontWeight.w800)),
+        ]),
       ),
     );
   }

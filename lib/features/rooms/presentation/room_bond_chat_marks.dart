@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../profile/presentation/world_bond_screen.dart';
+import '../../profile/presentation/world_bond_level_badge.dart';
 
 /// Only used beside the message author in voice-room chat. Does NOT alter
 /// user profiles, DM, Home comments or the existing VIP/gift-level marks.
@@ -114,27 +115,11 @@ class _RoomBondChatMarksState extends State<RoomBondChatMarks> {
             for (final item in designs)
               if (((data[item.$1] as num?)?.toInt() ?? 0) > 0)
                 Tooltip(
-                  message: '${item.$2} · LV${data[item.$1]}',
-                  child: Container(
+                  message: '${item.$2} · Level ${data[item.$1]}',
+                  child: WorldBondLevelBadge(
                     key: ValueKey('room-chat-bond-${item.$1}'),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 5, vertical: 2),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      gradient: LinearGradient(colors: [
-                        item.$4.withValues(alpha: .65),
-                        const Color(0xFF17372D),
-                      ]),
-                      border: Border.all(color: item.$4),
-                    ),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      Icon(item.$3, size: 12, color: Colors.white),
-                      const SizedBox(width: 2),
-                      Text('LV${data[item.$1]}',
-                        style: const TextStyle(fontSize: 10,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900)),
-                    ]),
+                    relationshipType: item.$1,
+                    level: (data[item.$1] as num).toInt(), compact: true,
                   ),
                 ),
           ],

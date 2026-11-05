@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:worldvoice/features/profile/presentation/world_bond_screen.dart';
+import 'package:worldvoice/features/profile/presentation/world_bond_gift_art.dart';
 
 void main() {
   testWidgets('failed send never reports success and retry keeps idempotency key', (tester) async {
@@ -25,6 +26,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const ValueKey('worldbond-focused-gift-gallery')),
         findsOneWidget);
+    expect(tester.widget<WorldBondGiftArt>(find.byType(WorldBondGiftArt)).relationshipType, 'friend');
+    expect(find.byKey(const ValueKey('worldbond-relationship-badges')), findsNothing);
     expect(find.text('Wishlist'), findsNothing);
     expect(find.text('Gift wall'), findsNothing);
     for(var i=0;i<2;i++) {
@@ -38,6 +41,9 @@ void main() {
         of: find.byType(AlertDialog),
         matching: find.textContaining('100 coins'),
       ),findsOneWidget);
+      final previewArt = tester.widget<WorldBondGiftArt>(find.descendant(
+        of: find.byType(AlertDialog), matching: find.byType(WorldBondGiftArt)));
+      expect(previewArt.relationshipType, 'friend');
       await tester.tap(find.widgetWithText(FilledButton,'Send').last);
       await tester.pumpAndSettle();
       expect(find.text('Gift delivered'),findsNothing);

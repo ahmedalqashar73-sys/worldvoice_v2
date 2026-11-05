@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'world_bond_gift_art.dart';
+import 'world_bond_identity.dart';
+import 'world_bond_level_badge.dart';
 
 /// An exclusive relationship gift in a room-store-style two-column gallery.
 /// Sending is still verified and charged by the WorldBond backend.
 class WorldBondGiftGalleryTile extends StatelessWidget {
   const WorldBondGiftGalleryTile({
     required this.level,
+    this.relationshipType = 'learning',
     required this.name,
     required this.priceCoins,
     required this.isArabic,
@@ -15,6 +18,7 @@ class WorldBondGiftGalleryTile extends StatelessWidget {
   });
 
   final int level;
+  final String relationshipType;
   final String name;
   final int priceCoins;
   final bool isArabic;
@@ -23,18 +27,8 @@ class WorldBondGiftGalleryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = switch (level) {
-      1 => const Color(0xFF2FD6A0),
-      2 => const Color(0xFF6CDAF5),
-      3 => const Color(0xFFC6A2FF),
-      _ => const Color(0xFFFFD17A),
-    };
-    final background = switch (level) {
-      1 => const Color(0xFF114E3D),
-      2 => const Color(0xFF17495A),
-      3 => const Color(0xFF403060),
-      _ => const Color(0xFF5D431C),
-    };
+    final accent = WorldBondIdentity.accent(relationshipType);
+    final background = WorldBondIdentity.background(relationshipType);
     return Container(
       key: ValueKey('worldbond-gallery-gift-$level'),
       padding: const EdgeInsets.fromLTRB(7, 10, 7, 9),
@@ -60,7 +54,7 @@ class WorldBondGiftGalleryTile extends StatelessWidget {
                 BoxShadow(color: accent.withValues(alpha: .22), blurRadius: 15),
               ],
             ),
-            child: WorldBondGiftArt(level: level, size: 94),
+            child: WorldBondGiftArt(level: level, relationshipType: relationshipType, size: 94),
           ),
           const SizedBox(height: 6),
           Text(
@@ -70,11 +64,8 @@ class WorldBondGiftGalleryTile extends StatelessWidget {
               color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 5),
-          Text(
-            'LV$level',
-            style: TextStyle(
-              color: accent, fontSize: 11, fontWeight: FontWeight.w900),
-          ),
+          WorldBondLevelBadge(level: level, relationshipType: relationshipType,
+            compact: true, isArabic: isArabic),
           const SizedBox(height: 4),
           Text(
             '$priceCoins ${isArabic ? 'كوين' : 'coins'}',

@@ -94,7 +94,7 @@ flutter:
     - assets/gifts/worldvoice_gifts.json
     - assets/gifts/catalog/
     - assets/gifts/hd/
-    - assets/world_bond/ # Exclusive four WorldBond SVG illustrations (not room gifts)
+    - assets/world_bond/ # WorldBond relationship badges and four shared gift artworks
     - assets/backgrounds/
     - assets/chat_wallpapers/
     - assets/chat_bubbles/

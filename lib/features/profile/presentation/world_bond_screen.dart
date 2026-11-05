@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'world_bond_level_badge.dart';
+import 'world_bond_identity.dart';
 import 'world_bond_gift_art.dart';
 import 'world_bond_gift_gallery_tile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -98,6 +99,14 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
   String label(String arabic, String english) => ar ? arabic : english;
   String get uid => widget.viewerId ?? FirebaseAuth.instance.currentUser?.uid ?? '';
   WorldBondRequest get _request => widget.request ?? WorldBondApi.request;
+  String? _galleryType;
+  String get _giftRelationshipType {
+    if (widget.focusType != null) return widget.focusType!;
+    if (_galleryType != null) return _galleryType!;
+    final active = group('bonds').where((b) => b['status'] == 'active' &&
+      (self || (b['members'] as List? ?? []).contains(widget.peerId)));
+    return active.isEmpty ? 'learning' : active.first['type'].toString();
+  }
   bool get self => widget.peerId == null || widget.peerId == uid;
   List<Map<String, dynamic>> group(String key) {
     return (_data?[key] as List? ?? []).whereType<Map>()
@@ -310,7 +319,7 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
     final bonds = group('bonds').where((b) =>
       b['status'] == 'active' &&
       (b['members'] as List? ?? []).contains(widget.peerId) &&
-      (widget.focusType == null || b['type'] == widget.focusType)).toList();
+      b['type'] == _giftRelationshipType).toList();
     // Never silently charge a gift against a different relationship type
     // when opening a specific friend/language/learning/duo slot.
     if (bonds.isEmpty) {
@@ -328,7 +337,8 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
       builder: (ctx) => AlertDialog(
         title: Text(label('هدية WorldBond الخاصة', 'Exclusive WorldBond gift')),
         content: Column(mainAxisSize: MainAxisSize.min, children: [
-          WorldBondGiftArt(level: (gift['level'] as num).toInt(), size: 120),
+          WorldBondGiftArt(relationshipType: bond['type'].toString(),
+              level: (gift['level'] as num).toInt(), size: 120),
           const SizedBox(height: 12),
           Text(label('${gift['nameAr']} — فئة الهدية ${gift['level']}\n'
             'إلى ${widget.peerName ?? widget.peerId}: $price كوين',
@@ -366,7 +376,8 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
         await showDialog<void>(context: context, builder: (ctx) => AlertDialog(
           title: Text(label('تم إرسال الهدية', 'Gift delivered')),
           content: Column(mainAxisSize: MainAxisSize.min, children: [
-            WorldBondGiftArt(level: (gift['level'] as num).toInt(), size: 160),
+            WorldBondGiftArt(relationshipType: bond['type'].toString(),
+              level: (gift['level'] as num).toInt(), size: 160),
             Text((ar ? gift['nameAr'] : gift['name']).toString()),
           ]),
           actions: [TextButton(onPressed: () => Navigator.pop(ctx),
@@ -460,7 +471,7 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
         .toList();
     final acceptedBond = bonds.any((bond) =>
         bond['status'] == 'active' &&
-        (widget.focusType == null || bond['type'] == widget.focusType));
+        bond['type'] == _giftRelationshipType);
     final displayedKindOrder = <String>[
       if (widget.focusType != null && kinds.containsKey(widget.focusType))
         widget.focusType!
@@ -470,6 +481,13 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
     // A dedicated four-item gallery is opened from one relationship tile.
     // Room/Live gift widgets and the global app theme are untouched.
     final focusedGiftGallery = <Widget>[
+      if (widget.focusType == null) Wrap(spacing: 6, runSpacing: 6,
+        children: [for (final type in kinds.keys) ChoiceChip(
+          avatar: WorldBondBadgeArt(relationshipType: type, size: 24),
+          label: Text(kind(type)), selected: _giftRelationshipType == type,
+          onSelected: _busy ? null : (_) => setState(() => _galleryType = type),
+        )],
+      ),
       const SizedBox(height: 12),
       Text(label('معرض هدايا العلاقة', 'Relationship gift gallery'),
         style: Theme.of(context).textTheme.titleLarge),
@@ -491,6 +509,7 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
               SizedBox(
                 width: width,
                 child: WorldBondGiftGalleryTile(
+                  relationshipType: _giftRelationshipType,
                   level: (gift['level'] as num?)?.toInt() ?? 1,
                   name: (ar ? gift['nameAr'] : gift['name']).toString(),
                   priceCoins: (gift['priceCoins'] as num?)?.toInt() ?? 0,
@@ -547,7 +566,7 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
               if (!bonds.any((b) => b['type'] == kindCode &&
                   (b['status'] == 'pending' || b['status'] == 'active')))
                 Card(child: ListTile(
-                  leading: Icon(kinds[kindCode], color: green),
+                  leading: WorldBondBadgeArt(relationshipType: kindCode),
                   title: Text(kind(kindCode)),
                   subtitle: Text(label('صلاحية الدعوة 48 ساعة',
                     '48-hour invitation')),
@@ -566,13 +585,15 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
               child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ListTile(
-                    leading: Icon(kinds[bond['type']] ?? Icons.people, color: green),
+                    leading: bond['status'] == 'active' ? null
+                        : WorldBondBadgeArt(relationshipType: bond['type'].toString()),
                     title: Text(kind(bond['type'].toString())),
                     subtitle: Text(bond['status'] == 'pending'
                       ? label('بانتظار القبول', 'Awaiting acceptance')
-                      : 'LV${bond['level']} • ${bond['xp']} XP'),
+                      : '${bond['xp']} XP'),
                     trailing: bond['status'] == 'active'
                       ? WorldBondLevelBadge(
+                          relationshipType: bond['type'].toString(),
                           level: (bond['level'] as num?)?.toInt() ?? 1,
                           isArabic: ar,
                           compact: true)
@@ -593,24 +614,6 @@ class _WorldBondScreenState extends State<WorldBondScreen> {
                           child: Text(label('إلغاء الدعوة', 'Cancel invite'))),
                     ]),
                   if (bond['status'] == 'active') ...[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Wrap(
-                        key: const ValueKey('worldbond-relationship-badges'),
-                        spacing: 6, runSpacing: 7,
-                        children: [
-                          for (var tier = 1; tier <= 5; tier++)
-                            Opacity(
-                              opacity: tier <=
-                                  ((bond['level'] as num?)?.toInt() ?? 1)
-                                  ? 1 : .38,
-                              child: WorldBondLevelBadge(
-                                level: tier, isArabic: ar,
-                                compact: true),
-                            ),
-                        ],
-                      ),
-                    ),
                     LinearProgressIndicator(
                       value: ((bond['xp'] as num? ?? 0).toDouble() / 2200)
                         .clamp(0.0, 1.0), color: green),
