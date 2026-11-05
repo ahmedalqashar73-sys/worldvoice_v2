@@ -1,0 +1,550 @@
+{
+  "schema": 1,
+  "id": "es-a1-pod-001",
+  "language": "es",
+  "level": "A1",
+  "title": "Conocer a un nuevo amigo",
+  "title_ar": "التعارف مع صديق جديد",
+  "hosts": [
+    "Anna",
+    "Daniel"
+  ],
+  "status": "script_ready",
+  "recording_kind": null,
+  "voice_rights_verified": false,
+  "audio_url": null,
+  "duration_ms": null,
+  "dialogue": [
+    {
+      "speaker": "Daniel",
+      "text": "Hola, ¿está libre esta silla? Hay mucha gente en la cafetería hoy.",
+      "translation_ar": "مرحبًا، هل هذا الكرسي فارغ؟ هناك أشخاص كثيرون في المقهى اليوم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Sí, está libre. Siéntate, por favor. ¿Esperas a alguien?",
+      "translation_ar": "نعم، إنه فارغ. تفضل بالجلوس. هل تنتظر أحدًا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "No, no espero a nadie. Soy nuevo en este barrio.",
+      "translation_ar": "لا، لا أنتظر أحدًا. أنا جديد في هذا الحي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "¡Bienvenido! Me llamo Anna. ¿Cómo te llamas tú?",
+      "translation_ar": "أهلًا بك! اسمي آنا. ما اسمك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "Me llamo Daniel. Mucho gusto, Anna.",
+      "translation_ar": "اسمي دانيال. تشرفت بمعرفتك يا آنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Mucho gusto, Daniel. ¿Vives cerca de esta cafetería?",
+      "translation_ar": "تشرفت بمعرفتك يا دانيال. هل تسكن بالقرب من هذا المقهى؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "Sí, vivo en la calle Verde. Mi casa es pequeña.",
+      "translation_ar": "نعم، أسكن في شارع فيردي. منزلي صغير.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "¡Qué bien! Yo vivo en esa calle también.",
+      "translation_ar": "جميل! وأنا أسكن في ذلك الشارع أيضًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "¿En serio? Entonces, tal vez somos vecinos.",
+      "translation_ar": "حقًا؟ إذن ربما نحن جيران.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Creo que sí. Mi casa está al lado de una librería.",
+      "translation_ar": "أظن ذلك. منزلي بجانب مكتبة لبيع الكتب.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "Ah, conozco esa librería. Tiene una puerta azul.",
+      "translation_ar": "آه، أعرف تلك المكتبة. لها باب أزرق.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Exactamente. ¿Te gusta leer libros?",
+      "translation_ar": "بالضبط. هل تحب قراءة الكتب؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "Sí, me gusta mucho. Leo un poco cada noche.",
+      "translation_ar": "نعم، أحب ذلك كثيرًا. أقرأ قليلًا كل ليلة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Yo también. Y escucho música cuando estoy en casa.",
+      "translation_ar": "وأنا أيضًا. وأستمع إلى الموسيقى عندما أكون في المنزل.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "¿Qué música te gusta escuchar?",
+      "translation_ar": "ما نوع الموسيقى الذي تحبين الاستماع إليه؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Me gusta la música tranquila. ¿Y a ti?",
+      "translation_ar": "أحب الموسيقى الهادئة. وماذا عنك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "Me gusta el jazz y a veces la música pop.",
+      "translation_ar": "أحب الجاز وأحيانًا موسيقى البوب.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Mira, viene el camarero. ¿Ya sabes qué quieres tomar?",
+      "translation_ar": "انظر، النادل قادم. هل تعرف ماذا تريد أن تشرب؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "Quiero un café pequeño con leche, por favor.",
+      "translation_ar": "أريد قهوة صغيرة بالحليب، من فضلك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Buena idea. Yo quiero un té caliente con limón.",
+      "translation_ar": "فكرة جيدة. أريد شايًا ساخنًا بالليمون.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "¿Vienes aquí todos los días?",
+      "translation_ar": "هل تأتين إلى هنا كل يوم؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No, solo los martes y los viernes por la mañana.",
+      "translation_ar": "لا، فقط صباح الثلاثاء والجمعة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "¿Por qué esos días? ¿No trabajas entonces?",
+      "translation_ar": "لماذا في هذين اليومين؟ ألا تعملين حينها؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Sí, trabajo en la biblioteca cerca del parque.",
+      "translation_ar": "بلى، أعمل في المكتبة القريبة من الحديقة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "¡Una biblioteca! Parece un lugar muy bonito.",
+      "translation_ar": "مكتبة! يبدو مكانًا جميلًا جدًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Lo es. Me encanta mi trabajo y me gustan los libros.",
+      "translation_ar": "نعم. أحب عملي كثيرًا وأحب الكتب.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "Yo trabajo en una escuela pequeña. Soy profesor de inglés.",
+      "translation_ar": "أنا أعمل في مدرسة صغيرة. أنا معلم لغة إنجليزية.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "¡Qué interesante! ¿Tus estudiantes hablan mucho inglés?",
+      "translation_ar": "هذا ممتع! هل يتحدث طلابك الإنجليزية كثيرًا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "Algunos hablan mucho. Otros son tímidos al principio.",
+      "translation_ar": "بعضهم يتحدث كثيرًا، وآخرون خجولون في البداية.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Lo entiendo. Yo soy tímida cuando hablo otro idioma.",
+      "translation_ar": "أفهم ذلك. أنا خجولة عندما أتحدث لغة أخرى.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "¿Qué idioma estás aprendiendo ahora?",
+      "translation_ar": "أي لغة تتعلمين الآن؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Estoy aprendiendo español. Hablo un poco, pero necesito practicar.",
+      "translation_ar": "أنا أتعلم الإسبانية. أتحدث قليلًا، لكنني أحتاج للتدرب.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "¡Yo también! Podemos practicar juntos aquí.",
+      "translation_ar": "وأنا أيضًا! يمكننا التدرب معًا هنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Sí, podemos hablar cinco minutos cada semana.",
+      "translation_ar": "نعم، يمكننا التحدث خمس دقائق كل أسبوع.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "Me parece perfecto. Oye, ¿dónde está el parque?",
+      "translation_ar": "يبدو هذا رائعًا. بالمناسبة، أين الحديقة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Está cerca. Sigue recto y gira a la izquierda en la panadería.",
+      "translation_ar": "هي قريبة. امشِ مستقيمًا وانعطف يسارًا عند المخبز.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "¿Recto y luego a la izquierda?",
+      "translation_ar": "مستقيمًا ثم إلى اليسار؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Sí. Después camina dos minutos más. Es muy fácil.",
+      "translation_ar": "نعم. ثم امشِ دقيقتين إضافيتين. الأمر سهل جدًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "Gracias. Me gusta caminar después de cenar.",
+      "translation_ar": "شكرًا. أحب المشي بعد العشاء.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Yo camino por la mañana, antes de ir al trabajo.",
+      "translation_ar": "أنا أمشي صباحًا قبل الذهاب إلى العمل.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "¿A qué hora empiezas a trabajar?",
+      "translation_ar": "في أي ساعة تبدئين العمل؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "A las nueve. Salgo de casa a las ocho y media.",
+      "translation_ar": "في التاسعة. أغادر المنزل في الثامنة والنصف.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "Mi escuela abre a las ocho. Me levanto temprano.",
+      "translation_ar": "مدرستي تفتح في الثامنة. أستيقظ مبكرًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "¡Muy temprano! ¿Desayunas en casa?",
+      "translation_ar": "مبكر جدًا! هل تتناول الفطور في البيت؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "Sí. Normalmente como pan con huevos y una fruta.",
+      "translation_ar": "نعم. عادةً آكل الخبز مع البيض وفاكهة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Yo como yogur, fruta y un poco de pan.",
+      "translation_ar": "أنا آكل الزبادي والفاكهة وقليلًا من الخبز.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "Ahora tengo hambre. Quiero un bocadillo también.",
+      "translation_ar": "أنا جائع الآن. أريد شطيرة أيضًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Los bocadillos de queso aquí están muy ricos.",
+      "translation_ar": "شطائر الجبن هنا لذيذة جدًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "Entonces voy a pedir uno. Gracias por la recomendación.",
+      "translation_ar": "إذن سأطلب واحدة. شكرًا على الاقتراح.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "De nada. Mira, ya viene tu café con leche.",
+      "translation_ar": "على الرحب والسعة. انظر، قهوتك بالحليب قادمة الآن.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "¡Qué bien! Huele muy bien. ¿Tienes tiempo para hablar?",
+      "translation_ar": "رائع! رائحتها جميلة جدًا. هل لديك وقت للحديث؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Tengo unos minutos, pero pronto debo ir al trabajo.",
+      "translation_ar": "لدي بضع دقائق، لكن علي الذهاب إلى العمل قريبًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "Está bien. ¿Podemos encontrarnos aquí el viernes?",
+      "translation_ar": "حسنًا. هل يمكننا اللقاء هنا يوم الجمعة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Claro. El viernes a las diez de la mañana.",
+      "translation_ar": "بالتأكيد. يوم الجمعة الساعة العاشرة صباحًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "Perfecto. Podemos hablar de nuestra semana y practicar.",
+      "translation_ar": "ممتاز. يمكننا الحديث عن أسبوعنا والتدرب.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Y también podemos aprender palabras nuevas juntos.",
+      "translation_ar": "ويمكننا أيضًا تعلم كلمات جديدة معًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "Buena idea. A veces cometo errores cuando hablo.",
+      "translation_ar": "فكرة جيدة. أحيانًا أرتكب أخطاء عندما أتحدث.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No pasa nada. Los errores nos ayudan a aprender.",
+      "translation_ar": "لا بأس. الأخطاء تساعدنا على التعلم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "Tienes razón. Estoy contento de conocerte, Anna.",
+      "translation_ar": "أنت محقة. أنا سعيد بمعرفتك يا آنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Yo también, Daniel. ¡Bienvenido al barrio!",
+      "translation_ar": "وأنا أيضًا يا دانيال. أهلًا بك في الحي!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Daniel",
+      "text": "Muchas gracias. ¡Hasta el viernes!",
+      "translation_ar": "شكرًا جزيلًا. أراك يوم الجمعة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "¡Hasta el viernes! Que disfrutes tu café y tu bocadillo.",
+      "translation_ar": "إلى الجمعة! استمتع بقهوتك وشطيرتك.",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "vecino",
+      "meaning_ar": "جار"
+    },
+    {
+      "word": "cafetería",
+      "meaning_ar": "مقهى"
+    },
+    {
+      "word": "librería",
+      "meaning_ar": "مكتبة لبيع الكتب"
+    },
+    {
+      "word": "biblioteca",
+      "meaning_ar": "مكتبة عامة"
+    },
+    {
+      "word": "camarero",
+      "meaning_ar": "نادل"
+    },
+    {
+      "word": "profesor",
+      "meaning_ar": "معلم"
+    },
+    {
+      "word": "tímido",
+      "meaning_ar": "خجول"
+    },
+    {
+      "word": "panadería",
+      "meaning_ar": "مخبز"
+    },
+    {
+      "word": "desayuno",
+      "meaning_ar": "فطور"
+    },
+    {
+      "word": "bocadillo",
+      "meaning_ar": "شطيرة"
+    },
+    {
+      "word": "practicar",
+      "meaning_ar": "يتدرب"
+    },
+    {
+      "word": "barrio",
+      "meaning_ar": "حيّ"
+    }
+  ],
+  "questions": [
+    {
+      "question": "¿Dónde vive Daniel?",
+      "options": [
+        "En la calle Verde",
+        "En el parque",
+        "En la escuela"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "¿Dónde trabaja Anna?",
+      "options": [
+        "En una escuela",
+        "En una biblioteca",
+        "En una tienda"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "¿Qué quiere tomar Daniel?",
+      "options": [
+        "Un té",
+        "Un zumo",
+        "Un café con leche"
+      ],
+      "answer": 2
+    },
+    {
+      "question": "¿Cuándo van a encontrarse otra vez?",
+      "options": [
+        "El viernes",
+        "El lunes",
+        "El domingo"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "¿Qué quieren practicar juntos?",
+      "options": [
+        "Deporte",
+        "Un idioma",
+        "Cocina"
+      ],
+      "answer": 1
+    }
+  ]
+}
