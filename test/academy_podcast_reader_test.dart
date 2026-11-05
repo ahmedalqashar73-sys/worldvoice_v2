@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:worldvoice/features/learn/data/academy_podcast_repository.dart';
 import 'package:worldvoice/features/learn/presentation/podcast_library_section.dart';
 
 void main() {
@@ -89,4 +90,47 @@ void main() {
         findsOneWidget);
   });
 
+  testWidgets('dark-mode conversation text stays readable on its surface',
+      (tester) async {
+    const entry = AcademyPodcastEntry(
+      id: 'en-a1-static-review', level: 'A1',
+      title: 'Reader contrast test', status: 'script_ready',
+      asset: 'assets/podcasts/en/A1/en-a1-pod-001.json',
+    );
+    await tester.pumpWidget(MaterialApp(
+      theme: ThemeData.dark(),
+      home: const PodcastReaderScreen(
+        entry: entry, repository: _StaticTranscriptRepository()),
+    ));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 150));
+    final sentence = find.text(
+        'Everyone has a skill. You need to find yours.');
+    expect(sentence, findsOneWidget);
+    final text = tester.widget<Text>(sentence);
+    final onSurface = Theme.of(tester.element(sentence)).colorScheme.onSurface;
+    expect(text.style?.color, onSurface);
+    expect(find.byKey(const ValueKey('podcast-sticky-player')), findsNothing);
+  });
+
+}
+
+class _StaticTranscriptRepository extends AcademyPodcastRepository {
+  const _StaticTranscriptRepository();
+
+  @override
+  Future<AcademyPodcastEpisode> load(AcademyPodcastEntry entry) async =>
+      const AcademyPodcastEpisode(
+        id: 'en-a1-static-review', level: 'A1',
+        title: 'Reader contrast test', titleAr: 'اختبار قراءة النص',
+        status: 'script_ready',
+        dialogue: [
+          PodcastDialogueLine(
+            speaker: 'Anna',
+            text: 'Everyone has a skill. You need to find yours.',
+            translationAr: 'كل شخص لديه مهارة، وعليك أن تكتشف مهارتك.',
+          ),
+        ],
+        vocabulary: [], questions: [],
+      );
 }
