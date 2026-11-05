@@ -348,22 +348,22 @@
       {
         "q": "Where are Lena and Felix traveling?",
         "options": [
-          "Willow Town",
-          "Blue Island",
           "Mountain City",
-          "Green Harbor"
+          "Green Harbor",
+          "Willow Town",
+          "Blue Island"
         ],
-        "answer": 0
+        "answer": 2
       },
       {
         "q": "What changes at the station?",
         "options": [
-          "The train platform",
           "Their names",
           "The ticket price",
-          "The date"
+          "The date",
+          "The train platform"
         ],
-        "answer": 0
+        "answer": 3
       },
       {
         "q": "What causes the delay?",
@@ -378,32 +378,32 @@
       {
         "q": "Who asks them for directions?",
         "options": [
+          "A shopkeeper",
           "An elderly traveler",
           "Their teacher",
-          "A child",
-          "A shopkeeper"
+          "A child"
         ],
-        "answer": 0
+        "answer": 1
       },
       {
         "q": "Where do they put their bags?",
         "options": [
-          "On a shelf",
-          "Under the train",
           "In a café",
-          "On the tracks"
+          "On the tracks",
+          "On a shelf",
+          "Under the train"
         ],
-        "answer": 0
+        "answer": 2
       },
       {
         "q": "What does their aunt send?",
         "options": [
-          "A message",
           "A postcard",
           "A parcel",
-          "A new ticket"
+          "A new ticket",
+          "A message"
         ],
-        "answer": 0
+        "answer": 3
       },
       {
         "q": "How does Felix help the elderly man?",
@@ -418,12 +418,12 @@
       {
         "q": "What helps solve their travel problem?",
         "options": [
+          "Leaving the station",
           "Staying calm and asking questions",
           "Ignoring signs",
-          "Guessing directions",
-          "Leaving the station"
+          "Guessing directions"
         ],
-        "answer": 0
+        "answer": 1
       }
     ]
   }

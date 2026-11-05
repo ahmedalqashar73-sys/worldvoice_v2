@@ -344,12 +344,12 @@
       {
         "q": "What are Ava and Sam preparing for?",
         "options": [
-          "A science fair",
           "A football match",
           "A cooking class",
-          "A concert"
+          "A concert",
+          "A science fair"
         ],
-        "answer": 0
+        "answer": 3
       },
       {
         "q": "What do they measure?",
@@ -364,32 +364,32 @@
       {
         "q": "What stops the first test?",
         "options": [
+          "A broken bicycle",
           "Clouds",
           "A missing ticket",
-          "Music",
-          "A broken bicycle"
+          "Music"
         ],
-        "answer": 0
+        "answer": 1
       },
       {
         "q": "What do they compare?",
         "options": [
-          "A dark and white box",
-          "Two flowers",
           "Two books",
-          "Two radios"
+          "Two radios",
+          "A dark and white box",
+          "Two flowers"
         ],
-        "answer": 0
+        "answer": 2
       },
       {
         "q": "How often do they check the boxes?",
         "options": [
-          "Every ten minutes",
           "Every ten seconds",
           "Monthly",
-          "At night"
+          "At night",
+          "Every ten minutes"
         ],
-        "answer": 0
+        "answer": 3
       },
       {
         "q": "What does the judge admire?",
@@ -404,22 +404,22 @@
       {
         "q": "What award do they receive?",
         "options": [
+          "Drawing",
           "Scientific thinking",
           "Singing",
-          "Running",
-          "Drawing"
+          "Running"
         ],
-        "answer": 0
+        "answer": 1
       },
       {
         "q": "What does the story teach?",
         "options": [
-          "Mistakes help learning",
-          "Hide failures",
           "Only prizes matter",
-          "Avoid experiments"
+          "Avoid experiments",
+          "Mistakes help learning",
+          "Hide failures"
         ],
-        "answer": 0
+        "answer": 2
       }
     ]
   }

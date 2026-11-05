@@ -348,32 +348,32 @@
       {
         "q": "When does the town hold its festival?",
         "options": [
+          "In summer",
           "In autumn",
           "In spring",
-          "In winter",
-          "In summer"
+          "In winter"
         ],
-        "answer": 0
+        "answer": 1
       },
       {
         "q": "Who made the blue lantern?",
         "options": [
-          "Dina's grandmother",
-          "Leo's uncle",
           "A teacher",
-          "A shopkeeper"
+          "A shopkeeper",
+          "Dina's grandmother",
+          "Leo's uncle"
         ],
-        "answer": 0
+        "answer": 2
       },
       {
         "q": "What disappears from the table?",
         "options": [
-          "A red basket",
           "The blue lantern",
           "A small book",
-          "A photograph"
+          "A photograph",
+          "A red basket"
         ],
-        "answer": 1
+        "answer": 0
       },
       {
         "q": "What broke on the lantern?",
@@ -388,32 +388,32 @@
       {
         "q": "Where do they repair it?",
         "options": [
+          "In a restaurant",
           "At a community workshop",
           "At a station",
-          "On a boat",
-          "In a restaurant"
+          "On a boat"
         ],
-        "answer": 0
+        "answer": 1
       },
       {
         "q": "Why do they choose an electric light?",
         "options": [
-          "It is safer",
-          "It is louder",
           "It is heavier",
-          "It is cheaper"
+          "It is cheaper",
+          "It is safer",
+          "It is louder"
         ],
-        "answer": 0
+        "answer": 2
       },
       {
         "q": "Who admires the lantern at the festival?",
         "options": [
-          "The families",
           "Only Dina",
           "No one",
-          "A class teacher"
+          "A class teacher",
+          "The families"
         ],
-        "answer": 0
+        "answer": 3
       },
       {
         "q": "What helps solve the problem?",

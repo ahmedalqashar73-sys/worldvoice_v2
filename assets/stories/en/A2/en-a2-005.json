@@ -350,32 +350,32 @@
       {
         "q": "Why do the children avoid touching the bird?",
         "options": [
+          "It is raining",
           "They want expert advice",
           "They are late for school",
-          "They cannot see it",
-          "It is raining"
+          "They cannot see it"
         ],
-        "answer": 0
+        "answer": 1
       },
       {
         "q": "Who calls the wildlife rescue service?",
         "options": [
-          "Talia's mother",
-          "A shopkeeper",
           "A doctor",
-          "The mayor"
+          "The mayor",
+          "Talia's mother",
+          "A shopkeeper"
         ],
-        "answer": 0
+        "answer": 2
       },
       {
         "q": "What does Yusuf ask the other children?",
         "options": [
-          "Play farther away",
           "Sing louder",
           "Catch the bird",
-          "Bring food"
+          "Bring food",
+          "Play farther away"
         ],
-        "answer": 0
+        "answer": 3
       },
       {
         "q": "Who examines the bird?",
@@ -390,32 +390,32 @@
       {
         "q": "Where does the rescue worker take it?",
         "options": [
+          "To a stadium",
           "To a care center",
           "To a market",
-          "To a café",
-          "To a stadium"
+          "To a café"
         ],
-        "answer": 0
+        "answer": 1
       },
       {
         "q": "How do the children learn that it has recovered?",
         "options": [
-          "They receive a message",
-          "They see it on television",
           "They hear a song",
-          "They read a newspaper"
+          "They read a newspaper",
+          "They receive a message",
+          "They see it on television"
         ],
-        "answer": 0
+        "answer": 2
       },
       {
         "q": "What lesson do the children learn?",
         "options": [
-          "Ask trained helpers when needed",
           "Touch every animal",
           "Guess what animals need",
-          "Never ask for help"
+          "Never ask for help",
+          "Ask trained helpers when needed"
         ],
-        "answer": 0
+        "answer": 3
       }
     ]
   }
