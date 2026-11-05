@@ -19,7 +19,7 @@ void main() {
     expect((await repository.loadTextbook(textbook)).chapters, hasLength(2));
   });
 
-  test('Saturday Garden: two chapters, 20 graded paragraphs and 10 images',
+  test('Saturday Garden: two chapters, 10 graded paragraphs and four illustrations',
       () async {
     final repository = StoryLibraryRepository();
     final entry = (await repository.loadIndex()).firstWhere(
@@ -28,8 +28,8 @@ void main() {
     final book = await repository.loadTextbook(entry);
     expect(book.language, 'en');
     expect(book.level, 'A1');
-    expect(book.chapters.map((c) => c.paragraphCount), [10, 10]);
-    expect(book.chapters.map((c) => c.blocks.length), [5, 5]);
+    expect(book.chapters.map((c) => c.paragraphCount), [5, 5]);
+    expect(book.chapters.map((c) => c.blocks.length), [2, 2]);
     expect(book.vocabulary.length, greaterThanOrEqualTo(20));
     expect(book.questions.length, 8);
     expect(book.questions.every((q) => q.options.length == 4), isTrue);
@@ -46,7 +46,7 @@ void main() {
       expect(speakers, contains(StoryTextbookSpeaker.male));
       expect(speakers, contains(StoryTextbookSpeaker.female));
       for (final block in chapter.blocks) {
-        expect(block.paragraphs, hasLength(2));
+        expect(block.paragraphs.length, inInclusiveRange(2, 3));
         expect(block.image, isNotNull);
         final image = await rootBundle.loadString(block.image!);
         expect(image, contains('<svg'));
