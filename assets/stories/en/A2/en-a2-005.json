@@ -1,0 +1,422 @@
+{
+  "language": "en",
+  "level": "A2",
+  "story": {
+    "id": "en-a2-005",
+    "title": "A Visitor in the Courtyard",
+    "title_ar": "زائر في فناء المنزل",
+    "moral_ar": "الرحمة الحقيقية تعني احترام الحياة البرية وطلب مساعدة المختصين عند الحاجة.",
+    "art_style": "Soft realistic watercolor with gentle courtyard scenery, consistent characters, child-friendly and humane wildlife illustration, no text.",
+    "cover_image_prompt": "Talia and Yusuf viewing a little brown bird at a safe distance in a warm morning courtyard, watercolor no text.",
+    "character_sheet": [
+      {
+        "name": "Talia",
+        "description": "12-year-old girl with dark brown skin, shoulder-length curly black hair, pale yellow sweater and blue jeans."
+      },
+      {
+        "name": "Yusuf",
+        "description": "13-year-old boy with medium olive skin, short dark hair, teal sweatshirt, grey trousers and white trainers."
+      },
+      {
+        "name": "Mrs. Park",
+        "description": "Wildlife rescue worker woman in her forties, short black hair, tan skin and forest green jacket."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "An Unusual Morning",
+        "title_ar": "صباح غير معتاد",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image": "assets/stories/en/A2/illustrations/en-a2-005_scene_01.svg",
+            "animation": "fade_in",
+            "image_prompt": "A girl notices a small brown bird by a flowerpot in a quiet shared courtyard with morning sunlight",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "On a quiet Saturday, Talia hears a strange **sound** outside her kitchen window. She steps into the shared **courtyard** and sees a small brown bird beside a flowerpot. Its **wing** moves slowly, but the bird does not fly away when she approaches from a distance."
+                  }
+                ],
+                "translation_ar": "في يوم سبت هادئ تسمع تاليا صوتًا غريبًا خارج نافذة المطبخ. تخرج إلى الفناء المشترك وترى طائرًا بنيًا صغيرًا بجانب أصيص زهور. يتحرك جناحه ببطء لكنه لا يطير عندما تقترب منه من مسافة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Her neighbor Yusuf comes outside and notices the bird too. He wants to **touch** it, but Talia asks him to wait."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We need **advice** before we help, she says. Yusuf agrees to keep a safe **distance** while they decide what to do next."
+                  }
+                ],
+                "translation_ar": "يخرج جارها يوسف ويلاحظ الطائر أيضًا. يريد لمسه، لكن تاليا تطلب منه الانتظار. تقول إنهما يحتاجان إلى نصيحة قبل المساعدة. يوافق يوسف على البقاء على مسافة آمنة بينما يقرران الخطوة التالية."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image": "assets/stories/en/A2/illustrations/en-a2-005_scene_02.svg",
+            "animation": "pan_left",
+            "image_prompt": "Talia and Yusuf observe the injured bird safely from a window while calling a wildlife rescue center",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Talia asks her mother to contact the local **wildlife** rescue service. They describe the bird's **condition** and the place where they found it. A worker explains that a trained person will **arrive** soon. Until then, the children should remain calm and watch from indoors."
+                  }
+                ],
+                "translation_ar": "تطلب تاليا من والدتها الاتصال بخدمة إنقاذ الحياة البرية المحلية. يصفون حالة الطائر والمكان الذي وجدوه فيه. يوضح موظف أن شخصًا مدربًا سيصل قريبًا، وحتى ذلك الحين ينبغي أن يظلا هادئين ويراقبا من الداخل."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The bird stays beside the flowerpot as the courtyard becomes **noisy**. Yusuf politely asks the other children to play farther away. He wants to make the area **peaceful** and protect the bird from **stress**."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We can still help without touching it, he tells Talia."
+                  }
+                ],
+                "translation_ar": "يبقى الطائر بجانب أصيص الزهور بينما يزداد الفناء ضجيجًا. يطلب يوسف بأدب من الأطفال الآخرين اللعب بعيدًا. يريد جعل المكان هادئًا وحماية الطائر من التوتر. يقول لتاليا إن بإمكانهما المساعدة دون لمسه."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "While they wait, Talia reads a short **article** about city birds. She discovers that young birds sometimes spend time on the **ground** while learning to fly."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We should not **guess** what is wrong, she says. Yusuf agrees that an expert can make a better decision."
+                  }
+                ],
+                "translation_ar": "أثناء الانتظار تقرأ تاليا مقالًا قصيرًا عن طيور المدينة. تكتشف أن بعض الطيور الصغيرة تقضي وقتًا على الأرض أثناء تعلم الطيران. تقول إنه لا ينبغي التخمين بشأن المشكلة. يوافق يوسف على أن الخبير يستطيع اتخاذ قرار أفضل."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "The Right Kind of Help",
+        "title_ar": "المساعدة الصحيحة",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image": "assets/stories/en/A2/illustrations/en-a2-005_scene_03.svg",
+            "animation": "zoom_in_slow",
+            "image_prompt": "A wildlife rescue professional carefully examines the bird in a calm courtyard with a special carrier",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "A rescue worker named Mrs. Park arrives with a small **carrier** and special gloves. She carefully **examines** the bird and explains that its wing needs professional attention. She thanks the children for being **responsible** and for keeping the area quiet until help arrived."
+                  }
+                ],
+                "translation_ar": "تصل عاملة إنقاذ تدعى السيدة بارك ومعها حاملة صغيرة وقفازات خاصة. تفحص الطائر بعناية وتشرح أن جناحه يحتاج إلى رعاية مختصة. تشكر الطفلين على تصرفهما المسؤول وعلى إبقاء المكان هادئًا حتى وصلت المساعدة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Mrs. Park takes the bird to a nearby **center** where trained staff can care for it. Yusuf asks whether they may hear some **news** later."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We would love an **update**, he says. The worker promises to contact their family when she knows more."
+                  }
+                ],
+                "translation_ar": "تأخذ السيدة بارك الطائر إلى مركز قريب يستطيع العاملون المدربون فيه رعايته. يسأل يوسف إن كان بإمكانهما سماع أخبار لاحقًا. يقول إنهما يرغبان في تحديث عن حالته. تعد العاملة بالتواصل مع العائلة عندما تعرف المزيد."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image": "assets/stories/en/A2/illustrations/en-a2-005_scene_04.svg",
+            "animation": "parallax",
+            "image_prompt": "Talia and Yusuf look happily at a recovery photo of a bird flying in a blue sky while creating a school poster",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "A week later, Mrs. Park sends a cheerful **message**. The bird has become **stronger** and is ready to return to a suitable outdoor place. Talia feels **excited** when she reads the news."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "I am glad we called the experts, she tells Yusuf."
+                  }
+                ],
+                "translation_ar": "بعد أسبوع ترسل السيدة بارك رسالة مفرحة. أصبح الطائر أقوى وهو مستعد للعودة إلى مكان مناسب في الخارج. تشعر تاليا بالحماس عندما تقرأ الخبر. تقول ليوسف إنها سعيدة لأنهما اتصلا بالمختصين."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The rescue team later shares a **photo** of the bird flying again. Yusuf prints a copy and adds it to a school **poster** about respecting animals. His teacher praises the simple **information** and asks him to explain how the children found the rescue service."
+                  }
+                ],
+                "translation_ar": "يشارك فريق الإنقاذ لاحقًا صورة للطائر وهو يطير مجددًا. يطبع يوسف نسخة ويضيفها إلى ملصق مدرسي عن احترام الحيوانات. يمدح معلمه المعلومات البسيطة ويطلب منه شرح كيف وجد الطفلان خدمة الإنقاذ."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Talia and Yusuf learn that **compassion** also means knowing when to ask for help. They feel proud of their **decision** to protect the bird calmly and safely."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Doing the right thing takes **care**, Yusuf says. Talia smiles and watches the sky above the courtyard."
+                  }
+                ],
+                "translation_ar": "تتعلم تاليا ويوسف أن الرحمة تعني أيضًا معرفة متى نطلب المساعدة. يشعران بالفخر بقرارهما حماية الطائر بهدوء وأمان. يقول يوسف إن فعل الصواب يحتاج إلى عناية. تبتسم تاليا وتنظر إلى السماء فوق الفناء."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "sound",
+        "meaning_ar": "صوت",
+        "example": "On a quiet Saturday, Talia hears a strange sound outside her kitchen window. She steps into the shared courtyard and sees a small brown bird beside a flowerpot. Its wing moves slowly, but the bird does not fly away when she approaches from a distance."
+      },
+      {
+        "word": "courtyard",
+        "meaning_ar": "فناء",
+        "example": "On a quiet Saturday, Talia hears a strange sound outside her kitchen window. She steps into the shared courtyard and sees a small brown bird beside a flowerpot. Its wing moves slowly, but the bird does not fly away when she approaches from a distance."
+      },
+      {
+        "word": "wing",
+        "meaning_ar": "جناح",
+        "example": "On a quiet Saturday, Talia hears a strange sound outside her kitchen window. She steps into the shared courtyard and sees a small brown bird beside a flowerpot. Its wing moves slowly, but the bird does not fly away when she approaches from a distance."
+      },
+      {
+        "word": "touch",
+        "meaning_ar": "يلمس",
+        "example": "Her neighbor Yusuf comes outside and notices the bird too. He wants to touch it, but Talia asks him to wait."
+      },
+      {
+        "word": "advice",
+        "meaning_ar": "نصيحة",
+        "example": "We need advice before we help, she says. Yusuf agrees to keep a safe distance while they decide what to do next."
+      },
+      {
+        "word": "distance",
+        "meaning_ar": "مسافة",
+        "example": "We need advice before we help, she says. Yusuf agrees to keep a safe distance while they decide what to do next."
+      },
+      {
+        "word": "wildlife",
+        "meaning_ar": "حياة برية",
+        "example": "Talia asks her mother to contact the local wildlife rescue service. They describe the bird's condition and the place where they found it. A worker explains that a trained person will arrive soon. Until then, the children should remain calm and watch from indoors."
+      },
+      {
+        "word": "condition",
+        "meaning_ar": "حالة",
+        "example": "Talia asks her mother to contact the local wildlife rescue service. They describe the bird's condition and the place where they found it. A worker explains that a trained person will arrive soon. Until then, the children should remain calm and watch from indoors."
+      },
+      {
+        "word": "arrive",
+        "meaning_ar": "يصل",
+        "example": "Talia asks her mother to contact the local wildlife rescue service. They describe the bird's condition and the place where they found it. A worker explains that a trained person will arrive soon. Until then, the children should remain calm and watch from indoors."
+      },
+      {
+        "word": "noisy",
+        "meaning_ar": "صاخب",
+        "example": "The bird stays beside the flowerpot as the courtyard becomes noisy. Yusuf politely asks the other children to play farther away. He wants to make the area peaceful and protect the bird from stress."
+      },
+      {
+        "word": "peaceful",
+        "meaning_ar": "هادئ",
+        "example": "The bird stays beside the flowerpot as the courtyard becomes noisy. Yusuf politely asks the other children to play farther away. He wants to make the area peaceful and protect the bird from stress."
+      },
+      {
+        "word": "stress",
+        "meaning_ar": "توتر",
+        "example": "The bird stays beside the flowerpot as the courtyard becomes noisy. Yusuf politely asks the other children to play farther away. He wants to make the area peaceful and protect the bird from stress."
+      },
+      {
+        "word": "article",
+        "meaning_ar": "مقال",
+        "example": "While they wait, Talia reads a short article about city birds. She discovers that young birds sometimes spend time on the ground while learning to fly."
+      },
+      {
+        "word": "ground",
+        "meaning_ar": "أرض",
+        "example": "While they wait, Talia reads a short article about city birds. She discovers that young birds sometimes spend time on the ground while learning to fly."
+      },
+      {
+        "word": "guess",
+        "meaning_ar": "نخمن",
+        "example": "We should not guess what is wrong, she says. Yusuf agrees that an expert can make a better decision."
+      },
+      {
+        "word": "carrier",
+        "meaning_ar": "حاملة",
+        "example": "A rescue worker named Mrs. Park arrives with a small carrier and special gloves. She carefully examines the bird and explains that its wing needs professional attention. She thanks the children for being responsible and for keeping the area quiet until help arrived."
+      },
+      {
+        "word": "examines",
+        "meaning_ar": "تفحص",
+        "example": "A rescue worker named Mrs. Park arrives with a small carrier and special gloves. She carefully examines the bird and explains that its wing needs professional attention. She thanks the children for being responsible and for keeping the area quiet until help arrived."
+      },
+      {
+        "word": "responsible",
+        "meaning_ar": "مسؤول",
+        "example": "A rescue worker named Mrs. Park arrives with a small carrier and special gloves. She carefully examines the bird and explains that its wing needs professional attention. She thanks the children for being responsible and for keeping the area quiet until help arrived."
+      },
+      {
+        "word": "center",
+        "meaning_ar": "مركز",
+        "example": "Mrs. Park takes the bird to a nearby center where trained staff can care for it. Yusuf asks whether they may hear some news later."
+      },
+      {
+        "word": "news",
+        "meaning_ar": "أخبار",
+        "example": "Mrs. Park takes the bird to a nearby center where trained staff can care for it. Yusuf asks whether they may hear some news later."
+      },
+      {
+        "word": "update",
+        "meaning_ar": "تحديث",
+        "example": "We would love an update, he says. The worker promises to contact their family when she knows more."
+      },
+      {
+        "word": "message",
+        "meaning_ar": "رسالة",
+        "example": "A week later, Mrs. Park sends a cheerful message. The bird has become stronger and is ready to return to a suitable outdoor place. Talia feels excited when she reads the news."
+      },
+      {
+        "word": "stronger",
+        "meaning_ar": "أقوى",
+        "example": "A week later, Mrs. Park sends a cheerful message. The bird has become stronger and is ready to return to a suitable outdoor place. Talia feels excited when she reads the news."
+      },
+      {
+        "word": "excited",
+        "meaning_ar": "متحمس",
+        "example": "A week later, Mrs. Park sends a cheerful message. The bird has become stronger and is ready to return to a suitable outdoor place. Talia feels excited when she reads the news."
+      },
+      {
+        "word": "photo",
+        "meaning_ar": "صورة",
+        "example": "The rescue team later shares a photo of the bird flying again. Yusuf prints a copy and adds it to a school poster about respecting animals. His teacher praises the simple information and asks him to explain how the children found the rescue service."
+      },
+      {
+        "word": "poster",
+        "meaning_ar": "ملصق",
+        "example": "The rescue team later shares a photo of the bird flying again. Yusuf prints a copy and adds it to a school poster about respecting animals. His teacher praises the simple information and asks him to explain how the children found the rescue service."
+      },
+      {
+        "word": "information",
+        "meaning_ar": "معلومات",
+        "example": "The rescue team later shares a photo of the bird flying again. Yusuf prints a copy and adds it to a school poster about respecting animals. His teacher praises the simple information and asks him to explain how the children found the rescue service."
+      },
+      {
+        "word": "compassion",
+        "meaning_ar": "رحمة",
+        "example": "Talia and Yusuf learn that compassion also means knowing when to ask for help. They feel proud of their decision to protect the bird calmly and safely."
+      },
+      {
+        "word": "decision",
+        "meaning_ar": "قرار",
+        "example": "Talia and Yusuf learn that compassion also means knowing when to ask for help. They feel proud of their decision to protect the bird calmly and safely."
+      },
+      {
+        "word": "care",
+        "meaning_ar": "عناية",
+        "example": "Doing the right thing takes care, Yusuf says. Talia smiles and watches the sky above the courtyard."
+      }
+    ],
+    "questions": [
+      {
+        "q": "Where does Talia find the bird?",
+        "options": [
+          "In the courtyard",
+          "At a train station",
+          "On a boat",
+          "Inside a library"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Why do the children avoid touching the bird?",
+        "options": [
+          "They want expert advice",
+          "They are late for school",
+          "They cannot see it",
+          "It is raining"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Who calls the wildlife rescue service?",
+        "options": [
+          "Talia's mother",
+          "A shopkeeper",
+          "A doctor",
+          "The mayor"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What does Yusuf ask the other children?",
+        "options": [
+          "Play farther away",
+          "Sing louder",
+          "Catch the bird",
+          "Bring food"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Who examines the bird?",
+        "options": [
+          "Mrs. Park",
+          "A baker",
+          "Their teacher",
+          "The bus driver"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Where does the rescue worker take it?",
+        "options": [
+          "To a care center",
+          "To a market",
+          "To a café",
+          "To a stadium"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "How do the children learn that it has recovered?",
+        "options": [
+          "They receive a message",
+          "They see it on television",
+          "They hear a song",
+          "They read a newspaper"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What lesson do the children learn?",
+        "options": [
+          "Ask trained helpers when needed",
+          "Touch every animal",
+          "Guess what animals need",
+          "Never ask for help"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+}
