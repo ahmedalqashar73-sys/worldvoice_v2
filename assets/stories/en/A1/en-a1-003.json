@@ -1,0 +1,394 @@
+{
+  "language": "en",
+  "level": "A1",
+  "story": {
+    "id": "en-a1-003",
+    "title": "The Rainy Picnic",
+    "title_ar": "النزهة الممطرة",
+    "moral_ar": "عندما تتغير الخطة يمكننا أن نجد سعادة جديدة مع أصدقائنا.",
+    "art_style": "Warm schoolbook watercolor, realistic friendly expressions, coherent soft natural colors, original illustrations, no text in image.",
+    "cover_image_prompt": "Amy and Jack arrive at a green park with a picnic basket and checked blanket, warm clear spring morning, wide eye level shot. Warm schoolbook watercolor, no text in image",
+    "character_sheet": [
+      {
+        "name": "Amy",
+        "description": "A 12-year-old girl with dark brown bob hair, light skin, a mint-green jacket, navy trousers, white canvas shoes, small yellow backpack."
+      },
+      {
+        "name": "Jack",
+        "description": "A 12-year-old boy with short sandy blond hair, fair skin with freckles, a soft red sweatshirt, black trousers, blue trainers."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "Clouds in the Park",
+        "title_ar": "غيوم في الحديقة",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Amy and Jack arrive at a green park with a picnic basket and checked blanket, warm clear spring morning, wide eye level shot. Consistent characters: Amy: A 12-year-old girl with dark brown bob hair, light skin, a mint-green jacket, navy trousers, white canvas shoes, small yellow backpack.. Jack: A 12-year-old boy with short sandy blond hair, fair skin with freckles, a soft red sweatshirt, black trousers, blue trainers.. Warm educational watercolor schoolbook, medium detail, soft natural lighting, no text in image.",
+            "animation": "fade_in",
+            "image": "assets/stories/en/A1/illustrations/en-a1-003_scene_01.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Amy and Jack plan a **picnic** on Saturday. They walk to the **park** with a small **basket**. The morning is sunny, and they find a quiet place near the lake."
+                  }
+                ],
+                "translation_ar": "تخطط إيمي وجاك لنزهة يوم السبت. يمشيان إلى الحديقة مع سلة صغيرة. الصباح مشمس ويجدان مكانًا هادئًا قرب البحيرة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Jack takes a cheese **sandwich** from the basket. Amy puts a blue **blanket** on the grass. F:I have orange **juice**, she says. They sit down and look at the water."
+                  }
+                ],
+                "translation_ar": "يخرج جاك شطيرة جبن من السلة. تضع إيمي بطانية زرقاء على العشب. تقول: «لدي عصير برتقال». يجلسان وينظران إلى الماء."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Dark clouds appear above a picnic blanket as Amy and Jack hurry under a leafy tree, first raindrops, dramatic soft light, mid wide shot. Consistent characters: Amy: A 12-year-old girl with dark brown bob hair, light skin, a mint-green jacket, navy trousers, white canvas shoes, small yellow backpack.. Jack: A 12-year-old boy with short sandy blond hair, fair skin with freckles, a soft red sweatshirt, black trousers, blue trainers.. Warm educational watercolor schoolbook, medium detail, soft natural lighting, no text in image.",
+            "animation": "pan_left",
+            "image": "assets/stories/en/A1/illustrations/en-a1-003_scene_02.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Soon, dark **clouds** come over the trees. The **wind** moves the blanket. M:I think we will have **rain**, Jack says. Amy looks up and closes the basket quickly."
+                  }
+                ],
+                "translation_ar": "بعد قليل تظهر غيوم داكنة فوق الأشجار. تحرك الريح البطانية. يقول جاك: «أظن أن المطر سيهطل». تنظر إيمي إلى الأعلى وتغلق السلة بسرعة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "They run for **shelter** under a big **tree**. Their shoes are already **wet**. F:This is not a good picnic, Amy says. Jack tries to make her smile."
+                  }
+                ],
+                "translation_ar": "يركضان للاحتماء تحت شجرة كبيرة. أحذيتهما مبتلة بالفعل. تقول إيمي: «هذه ليست نزهة جيدة». يحاول جاك أن يجعلها تبتسم."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Jack sees a little **library** across the park. It is **open** today. M:I have an **idea**, he says. We can ask if we may eat inside. Amy likes the plan."
+                  }
+                ],
+                "translation_ar": "يرى جاك مكتبة صغيرة في الجهة الأخرى من الحديقة. إنها مفتوحة اليوم. يقول: «لدي فكرة. يمكننا السؤال إن كان مسموحًا أن نأكل في الداخل». تعجب إيمي الخطة."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "A Better Afternoon",
+        "title_ar": "بعد ظهر أجمل",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "A welcoming small park library community room with window and table, Amy and Jack carry their basket inside, soft warm light, eye level view. Consistent characters: Amy: A 12-year-old girl with dark brown bob hair, light skin, a mint-green jacket, navy trousers, white canvas shoes, small yellow backpack.. Jack: A 12-year-old boy with short sandy blond hair, fair skin with freckles, a soft red sweatshirt, black trousers, blue trainers.. Warm educational watercolor schoolbook, medium detail, soft natural lighting, no text in image.",
+            "animation": "zoom_in_slow",
+            "image": "assets/stories/en/A1/illustrations/en-a1-003_scene_03.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "A kind woman shows them a small **room** in the library. It is **warm** and has a clean **table**. Amy thanks her and puts the basket down."
+                  }
+                ],
+                "translation_ar": "ترشدهما امرأة لطيفة إلى غرفة صغيرة في المكتبة. إنها دافئة وفيها طاولة نظيفة. تشكرها إيمي وتضع السلة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Two **children** sit nearby with their parents. Amy has more **food** than she needs. F:We can **share**, she says. Jack gives each child a sandwich and some fruit."
+                  }
+                ],
+                "translation_ar": "يجلس طفلان بالقرب منهما مع والديهما. لدى إيمي طعام أكثر مما تحتاج. تقول: «يمكننا المشاركة». يعطي جاك كل طفل شطيرة وبعض الفاكهة."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Amy and Jack share food and play a guessing game with two children, colorful indoor community room, rain stops outside the window, cheerful natural light, wide view. Consistent characters: Amy: A 12-year-old girl with dark brown bob hair, light skin, a mint-green jacket, navy trousers, white canvas shoes, small yellow backpack.. Jack: A 12-year-old boy with short sandy blond hair, fair skin with freckles, a soft red sweatshirt, black trousers, blue trainers.. Warm educational watercolor schoolbook, medium detail, soft natural lighting, no text in image.",
+            "animation": "parallax",
+            "image": "assets/stories/en/A1/illustrations/en-a1-003_scene_04.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Jack starts a simple word **game**. Everyone tries to find a word about the park. They **laugh** and feel **happy**. The rain makes a soft sound outside the window."
+                  }
+                ],
+                "translation_ar": "يبدأ جاك لعبة كلمات بسيطة. يحاول الجميع إيجاد كلمة عن الحديقة. يضحكون ويشعرون بالسعادة. يصدر المطر صوتًا لطيفًا خارج النافذة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "After an hour, the **sun** returns. The children go **outside** and see a bright **rainbow**. M:Look at the colors! Jack says. Amy smiles and takes a picture."
+                  }
+                ],
+                "translation_ar": "بعد ساعة، تعود الشمس. يخرج الأطفال ويرون قوس قزح جميلًا. يقول جاك: «انظروا إلى الألوان!» تبتسم إيمي وتلتقط صورة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Amy learns that a **change** can make a good **plan** even better. F:This picnic was special, she says. M:Yes, we made new **friends**, Jack answers. They walk home smiling."
+                  }
+                ],
+                "translation_ar": "تتعلم إيمي أن التغيير قد يجعل الخطة الجيدة أفضل. تقول: «كانت هذه النزهة مميزة». يجيب جاك: «نعم، تعرفنا على أصدقاء جدد». يعودان إلى المنزل مبتسمين."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "picnic",
+        "meaning_ar": "نزهة",
+        "example": "Amy and Jack plan a picnic on Saturday. They walk to the park with a small basket. The morning is sunny, and they find a quiet place near the lake."
+      },
+      {
+        "word": "park",
+        "meaning_ar": "حديقة عامة",
+        "example": "Amy and Jack plan a picnic on Saturday. They walk to the park with a small basket. The morning is sunny, and they find a quiet place near the lake."
+      },
+      {
+        "word": "basket",
+        "meaning_ar": "سلة",
+        "example": "Amy and Jack plan a picnic on Saturday. They walk to the park with a small basket. The morning is sunny, and they find a quiet place near the lake."
+      },
+      {
+        "word": "sandwich",
+        "meaning_ar": "شطيرة",
+        "example": "Jack takes a cheese sandwich from the basket. Amy puts a blue blanket on the grass. F:I have orange juice, she says. They sit down and look at the water."
+      },
+      {
+        "word": "blanket",
+        "meaning_ar": "بطانية",
+        "example": "Jack takes a cheese sandwich from the basket. Amy puts a blue blanket on the grass. F:I have orange juice, she says. They sit down and look at the water."
+      },
+      {
+        "word": "juice",
+        "meaning_ar": "عصير",
+        "example": "Jack takes a cheese sandwich from the basket. Amy puts a blue blanket on the grass. F:I have orange juice, she says. They sit down and look at the water."
+      },
+      {
+        "word": "clouds",
+        "meaning_ar": "غيوم",
+        "example": "Soon, dark clouds come over the trees. The wind moves the blanket. M:I think we will have rain, Jack says. Amy looks up and closes the basket quickly."
+      },
+      {
+        "word": "wind",
+        "meaning_ar": "رياح",
+        "example": "Soon, dark clouds come over the trees. The wind moves the blanket. M:I think we will have rain, Jack says. Amy looks up and closes the basket quickly."
+      },
+      {
+        "word": "rain",
+        "meaning_ar": "مطر",
+        "example": "Soon, dark clouds come over the trees. The wind moves the blanket. M:I think we will have rain, Jack says. Amy looks up and closes the basket quickly."
+      },
+      {
+        "word": "shelter",
+        "meaning_ar": "مأوى",
+        "example": "They run for shelter under a big tree. Their shoes are already wet. F:This is not a good picnic, Amy says. Jack tries to make her smile."
+      },
+      {
+        "word": "tree",
+        "meaning_ar": "شجرة",
+        "example": "They run for shelter under a big tree. Their shoes are already wet. F:This is not a good picnic, Amy says. Jack tries to make her smile."
+      },
+      {
+        "word": "wet",
+        "meaning_ar": "مبلل",
+        "example": "They run for shelter under a big tree. Their shoes are already wet. F:This is not a good picnic, Amy says. Jack tries to make her smile."
+      },
+      {
+        "word": "library",
+        "meaning_ar": "مكتبة",
+        "example": "Jack sees a little library across the park. It is open today. M:I have an idea, he says. We can ask if we may eat inside. Amy likes the plan."
+      },
+      {
+        "word": "open",
+        "meaning_ar": "مفتوح",
+        "example": "Jack sees a little library across the park. It is open today. M:I have an idea, he says. We can ask if we may eat inside. Amy likes the plan."
+      },
+      {
+        "word": "idea",
+        "meaning_ar": "فكرة",
+        "example": "Jack sees a little library across the park. It is open today. M:I have an idea, he says. We can ask if we may eat inside. Amy likes the plan."
+      },
+      {
+        "word": "room",
+        "meaning_ar": "غرفة",
+        "example": "A kind woman shows them a small room in the library. It is warm and has a clean table. Amy thanks her and puts the basket down."
+      },
+      {
+        "word": "warm",
+        "meaning_ar": "دافئ",
+        "example": "A kind woman shows them a small room in the library. It is warm and has a clean table. Amy thanks her and puts the basket down."
+      },
+      {
+        "word": "table",
+        "meaning_ar": "طاولة",
+        "example": "A kind woman shows them a small room in the library. It is warm and has a clean table. Amy thanks her and puts the basket down."
+      },
+      {
+        "word": "children",
+        "meaning_ar": "أطفال",
+        "example": "Two children sit nearby with their parents. Amy has more food than she needs. F:We can share, she says. Jack gives each child a sandwich and some fruit."
+      },
+      {
+        "word": "food",
+        "meaning_ar": "طعام",
+        "example": "Two children sit nearby with their parents. Amy has more food than she needs. F:We can share, she says. Jack gives each child a sandwich and some fruit."
+      },
+      {
+        "word": "share",
+        "meaning_ar": "يشارك",
+        "example": "Two children sit nearby with their parents. Amy has more food than she needs. F:We can share, she says. Jack gives each child a sandwich and some fruit."
+      },
+      {
+        "word": "game",
+        "meaning_ar": "لعبة",
+        "example": "Jack starts a simple word game. Everyone tries to find a word about the park. They laugh and feel happy. The rain makes a soft sound outside the window."
+      },
+      {
+        "word": "laugh",
+        "meaning_ar": "يضحك",
+        "example": "Jack starts a simple word game. Everyone tries to find a word about the park. They laugh and feel happy. The rain makes a soft sound outside the window."
+      },
+      {
+        "word": "happy",
+        "meaning_ar": "سعيد",
+        "example": "Jack starts a simple word game. Everyone tries to find a word about the park. They laugh and feel happy. The rain makes a soft sound outside the window."
+      },
+      {
+        "word": "sun",
+        "meaning_ar": "شمس",
+        "example": "After an hour, the sun returns. The children go outside and see a bright rainbow. M:Look at the colors! Jack says. Amy smiles and takes a picture."
+      },
+      {
+        "word": "outside",
+        "meaning_ar": "الخارج",
+        "example": "After an hour, the sun returns. The children go outside and see a bright rainbow. M:Look at the colors! Jack says. Amy smiles and takes a picture."
+      },
+      {
+        "word": "rainbow",
+        "meaning_ar": "قوس قزح",
+        "example": "After an hour, the sun returns. The children go outside and see a bright rainbow. M:Look at the colors! Jack says. Amy smiles and takes a picture."
+      },
+      {
+        "word": "change",
+        "meaning_ar": "تغيير",
+        "example": "Amy learns that a change can make a good plan even better. F:This picnic was special, she says. M:Yes, we made new friends, Jack answers. They walk home smiling."
+      },
+      {
+        "word": "plan",
+        "meaning_ar": "خطة",
+        "example": "Amy learns that a change can make a good plan even better. F:This picnic was special, she says. M:Yes, we made new friends, Jack answers. They walk home smiling."
+      },
+      {
+        "word": "friends",
+        "meaning_ar": "أصدقاء",
+        "example": "Amy learns that a change can make a good plan even better. F:This picnic was special, she says. M:Yes, we made new friends, Jack answers. They walk home smiling."
+      }
+    ],
+    "questions": [
+      {
+        "q": "Where is the picnic?",
+        "options": [
+          "At the park",
+          "At a train station",
+          "On a boat",
+          "At a shop"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What food is in the basket?",
+        "options": [
+          "Soup",
+          "Sandwiches",
+          "Pizza",
+          "Fish"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What changes the weather?",
+        "options": [
+          "Snow",
+          "Rain",
+          "Fog",
+          "Heat"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "Where do they go for shelter?",
+        "options": [
+          "A school",
+          "A small library",
+          "A bus",
+          "A farm"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What do Amy and Jack share?",
+        "options": [
+          "Books",
+          "Food",
+          "Clothes",
+          "Shoes"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What game do they play?",
+        "options": [
+          "A word game",
+          "A football game",
+          "A card game",
+          "A running race"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What appears after the rain?",
+        "options": [
+          "A rainbow",
+          "A plane",
+          "A dog",
+          "A train"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What do they learn?",
+        "options": [
+          "A new plan can be good",
+          "Never go outside",
+          "Do not share",
+          "Rain is always bad"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+}
