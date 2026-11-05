@@ -5,145 +5,378 @@ import 'package:just_audio/just_audio.dart';
 
 import '../data/academy_podcast_repository.dart';
 
-/// Academy podcast episodes remain unplayable until a real recording and
-/// verified dialogue cue timings have been attached to the manifest.
+/// Separate CEFR/language paths; never represent unrecorded plans as audio.
 class PodcastLibrarySection extends StatefulWidget {
   const PodcastLibrarySection({super.key});
 
   @override
-  State<PodcastLibrarySection> createState() =>
-      _PodcastLibrarySectionState();
+  State<PodcastLibrarySection> createState() => _PodcastLibrarySectionState();
 }
 
 class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
   final _repository = const AcademyPodcastRepository();
-  late final Future<List<AcademyPodcastEntry>> _future =
+  late final Future<List<AcademyPodcastEntry>> _episodes =
       _repository.allEpisodes();
+  late final Future<List<PodcastLanguage>> _languages =
+      _repository.allLanguages();
+  String _selectedLanguage = 'en';
   String _selectedLevel = 'A1';
+
+  Widget _hero(bool ar) => Container(
+        key: const ValueKey('podcast-hero'),
+        padding: const EdgeInsets.all(19),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF113C2F), Color(0xFF1E7658)],
+          ),
+          borderRadius: BorderRadius.circular(23),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Container(
+              padding: const EdgeInsets.all(9),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: .12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.podcasts_rounded,
+                  color: Color(0xFFF1D98F), size: 26),
+            ),
+            const SizedBox(width: 10),
+            const Expanded(child: Text('WORLDVOICE  /  PODCAST',
+                textDirection: TextDirection.ltr,
+                style: TextStyle(color: Color(0xFFF1D98F),
+                    fontSize: 12, letterSpacing: 1,
+                    fontWeight: FontWeight.w900))),
+            const Icon(Icons.graphic_eq_rounded,
+                color: Color(0xFFBCE2CE), size: 28),
+          ]),
+          const SizedBox(height: 15),
+          Text(ar ? 'حكايتان، صوتان، لغة جديدة'
+                  : 'Two voices. One new language.',
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900, fontSize: 21)),
+          const SizedBox(height: 6),
+          Text(
+            ar ? 'بودكاست حواري بين آنا ودانيال. تعلّم بالاستماع والقراءة معًا.'
+               : 'Anna and Daniel talk. You listen, read and learn.',
+            style: const TextStyle(
+                color: Color(0xFFE0EEE5), height: 1.5, fontSize: 13),
+          ),
+          const SizedBox(height: 17),
+          Row(children: [
+            _hostPill('ANNA', Icons.face_3_rounded,
+                const Color(0xFFF2BDD6)),
+            const SizedBox(width: 9),
+            _hostPill('DANIEL', Icons.face_rounded,
+                const Color(0xFFC1DBFF)),
+            const Spacer(),
+            const Icon(Icons.schedule_rounded,
+                color: Color(0xFFF1D98F), size: 16),
+            const SizedBox(width: 4),
+            const Text('≈ 05:00',
+                style: TextStyle(color: Color(0xFFF1D98F),
+                    fontWeight: FontWeight.w800, fontSize: 13)),
+          ]),
+        ]),
+      );
+
+  Widget _hostPill(String name, IconData icon, Color color) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: .1),
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: Colors.white24),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: 5),
+          Text(name, textDirection: TextDirection.ltr,
+              style: const TextStyle(color: Colors.white,
+                  fontSize: 10, fontWeight: FontWeight.w800)),
+        ]),
+      );
+
+  Widget _sectionHeader(String label) => Padding(
+        padding: const EdgeInsets.only(bottom: 9),
+        child: Text(label,
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+      );
+
+  Widget _episodeCard(AcademyPodcastEntry entry, int number, bool ar) {
+    final theme = Theme.of(context);
+    final enabled = entry.hasTranscript;
+    final isPublished = entry.status == 'published';
+    return Card(
+      margin: const EdgeInsets.only(bottom: 9),
+      elevation: 0,
+      color: theme.colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(17),
+        side: BorderSide(color: enabled
+            ? const Color(0xFF398E6B).withValues(alpha: .55)
+            : theme.colorScheme.outlineVariant),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: ListTile(
+        key: ValueKey('podcast-episode-${entry.id}'),
+        contentPadding: const EdgeInsets.fromLTRB(13, 8, 11, 8),
+        onTap: enabled ? () => Navigator.of(context).push<void>(
+          MaterialPageRoute(builder: (_) =>
+              PodcastReaderScreen(entry: entry, repository: _repository)),
+        ) : null,
+        leading: Container(
+          width: 47, height: 47,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: enabled ? const Color(0xFFDCF0E3)
+                : theme.colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(13),
+          ),
+          child: enabled
+              ? const Icon(Icons.menu_book_rounded,
+                  color: Color(0xFF166344), size: 23)
+              : Text(number.toString().padLeft(2, '0'),
+                  style: TextStyle(color: theme.colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w800)),
+        ),
+        title: Text(
+          ar ? entry.titleAr ?? entry.title : entry.title,
+          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+          maxLines: 2, overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            isPublished
+                ? (ar ? 'استماع + قراءة متزامنة' : 'Audio + synced reading')
+                : enabled
+                    ? (ar ? 'اقرأ المحادثة · التسجيل لم يُضف بعد'
+                        : 'Read transcript · No recording yet')
+                    : (ar ? 'قيد إعداد المحتوى' : 'In production'),
+            style: TextStyle(color: theme.colorScheme.onSurfaceVariant,
+                fontSize: 11),
+          ),
+        ),
+        trailing: Icon(
+          enabled ? Icons.arrow_forward_ios_rounded
+              : Icons.lock_clock_outlined,
+          size: 16,
+          color: enabled ? const Color(0xFF388B66)
+              : theme.colorScheme.outline,
+        ),
+      ),
+    );
+  }
+
+  Widget _emptyLanguage(PodcastLanguage language, bool ar) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      key: ValueKey('podcast-pending-${language.code}'),
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLow,
+        border: Border.all(color: scheme.outlineVariant),
+        borderRadius: BorderRadius.circular(21),
+      ),
+      child: Column(children: [
+        Container(
+          width: 62, height: 62,
+          decoration: BoxDecoration(color: scheme.primaryContainer,
+              borderRadius: BorderRadius.circular(20)),
+          child: const Icon(Icons.headphones_rounded,
+              color: Color(0xFF27815B), size: 33),
+        ),
+        const SizedBox(height: 13),
+        Text(
+          ar ? 'مسار ${language.arabicName} · $_selectedLevel'
+              : '${language.nativeName} · $_selectedLevel',
+          style: const TextStyle(fontSize: 17,
+              fontWeight: FontWeight.w900)),
+        const SizedBox(height: 7),
+        Text(ar
+            ? 'نخطط لـ15 حلقة في هذا المستوى. لم ننشر تسجيلات بشرية لهذه اللغة بعد.'
+            : 'Fifteen episodes are planned here. No human recordings have been published for this language.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5)),
+        const SizedBox(height: 12),
+        const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Icon(Icons.verified_user_outlined, size: 16,
+              color: Color(0xFF27815B)),
+          SizedBox(width: 6),
+          Flexible(child: Text('Real voices only · No fake audio',
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700))),
+        ]),
+      ]),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     final scheme = Theme.of(context).colorScheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(ar ? 'بودكاست آنا ودانيال' : 'Anna & Daniel Podcast',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w900)),
-        const SizedBox(height: 7),
-        Text(
-          ar
-              ? 'محادثات مستقلة مدتها نحو 5 دقائق. استمع واقرأ النص في نفس الوقت.'
-              : 'Independent five-minute conversations. Listen and read together.',
-          style: TextStyle(color: scheme.onSurfaceVariant, height: 1.5),
-        ),
-        const SizedBox(height: 14),
-        Wrap(
-          spacing: 7,
-          runSpacing: 5,
-          children: [
-            for (final level in AcademyPodcastRepository.levels)
-              ChoiceChip(
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      _hero(ar),
+      const SizedBox(height: 20),
+      _sectionHeader(ar ? 'لغة البودكاست' : 'Podcast language'),
+      FutureBuilder<List<PodcastLanguage>>(
+        future: _languages,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Text(ar ? 'تعذّر تحميل اللغات' : 'Cannot load languages');
+          }
+          final languages = snapshot.data ?? const <PodcastLanguage>[];
+          if (languages.isEmpty) {
+            return const LinearProgressIndicator();
+          }
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(children: [
+              for (final language in languages)
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(end: 7),
+                  child: ChoiceChip(
+                    key: ValueKey('podcast-language-${language.code}'),
+                    label: Text('${language.flag}  ${ar ? language.arabicName : language.nativeName}'),
+                    selected: _selectedLanguage == language.code,
+                    onSelected: (_) => setState(() {
+                      _selectedLanguage = language.code;
+                      _selectedLevel = 'A1';
+                    }),
+                    labelStyle: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: _selectedLanguage == language.code
+                          ? const Color(0xFF134B36) : scheme.onSurface),
+                    selectedColor: const Color(0xFFCFECDC),
+                    backgroundColor: scheme.surfaceContainerLow,
+                    side: BorderSide(
+                      color: _selectedLanguage == language.code
+                          ? const Color(0xFF3C9670) : scheme.outlineVariant),
+                  ),
+                ),
+            ]),
+          );
+        },
+      ),
+      const SizedBox(height: 17),
+      _sectionHeader(ar ? 'المستوى' : 'CEFR level'),
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(children: [
+          for (final level in AcademyPodcastRepository.levels)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: 7),
+              child: ChoiceChip(
                 key: ValueKey('podcast-level-$level'),
                 label: Text(level),
                 selected: _selectedLevel == level,
                 onSelected: (_) => setState(() => _selectedLevel = level),
-                selectedColor: const Color(0xFFCCE8D8),
+                selectedColor: const Color(0xFFCAEADB),
+                backgroundColor: scheme.surfaceContainerLow,
+                side: BorderSide(color: _selectedLevel == level
+                    ? const Color(0xFF39926D) : scheme.outlineVariant),
                 labelStyle: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    color: _selectedLevel == level
-                        ? const Color(0xFF125F41)
-                        : scheme.onSurface),
+                  fontWeight: FontWeight.w900,
+                  color: _selectedLevel == level
+                      ? const Color(0xFF145039) : scheme.onSurface),
               ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        FutureBuilder<List<AcademyPodcastEntry>>(
-          future: _future,
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return Text(ar ? 'تعذر تحميل قائمة الحلقات.'
-                  : 'Could not load episodes.');
-            }
-            if (!snapshot.hasData) {
-              return const Padding(
-                padding: EdgeInsets.all(30),
-                child: Center(child: CircularProgressIndicator()),
-              );
-            }
-            final episodes = snapshot.data!
-                .where((entry) => entry.level == _selectedLevel)
-                .toList(growable: false);
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 9),
-                  child: Text(
-                    ar ? '15 حلقة مخططة للمستوى $_selectedLevel'
-                        : '15 planned episodes in $_selectedLevel',
-                    style: TextStyle(
-                      color: scheme.onSurfaceVariant, fontSize: 12),
+            ),
+        ]),
+      ),
+      const SizedBox(height: 20),
+      FutureBuilder<List<AcademyPodcastEntry>>(
+        future: _episodes,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Text(ar ? 'تعذر تحميل الحلقات.' : 'Could not load episodes.');
+          }
+          if (!snapshot.hasData) {
+            return const Center(child: Padding(
+              padding: EdgeInsets.all(25),
+              child: CircularProgressIndicator()));
+          }
+          final current = snapshot.data!.where((entry) =>
+              entry.language == _selectedLanguage &&
+              entry.level == _selectedLevel).toList(growable: false);
+          if (_selectedLanguage != 'en') {
+            final language = PodcastLanguage(
+                code: _selectedLanguage, nativeName: _selectedLanguage,
+                arabicName: _selectedLanguage, flag: '🎧');
+            return FutureBuilder<List<PodcastLanguage>>(
+              future: _languages,
+              builder: (context, state) {
+                final entry = state.data?.where((x) =>
+                    x.code == _selectedLanguage).firstOrNull ?? language;
+                return _emptyLanguage(entry, ar);
+              },
+            );
+          }
+          final available = current.where((e) => e.hasTranscript).toList();
+          final planned = current.where((e) => !e.hasTranscript).toList();
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [
+                Expanded(child: Text(
+                  ar ? 'حلقات $_selectedLevel' : 'Level $_selectedLevel',
+                  style: const TextStyle(fontSize: 17,
+                    fontWeight: FontWeight.w900))),
+                Text(ar ? '15 حلقة لكل مستوى' : '15 per level',
+                  style: TextStyle(color: scheme.onSurfaceVariant,
+                    fontSize: 11)),
+              ]),
+              const SizedBox(height: 10),
+              for (final entry in available)
+                _episodeCard(entry, current.indexOf(entry) + 1, ar),
+              if (available.isEmpty)
+                _emptyLanguage(
+                  const PodcastLanguage(code: 'en',
+                    nativeName: 'English', arabicName: 'الإنجليزية',
+                    flag: '🇬🇧'), ar),
+              if (planned.isNotEmpty) ...[
+                const SizedBox(height: 7),
+                Card(
+                  elevation: 0,
+                  color: scheme.surfaceContainerLow,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(17),
+                    side: BorderSide(color: scheme.outlineVariant)),
+                  child: ExpansionTile(
+                    key: ValueKey('podcast-planned-$_selectedLevel'),
+                    leading: const Icon(Icons.library_books_outlined,
+                        color: Color(0xFF438A69)),
+                    title: Text(ar
+                        ? '${planned.length} حلقة مخططة'
+                        : '${planned.length} upcoming episodes',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w800, fontSize: 14)),
+                    subtitle: Text(ar ? 'اضغط لعرض العناوين'
+                        : 'Tap to see the planned titles',
+                        style: TextStyle(fontSize: 11,
+                            color: scheme.onSurfaceVariant)),
+                    children: [
+                      for (final entry in planned)
+                        ListTile(
+                          dense: true,
+                          title: Text(ar
+                            ? entry.titleAr ?? entry.title : entry.title,
+                              style: const TextStyle(fontSize: 13)),
+                          trailing: const Icon(Icons.schedule,
+                              color: Colors.grey, size: 16),
+                        ),
+                    ],
                   ),
                 ),
-                for (var i = 0; i < episodes.length; i++)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Card(
-                      margin: EdgeInsets.zero,
-                      clipBehavior: Clip.antiAlias,
-                      child: ListTile(
-                        key: ValueKey('podcast-episode-${episodes[i].id}'),
-                        onTap: episodes[i].hasTranscript
-                            ? () => Navigator.of(context).push<void>(
-                                MaterialPageRoute(builder: (_) =>
-                                  PodcastReaderScreen(
-                                    entry: episodes[i],
-                                    repository: _repository)))
-                            : null,
-                        leading: CircleAvatar(
-                          backgroundColor: const Color(0xFFE1EEE5),
-                          child: Text(
-                            (i + 1).toString().padLeft(2, '0'),
-                            style: const TextStyle(
-                                color: Color(0xFF176245),
-                                fontWeight: FontWeight.w900)),
-                        ),
-                        title: Text(
-                          ar && episodes[i].titleAr != null
-                              ? episodes[i].titleAr!
-                              : episodes[i].title,
-                          style: const TextStyle(fontWeight: FontWeight.w700)),
-                        subtitle: Text(
-                          episodes[i].status == 'published'
-                              ? (ar ? 'استمع واقرأ النص مع الصوت'
-                                  : 'Listen and read with the audio')
-                              : episodes[i].hasTranscript
-                                  ? (ar ? 'النص جاهز · التسجيل غير متوفر بعد'
-                                      : 'Transcript ready · Recording not available yet')
-                                  : (ar ? 'مخططة · لم تُسجل بعد'
-                                      : 'Planned · Not yet recorded'),
-                          style: TextStyle(
-                              fontSize: 12, color: scheme.onSurfaceVariant),
-                        ),
-                        trailing: Icon(
-                          episodes[i].hasTranscript
-                              ? Icons.menu_book_rounded
-                              : Icons.lock_clock_rounded,
-                          color: episodes[i].hasTranscript
-                              ? const Color(0xFF176245)
-                              : scheme.outline,
-                        ),
-                      ),
-                    ),
-                  ),
               ],
-            );
-          },
-        ),
-      ],
-    );
+            ],
+          );
+        },
+      ),
+      const SizedBox(height: 14),
+    ]);
   }
 }
 
