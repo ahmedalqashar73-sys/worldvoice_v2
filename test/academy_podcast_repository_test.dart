@@ -42,6 +42,8 @@ void main() {
     final episode = AcademyPodcastEpisode(
       id: 'test', level: 'A1', title: 'Test', titleAr: 'اختبار',
       status: 'published',
+      recordingKind: 'human',
+      rightsConfirmed: true,
       audioUrl: 'https://example.org/voice.mp3',
       durationMs: 300000,
       dialogue: const [
@@ -53,6 +55,14 @@ void main() {
       vocabulary: const [], questions: const [],
     );
     expect(episode.isPlayable, isTrue);
+    final noRights = AcademyPodcastEpisode(
+      id: 'test', level: 'A1', title: 'Test', titleAr: 'اختبار',
+      status: 'published', recordingKind: 'human',
+      rightsConfirmed: false, audioUrl: 'https://example.org/voice.mp3',
+      durationMs: 300000, dialogue: episode.dialogue,
+      vocabulary: const [], questions: const [],
+    );
+    expect(noRights.isPlayable, isFalse);
     expect(episode.lineAt(const Duration(seconds: 1)), 0);
     expect(episode.lineAt(const Duration(seconds: 200)), 1);
   });
