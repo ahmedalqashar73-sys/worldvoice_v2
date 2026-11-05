@@ -1,0 +1,438 @@
+{
+  "language": "en",
+  "level": "B2",
+  "story": {
+    "id": "en-b2-004",
+    "title": "The Bicycle Lane Debate",
+    "title_ar": "النقاش حول مسار الدراجات",
+    "moral_ar": "القرارات العامة الأفضل تُبنى على بيانات واضحة، ومقارنة عادلة بين المصالح المختلفة.",
+    "art_style": "Detailed urban community watercolor, consistent human characters and natural lighting, no typography.",
+    "cover_image_prompt": "Busy neighborhood high street with narrow road, bicycles, delivery vehicles and pedestrians, Farah in green coat and Ethan in gray jacket observing the crossing, bright daylight.",
+    "character_sheet": [
+      {
+        "name": "Farah",
+        "description": "A young urban-planning student with warm brown skin, black short curls, dark green coat and beige trousers."
+      },
+      {
+        "name": "Ethan",
+        "description": "A twenty-four-year-old man with fair skin, straight dark blond hair, light gray jacket and blue jeans."
+      },
+      {
+        "name": "Ms. Dube",
+        "description": "A city transport officer with medium dark skin, braided gray hair, charcoal blazer and yellow scarf."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "Two Sides of the Street",
+        "title_ar": "جانبان من الشارع",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Busy neighborhood high street with narrow road, bicycles, delivery vehicles and pedestrians, Farah in green coat and Ethan in gray jacket observing the crossing, bright daylight. Original editorial watercolor, realistic streets and consistent cast Farah A young urban-planning student with warm brown skin, black short curls, dark green coat and beige trousers.; Ethan A twenty-four-year-old man with fair skin, straight dark blond hair, light gray jacket and blue jeans.; Ms. Dube A city transport officer with medium dark skin, braided gray hair, charcoal blazer and yellow scarf.. No readable text.",
+            "animation": "fade_in",
+            "image": "assets/stories/en/B2/illustrations/en-b2-004_scene_01.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "When the city announced plans to build a protected bicycle lane along Market Street, Farah welcomed the proposal immediately. As a planning student, she believed safer cycling could reduce traffic and encourage healthier journeys. Yet Ethan, whose family owned a small bakery, worried that removing roadside parking would affect morning **deliveries** and older customers. Their disagreement grew during a neighborhood **meeting**, where speakers accused one another of ignoring local needs. Farah eventually realized that their argument lacked reliable **evidence**, even though both sides had reasonable concerns."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We should understand the street before choosing a design, she said."
+                  }
+                ],
+                "translation_ar": "عندما أعلنت المدينة مسارًا محميًا للدراجات رحبت به فرح فورًا، لأنها رأت أنه يجعل التنقل أكثر أمانًا. لكن إيثان، من عائلة تملك مخبزًا صغيرًا، خشي من تأثير إزالة المواقف على التوصيل والزبائن كبار السن. احتد الخلاف في اجتماع الحي، واتهم كل طرف الآخر بإهمال الاحتياجات. أدركت فرح أن الجدل يفتقر إلى أدلة موثوقة رغم منطقية بعض المخاوف. قالت إن عليهم فهم الشارع أولًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Ethan invited Farah to visit the bakery before dawn, when delivery trucks arrived and staff carried heavy trays inside. She saw that the **loading** area was already crowded, and she admitted that her original plan had overlooked a practical problem. Later, Farah asked Ethan to join her on a short **journey** by bicycle through the same street. He was surprised by how closely vehicles passed them and understood why riders wanted physical **protection**. Both began listening more carefully once they experienced the other's difficulties."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "I had not realized how exposed cyclists feel, Ethan said."
+                  }
+                ],
+                "translation_ar": "دعا إيثان فرح إلى المخبز فجرًا عندما تصل الشاحنات، فرأت ازدحام منطقة التحميل واعترفت بأن خطتها تجاهلت مشكلة عملية. ثم طلبت منه ركوب الدراجة معها في الشارع نفسه. فوجئ بقرب المركبات وخطرها على الدراجين، وفهم سبب طلب الحماية. بدأ الاثنان يستمعان بجدية بعدما جربا صعوبات الطرف الآخر. قال إيثان إنه لم يدرك شعور راكبي الدراجات بالخطر."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Community meeting in a city hall, Farah Ethan and transport officer Ms Dube discussing printed maps of proposed bike lanes while shopkeepers and residents listen. Original editorial watercolor, realistic streets and consistent cast Farah A young urban-planning student with warm brown skin, black short curls, dark green coat and beige trousers.; Ethan A twenty-four-year-old man with fair skin, straight dark blond hair, light gray jacket and blue jeans.; Ms. Dube A city transport officer with medium dark skin, braided gray hair, charcoal blazer and yellow scarf.. No readable text.",
+            "animation": "pan_left",
+            "image": "assets/stories/en/B2/illustrations/en-b2-004_scene_02.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The city transport officer, Ms. Dube, agreed to share an anonymized **survey** of how people used the street at different times. Farah examined the cycling **statistics**, while Ethan counted how many deliveries required temporary parking. The figures revealed that the busiest loading period was early morning, whereas cycling increased mainly after schools opened. However, Ms. Dube warned them against treating one week's numbers as a complete **picture**. Weather, holidays, and construction could all change travel habits, so the team planned further observations."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Data should make us curious, not overconfident, Farah noted."
+                  }
+                ],
+                "translation_ar": "وافقت مسؤولة النقل السيدة دوبي على مشاركة مسح مجهول لاستخدام الشارع بأوقات مختلفة. درست فرح إحصاءات ركوب الدراجات، وعد إيثان عمليات التوصيل التي تحتاج إلى توقف مؤقت. أظهرت الأرقام أن التحميل يتركز صباحًا بينما يزداد ركوب الدراجات بعد فتح المدارس. حذرت المسؤولة من اعتبار بيانات أسبوع واحد صورة كاملة، لأن الطقس والعطل والأعمال تؤثر في الحركة. قالت فرح إن البيانات يجب أن تدفعنا للتساؤل لا للثقة الزائدة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "During the next workshop, residents raised several concerns the students had not considered. A woman who used a wheelchair described the importance of a **continuous** pavement without obstacles, while a parent requested a safer **crossing** near the primary school. A taxi driver questioned whether a proposed corner was wide enough for emergency vehicles. Farah wrote down each **perspective**, recognizing that public streets served far more than drivers and cyclists. Ethan suggested inviting accessibility advisers before deciding on any permanent design."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We have been arguing about only part of the problem, he admitted."
+                  }
+                ],
+                "translation_ar": "في ورشة أخرى أثار السكان قضايا لم يفكر فيها الطالبان. شرحت امرأة تستخدم كرسيًا متحركًا أهمية الرصيف المتصل الخالي من العوائق، وطلب أحد الآباء معبرًا آمنًا قرب المدرسة. تساءل سائق أجرة عن عرض زاوية تسمح بمرور مركبات الطوارئ. سجلت فرح كل وجهة نظر وأدركت أن الشارع يخدم فئات عديدة. اقترح إيثان استشارة خبراء الإتاحة قبل أي تصميم دائم."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Ms. Dube proposed a three-month **pilot** using temporary barriers and a redesigned loading bay. She explained that a trial could show whether the competing demands were truly impossible to reconcile. The council would measure collisions, travel times, delivery delays, and pedestrian comfort, while publishing its **methodology** so residents could challenge weaknesses. Some shopkeepers remained **skeptical**, but Ethan persuaded them to participate rather than reject the experiment without seeing its results. Farah agreed that the pilot should include a clear process for reporting safety problems."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "An experiment only helps if people trust the rules, she said."
+                  }
+                ],
+                "translation_ar": "اقترحت السيدة دوبي تجربة لثلاثة أشهر بحواجز مؤقتة ومنطقة تحميل معدلة. شرحت أن التجربة تكشف إمكان التوفيق بين المطالب المختلفة. سيقيس المجلس الحوادث وأوقات السفر وتأخر التوصيل وراحة المشاة، وينشر طريقة القياس ليفحصها السكان. بقي بعض أصحاب المحلات متشككين، لكن إيثان شجعهم على المشاركة قبل الرفض. وافقت فرح على ضرورة آلية واضحة للإبلاغ عن مشكلات السلامة."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "A Fairer Way Forward",
+        "title_ar": "طريق أكثر إنصافًا",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Short temporary protected cycle lane pilot with movable barriers, careful road markings, cyclists and pedestrians using safe crossings, Farah Ethan and Ms Dube observing. Original editorial watercolor, realistic streets and consistent cast Farah A young urban-planning student with warm brown skin, black short curls, dark green coat and beige trousers.; Ethan A twenty-four-year-old man with fair skin, straight dark blond hair, light gray jacket and blue jeans.; Ms. Dube A city transport officer with medium dark skin, braided gray hair, charcoal blazer and yellow scarf.. No readable text.",
+            "animation": "parallax",
+            "image": "assets/stories/en/B2/illustrations/en-b2-004_scene_03.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "In the first month, the protected lane encouraged more students to cycle, but a poorly placed barrier caused unexpected **congestion** near the bakery. Ethan documented the delays without exaggerating them, and Farah used the city's public reporting system to request an urgent **adjustment**. The engineers moved the barrier and marked a clearer delivery **zone**, reducing the problem within days. Both students learned that supporting a trial did not mean pretending every part of it worked perfectly. Their credibility improved because they acknowledged difficulties openly."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We can improve the design without abandoning the goal, Ethan said."
+                  }
+                ],
+                "translation_ar": "في الشهر الأول زاد استخدام الدراجات بين الطلاب، لكن حاجزًا وُضع في غير موضعه سبب ازدحامًا قرب المخبز. وثق إيثان التأخير دون مبالغة، وقدمت فرح طلب تعديل عاجل عبر النظام الرسمي. نقل المهندسون الحاجز وحددوا منطقة توصيل أوضح، فتراجعت المشكلة خلال أيام. تعلم الاثنان أن دعم التجربة لا يعني الادعاء أن كل تفاصيلها مثالية. زادت مصداقيتهما لأنهما اعترفا بالصعوبات."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "As the trial continued, the team compared results with similar nearby streets instead of relying solely on enthusiastic comments. Ms. Dube explained the difference between a **correlation** and a proven cause, reminding everyone that traffic levels could change for unrelated reasons. Farah examined the effect on cycling and pedestrian **safety**, while Ethan focused on whether local businesses remained **accessible**. Their separate questions produced a fuller understanding than either perspective could have offered alone. The evidence suggested improvement overall, although some corners still required redesign."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We must report what remains uncertain, Farah insisted."
+                  }
+                ],
+                "translation_ar": "مع استمرار التجربة قارن الفريق النتائج بشوارع قريبة مشابهة بدل الاعتماد على التعليقات المتحمسة فقط. شرحت السيدة دوبي الفرق بين الارتباط والسبب المثبت، لأن حركة المرور قد تتغير لأسباب أخرى. درست فرح سلامة الدراجين والمشاة، وركز إيثان على إمكانية الوصول للمحلات. كشفت الأسئلة المختلفة صورة أكمل. أشارت الأدلة إلى تحسن عام، لكن بعض الزوايا احتاجت إلى تصميم جديد. أصرت فرح على ذكر ما لا يزال غير مؤكد."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Street after collaborative design changes: protected bicycle lane, safe crossing, delivery bay and wide pavement in same urban neighborhood, visitors and shopkeepers talking amicably. Original editorial watercolor, realistic streets and consistent cast Farah A young urban-planning student with warm brown skin, black short curls, dark green coat and beige trousers.; Ethan A twenty-four-year-old man with fair skin, straight dark blond hair, light gray jacket and blue jeans.; Ms. Dube A city transport officer with medium dark skin, braided gray hair, charcoal blazer and yellow scarf.. No readable text.",
+            "animation": "zoom_in_slow",
+            "image": "assets/stories/en/B2/illustrations/en-b2-004_scene_04.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "At the final council hearing, several residents presented opposing **recommendations** based on the same trial. One group wanted the entire design made permanent, while another favored restoring every parking space. Ethan suggested a compromise that kept the protected lane but moved the loading bay and improved the school crossing. Farah supported the **compromise** after checking that it preserved accessibility and core safety goals. Ms. Dube praised their **negotiation** because neither student had abandoned the evidence to win an argument."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We do not need identical opinions to build a better street, Ethan said."
+                  }
+                ],
+                "translation_ar": "في جلسة المجلس الأخيرة قدم سكان توصيات متعارضة اعتمادًا على التجربة نفسها. أراد فريق تثبيت التصميم كله، وطالب آخر بإعادة كل المواقف. اقترح إيثان تسوية تبقي المسار المحمي مع تعديل منطقة التحميل والمعبر المدرسي. دعمت فرح الحل بعد التأكد من عدم إضعاف السلامة والإتاحة. امتدحت السيدة دوبي تفاوضهما لأنهما لم يتخليا عن الأدلة لكسب الجدل. قال إيثان إن اختلاف الآراء لا يمنع بناء شارع أفضل."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The council approved a revised **design** and promised another review after six months. Several businesses reported easier deliveries, while parents appreciated the calmer school crossing. Farah knew the changes did not solve every transport problem, yet she valued the new habit of public **consultation**. Ethan became a member of a local advisory group so future proposals would include shopkeepers and cyclists from the beginning. Their experience showed that good planning involved repeated **evaluation**, not one dramatic vote that ended every discussion. This was a public decision whose consequences would affect many different people over the coming years."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Listening is part of designing, Farah said."
+                  }
+                ],
+                "translation_ar": "وافق المجلس على تصميم معدل ووعد بمراجعة أخرى بعد ستة أشهر. أفادت محلات بأن التوصيل أصبح أسهل، وقدر الآباء هدوء المعبر المدرسي. عرفت فرح أن التغييرات لم تحل كل مشكلات النقل، لكنها أثمنت عادة التشاور العام الجديدة. انضم إيثان إلى مجموعة استشارية لتمثيل المحلات والدراجين مبكرًا في المقترحات. أدركا أن التخطيط الجيد يحتاج تقييمًا متكررًا لا تصويتًا واحدًا ينهي النقاش."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Six months later, Farah and Ethan met outside the bakery as cyclists passed through the protected lane. The road remained busy, but the atmosphere felt less **hostile** than during their first heated meeting. Ethan admitted that he had initially feared losing business, while Farah acknowledged that she had underestimated the importance of practical **trade-offs**. Both were proud of a solution that could still be **revised** if new evidence appeared. They understood that compromise was not weakness; it was a responsible way to balance the needs of a shared city."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Now we disagree with better questions, Ethan joked."
+                  }
+                ],
+                "translation_ar": "بعد ستة أشهر التقت فرح بإيثان أمام المخبز بينما مرت الدراجات في المسار المحمي. بقي الشارع مزدحمًا، لكن الجو أصبح أقل عدائية. اعترف إيثان بأنه خاف على تجارته، وأقرت فرح بأنها قللت من أهمية الموازنات العملية. افتخرا بحل قابل للمراجعة إذا ظهرت أدلة جديدة. فهما أن التسوية ليست ضعفًا بل مسؤولية في تحقيق التوازن بين احتياجات المدينة المشتركة. مازحها إيثان قائلًا إن خلافاتهما الآن تطرح أسئلة أفضل."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "deliveries",
+        "meaning_ar": "عمليات توصيل",
+        "example": "When the city announced plans to build a protected bicycle lane along Market Street, Farah welcomed the proposal immediately. As a planning student, she believed safer cycling could reduce traffic and encourage healthier journeys. Yet Ethan, whose family owned a small bakery, worried that removing roadside parking would affect morning deliveries and older customers. Their disagreement grew during a neighborhood meeting, where speakers accused one another of ignoring local needs. Farah eventually realized that their argument lacked reliable evidence, even though both sides had reasonable concerns."
+      },
+      {
+        "word": "meeting",
+        "meaning_ar": "اجتماع",
+        "example": "When the city announced plans to build a protected bicycle lane along Market Street, Farah welcomed the proposal immediately. As a planning student, she believed safer cycling could reduce traffic and encourage healthier journeys. Yet Ethan, whose family owned a small bakery, worried that removing roadside parking would affect morning deliveries and older customers. Their disagreement grew during a neighborhood meeting, where speakers accused one another of ignoring local needs. Farah eventually realized that their argument lacked reliable evidence, even though both sides had reasonable concerns."
+      },
+      {
+        "word": "evidence",
+        "meaning_ar": "أدلة",
+        "example": "When the city announced plans to build a protected bicycle lane along Market Street, Farah welcomed the proposal immediately. As a planning student, she believed safer cycling could reduce traffic and encourage healthier journeys. Yet Ethan, whose family owned a small bakery, worried that removing roadside parking would affect morning deliveries and older customers. Their disagreement grew during a neighborhood meeting, where speakers accused one another of ignoring local needs. Farah eventually realized that their argument lacked reliable evidence, even though both sides had reasonable concerns."
+      },
+      {
+        "word": "loading",
+        "meaning_ar": "تحميل",
+        "example": "Ethan invited Farah to visit the bakery before dawn, when delivery trucks arrived and staff carried heavy trays inside. She saw that the loading area was already crowded, and she admitted that her original plan had overlooked a practical problem. Later, Farah asked Ethan to join her on a short journey by bicycle through the same street. He was surprised by how closely vehicles passed them and understood why riders wanted physical protection. Both began listening more carefully once they experienced the other's difficulties."
+      },
+      {
+        "word": "journey",
+        "meaning_ar": "رحلة",
+        "example": "Ethan invited Farah to visit the bakery before dawn, when delivery trucks arrived and staff carried heavy trays inside. She saw that the loading area was already crowded, and she admitted that her original plan had overlooked a practical problem. Later, Farah asked Ethan to join her on a short journey by bicycle through the same street. He was surprised by how closely vehicles passed them and understood why riders wanted physical protection. Both began listening more carefully once they experienced the other's difficulties."
+      },
+      {
+        "word": "protection",
+        "meaning_ar": "حماية",
+        "example": "Ethan invited Farah to visit the bakery before dawn, when delivery trucks arrived and staff carried heavy trays inside. She saw that the loading area was already crowded, and she admitted that her original plan had overlooked a practical problem. Later, Farah asked Ethan to join her on a short journey by bicycle through the same street. He was surprised by how closely vehicles passed them and understood why riders wanted physical protection. Both began listening more carefully once they experienced the other's difficulties."
+      },
+      {
+        "word": "survey",
+        "meaning_ar": "مسح",
+        "example": "The city transport officer, Ms. Dube, agreed to share an anonymized survey of how people used the street at different times. Farah examined the cycling statistics, while Ethan counted how many deliveries required temporary parking. The figures revealed that the busiest loading period was early morning, whereas cycling increased mainly after schools opened. However, Ms. Dube warned them against treating one week's numbers as a complete picture. Weather, holidays, and construction could all change travel habits, so the team planned further observations."
+      },
+      {
+        "word": "statistics",
+        "meaning_ar": "إحصاءات",
+        "example": "The city transport officer, Ms. Dube, agreed to share an anonymized survey of how people used the street at different times. Farah examined the cycling statistics, while Ethan counted how many deliveries required temporary parking. The figures revealed that the busiest loading period was early morning, whereas cycling increased mainly after schools opened. However, Ms. Dube warned them against treating one week's numbers as a complete picture. Weather, holidays, and construction could all change travel habits, so the team planned further observations."
+      },
+      {
+        "word": "picture",
+        "meaning_ar": "صورة شاملة",
+        "example": "The city transport officer, Ms. Dube, agreed to share an anonymized survey of how people used the street at different times. Farah examined the cycling statistics, while Ethan counted how many deliveries required temporary parking. The figures revealed that the busiest loading period was early morning, whereas cycling increased mainly after schools opened. However, Ms. Dube warned them against treating one week's numbers as a complete picture. Weather, holidays, and construction could all change travel habits, so the team planned further observations."
+      },
+      {
+        "word": "continuous",
+        "meaning_ar": "متصل",
+        "example": "During the next workshop, residents raised several concerns the students had not considered. A woman who used a wheelchair described the importance of a continuous pavement without obstacles, while a parent requested a safer crossing near the primary school. A taxi driver questioned whether a proposed corner was wide enough for emergency vehicles. Farah wrote down each perspective, recognizing that public streets served far more than drivers and cyclists. Ethan suggested inviting accessibility advisers before deciding on any permanent design."
+      },
+      {
+        "word": "crossing",
+        "meaning_ar": "معبر",
+        "example": "During the next workshop, residents raised several concerns the students had not considered. A woman who used a wheelchair described the importance of a continuous pavement without obstacles, while a parent requested a safer crossing near the primary school. A taxi driver questioned whether a proposed corner was wide enough for emergency vehicles. Farah wrote down each perspective, recognizing that public streets served far more than drivers and cyclists. Ethan suggested inviting accessibility advisers before deciding on any permanent design."
+      },
+      {
+        "word": "perspective",
+        "meaning_ar": "وجهة نظر",
+        "example": "During the next workshop, residents raised several concerns the students had not considered. A woman who used a wheelchair described the importance of a continuous pavement without obstacles, while a parent requested a safer crossing near the primary school. A taxi driver questioned whether a proposed corner was wide enough for emergency vehicles. Farah wrote down each perspective, recognizing that public streets served far more than drivers and cyclists. Ethan suggested inviting accessibility advisers before deciding on any permanent design."
+      },
+      {
+        "word": "pilot",
+        "meaning_ar": "تجربة ميدانية",
+        "example": "Ms. Dube proposed a three-month pilot using temporary barriers and a redesigned loading bay. She explained that a trial could show whether the competing demands were truly impossible to reconcile. The council would measure collisions, travel times, delivery delays, and pedestrian comfort, while publishing its methodology so residents could challenge weaknesses. Some shopkeepers remained skeptical, but Ethan persuaded them to participate rather than reject the experiment without seeing its results. Farah agreed that the pilot should include a clear process for reporting safety problems."
+      },
+      {
+        "word": "methodology",
+        "meaning_ar": "منهجية",
+        "example": "Ms. Dube proposed a three-month pilot using temporary barriers and a redesigned loading bay. She explained that a trial could show whether the competing demands were truly impossible to reconcile. The council would measure collisions, travel times, delivery delays, and pedestrian comfort, while publishing its methodology so residents could challenge weaknesses. Some shopkeepers remained skeptical, but Ethan persuaded them to participate rather than reject the experiment without seeing its results. Farah agreed that the pilot should include a clear process for reporting safety problems."
+      },
+      {
+        "word": "skeptical",
+        "meaning_ar": "متشكك",
+        "example": "Ms. Dube proposed a three-month pilot using temporary barriers and a redesigned loading bay. She explained that a trial could show whether the competing demands were truly impossible to reconcile. The council would measure collisions, travel times, delivery delays, and pedestrian comfort, while publishing its methodology so residents could challenge weaknesses. Some shopkeepers remained skeptical, but Ethan persuaded them to participate rather than reject the experiment without seeing its results. Farah agreed that the pilot should include a clear process for reporting safety problems."
+      },
+      {
+        "word": "congestion",
+        "meaning_ar": "ازدحام",
+        "example": "In the first month, the protected lane encouraged more students to cycle, but a poorly placed barrier caused unexpected congestion near the bakery. Ethan documented the delays without exaggerating them, and Farah used the city's public reporting system to request an urgent adjustment. The engineers moved the barrier and marked a clearer delivery zone, reducing the problem within days. Both students learned that supporting a trial did not mean pretending every part of it worked perfectly. Their credibility improved because they acknowledged difficulties openly."
+      },
+      {
+        "word": "adjustment",
+        "meaning_ar": "تعديل",
+        "example": "In the first month, the protected lane encouraged more students to cycle, but a poorly placed barrier caused unexpected congestion near the bakery. Ethan documented the delays without exaggerating them, and Farah used the city's public reporting system to request an urgent adjustment. The engineers moved the barrier and marked a clearer delivery zone, reducing the problem within days. Both students learned that supporting a trial did not mean pretending every part of it worked perfectly. Their credibility improved because they acknowledged difficulties openly."
+      },
+      {
+        "word": "zone",
+        "meaning_ar": "منطقة",
+        "example": "In the first month, the protected lane encouraged more students to cycle, but a poorly placed barrier caused unexpected congestion near the bakery. Ethan documented the delays without exaggerating them, and Farah used the city's public reporting system to request an urgent adjustment. The engineers moved the barrier and marked a clearer delivery zone, reducing the problem within days. Both students learned that supporting a trial did not mean pretending every part of it worked perfectly. Their credibility improved because they acknowledged difficulties openly."
+      },
+      {
+        "word": "correlation",
+        "meaning_ar": "ارتباط",
+        "example": "As the trial continued, the team compared results with similar nearby streets instead of relying solely on enthusiastic comments. Ms. Dube explained the difference between a correlation and a proven cause, reminding everyone that traffic levels could change for unrelated reasons. Farah examined the effect on cycling and pedestrian safety, while Ethan focused on whether local businesses remained accessible. Their separate questions produced a fuller understanding than either perspective could have offered alone. The evidence suggested improvement overall, although some corners still required redesign."
+      },
+      {
+        "word": "safety",
+        "meaning_ar": "سلامة",
+        "example": "As the trial continued, the team compared results with similar nearby streets instead of relying solely on enthusiastic comments. Ms. Dube explained the difference between a correlation and a proven cause, reminding everyone that traffic levels could change for unrelated reasons. Farah examined the effect on cycling and pedestrian safety, while Ethan focused on whether local businesses remained accessible. Their separate questions produced a fuller understanding than either perspective could have offered alone. The evidence suggested improvement overall, although some corners still required redesign."
+      },
+      {
+        "word": "accessible",
+        "meaning_ar": "سهل الوصول",
+        "example": "As the trial continued, the team compared results with similar nearby streets instead of relying solely on enthusiastic comments. Ms. Dube explained the difference between a correlation and a proven cause, reminding everyone that traffic levels could change for unrelated reasons. Farah examined the effect on cycling and pedestrian safety, while Ethan focused on whether local businesses remained accessible. Their separate questions produced a fuller understanding than either perspective could have offered alone. The evidence suggested improvement overall, although some corners still required redesign."
+      },
+      {
+        "word": "recommendations",
+        "meaning_ar": "توصيات",
+        "example": "At the final council hearing, several residents presented opposing recommendations based on the same trial. One group wanted the entire design made permanent, while another favored restoring every parking space. Ethan suggested a compromise that kept the protected lane but moved the loading bay and improved the school crossing. Farah supported the compromise after checking that it preserved accessibility and core safety goals. Ms. Dube praised their negotiation because neither student had abandoned the evidence to win an argument."
+      },
+      {
+        "word": "compromise",
+        "meaning_ar": "تسوية",
+        "example": "At the final council hearing, several residents presented opposing recommendations based on the same trial. One group wanted the entire design made permanent, while another favored restoring every parking space. Ethan suggested a compromise that kept the protected lane but moved the loading bay and improved the school crossing. Farah supported the compromise after checking that it preserved accessibility and core safety goals. Ms. Dube praised their negotiation because neither student had abandoned the evidence to win an argument."
+      },
+      {
+        "word": "negotiation",
+        "meaning_ar": "تفاوض",
+        "example": "At the final council hearing, several residents presented opposing recommendations based on the same trial. One group wanted the entire design made permanent, while another favored restoring every parking space. Ethan suggested a compromise that kept the protected lane but moved the loading bay and improved the school crossing. Farah supported the compromise after checking that it preserved accessibility and core safety goals. Ms. Dube praised their negotiation because neither student had abandoned the evidence to win an argument."
+      },
+      {
+        "word": "design",
+        "meaning_ar": "تصميم",
+        "example": "The council approved a revised design and promised another review after six months. Several businesses reported easier deliveries, while parents appreciated the calmer school crossing. Farah knew the changes did not solve every transport problem, yet she valued the new habit of public consultation. Ethan became a member of a local advisory group so future proposals would include shopkeepers and cyclists from the beginning. Their experience showed that good planning involved repeated evaluation, not one dramatic vote that ended every discussion. This was a public decision whose consequences would affect many different people over the coming years."
+      },
+      {
+        "word": "consultation",
+        "meaning_ar": "تشاور",
+        "example": "The council approved a revised design and promised another review after six months. Several businesses reported easier deliveries, while parents appreciated the calmer school crossing. Farah knew the changes did not solve every transport problem, yet she valued the new habit of public consultation. Ethan became a member of a local advisory group so future proposals would include shopkeepers and cyclists from the beginning. Their experience showed that good planning involved repeated evaluation, not one dramatic vote that ended every discussion. This was a public decision whose consequences would affect many different people over the coming years."
+      },
+      {
+        "word": "evaluation",
+        "meaning_ar": "تقييم",
+        "example": "The council approved a revised design and promised another review after six months. Several businesses reported easier deliveries, while parents appreciated the calmer school crossing. Farah knew the changes did not solve every transport problem, yet she valued the new habit of public consultation. Ethan became a member of a local advisory group so future proposals would include shopkeepers and cyclists from the beginning. Their experience showed that good planning involved repeated evaluation, not one dramatic vote that ended every discussion. This was a public decision whose consequences would affect many different people over the coming years."
+      },
+      {
+        "word": "hostile",
+        "meaning_ar": "عدائي",
+        "example": "Six months later, Farah and Ethan met outside the bakery as cyclists passed through the protected lane. The road remained busy, but the atmosphere felt less hostile than during their first heated meeting. Ethan admitted that he had initially feared losing business, while Farah acknowledged that she had underestimated the importance of practical trade-offs. Both were proud of a solution that could still be revised if new evidence appeared. They understood that compromise was not weakness; it was a responsible way to balance the needs of a shared city."
+      },
+      {
+        "word": "trade-offs",
+        "meaning_ar": "موازنات",
+        "example": "Six months later, Farah and Ethan met outside the bakery as cyclists passed through the protected lane. The road remained busy, but the atmosphere felt less hostile than during their first heated meeting. Ethan admitted that he had initially feared losing business, while Farah acknowledged that she had underestimated the importance of practical trade-offs. Both were proud of a solution that could still be revised if new evidence appeared. They understood that compromise was not weakness; it was a responsible way to balance the needs of a shared city."
+      },
+      {
+        "word": "revised",
+        "meaning_ar": "يُراجع",
+        "example": "Six months later, Farah and Ethan met outside the bakery as cyclists passed through the protected lane. The road remained busy, but the atmosphere felt less hostile than during their first heated meeting. Ethan admitted that he had initially feared losing business, while Farah acknowledged that she had underestimated the importance of practical trade-offs. Both were proud of a solution that could still be revised if new evidence appeared. They understood that compromise was not weakness; it was a responsible way to balance the needs of a shared city."
+      }
+    ],
+    "questions": [
+      {
+        "q": "What first concerned Ethan?",
+        "options": [
+          "Noise from a park",
+          "Loss of space for deliveries and customers",
+          "The price of bicycles",
+          "A school examination"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What changed Ethan's view of cycling?",
+        "options": [
+          "Reading a novel",
+          "Meeting a mayor",
+          "Experiencing how close vehicles passed riders",
+          "Buying a car"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "What did the transport officer warn about?",
+        "options": [
+          "Maps were useless",
+          "No one liked cycling",
+          "Bakeries should close",
+          "One week of data was not a complete picture"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "Which group raised questions about accessible pavements?",
+        "options": [
+          "People using mobility aids",
+          "Only shopkeepers",
+          "Train drivers",
+          "Tourists"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What kind of plan was tested?",
+        "options": [
+          "A permanent motorway",
+          "A temporary protected lane with redesigned loading",
+          "A closed street for cars",
+          "A new bridge"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What did they do about the badly placed barrier?",
+        "options": [
+          "Ignore it",
+          "Cancel all plans",
+          "Document the problem and request an adjustment",
+          "Close the bakery"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "Why did they compare nearby streets?",
+        "options": [
+          "To create more work",
+          "To find prettier roads",
+          "To confuse residents",
+          "To avoid treating unrelated changes as proof of causation"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "What was the final lesson?",
+        "options": [
+          "Responsible planning balances evidence and different needs",
+          "Compromise is always failure",
+          "Only cyclists matter",
+          "One vote ends all discussions"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+}
