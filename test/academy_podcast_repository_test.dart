@@ -78,6 +78,9 @@ void main() {
       if (entry.status == 'script_ready') {
         expect(episode.canStream, isFalse, reason: entry.id);
         expect(episode.isPlayable, isFalse, reason: entry.id);
+        expect(episode.canReadAloud, isTrue, reason: entry.id);
+      } else {
+        expect(episode.canReadAloud, isFalse, reason: entry.id);
       }
     }
   });

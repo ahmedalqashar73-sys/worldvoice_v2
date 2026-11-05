@@ -176,6 +176,15 @@ class AcademyPodcastEpisode {
         dialogue.isNotEmpty;
   }
 
+  /// English A1 scripts without an audio recording can be read aloud by
+  /// the user's device TTS engine. This never represents human audio.
+  bool get canReadAloud =>
+      language == 'en' &&
+      level == 'A1' &&
+      status == 'script_ready' &&
+      !canStream &&
+      dialogue.isNotEmpty;
+
   /// Line-by-line automatic highlighting requires *measured* cues.
   /// Older original WorldVoice scripts still use two fixed hosts; VOA
   /// licensed lessons may also include named incidental performers.

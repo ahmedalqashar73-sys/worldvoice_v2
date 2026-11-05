@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -122,6 +123,9 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
     final enabled = entry.hasTranscript;
     final isPublished = entry.status == 'published' ||
         entry.status == 'published_audio';
+    final deviceReadAloud = entry.language == 'en' &&
+        entry.level == 'A1' &&
+        entry.status == 'script_ready';
     return Card(
       margin: const EdgeInsets.only(bottom: 9),
       elevation: 0,
@@ -169,8 +173,11 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
                         : 'VOA human audio · provisional sync')
                     : (ar ? 'صوت ونص متزامنان' : 'Audio + synced reading'))
                 : enabled
-                    ? (ar ? 'اقرأ المحادثة · التسجيل لم يُضف بعد'
-                        : 'Read transcript · No recording yet')
+                    ? (deviceReadAloud
+                        ? (ar ? 'قراءة صوتية آلية من الجهاز · لا يوجد تسجيل بشري'
+                            : 'Device voice read-aloud · No human recording')
+                        : (ar ? 'اقرأ المحادثة · التسجيل لم يُضف بعد'
+                            : 'Read transcript · No recording yet'))
                     : (ar ? 'قيد إعداد المحتوى' : 'In production'),
             style: TextStyle(color: theme.colorScheme.onSurfaceVariant,
                 fontSize: 11),
@@ -414,6 +421,7 @@ class PodcastReaderScreen extends StatefulWidget {
 
 class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
   final AudioPlayer _player = AudioPlayer();
+  final FlutterTts _tts = FlutterTts();
   final ScrollController _scroll = ScrollController();
   StreamSubscription<Duration>? _positionSubscription;
   StreamSubscription<PlayerState>? _stateSubscription;
@@ -429,6 +437,11 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
   final ValueNotifier<int?> _activeLine = ValueNotifier<int?>(null);
   final ValueNotifier<bool> _isPlaying = ValueNotifier<bool>(false);
   double _speed = 1.0;
+  // Device TTS is separate from the real VOA MP3 player.
+  bool _ttsSpeaking = false;
+  int _ttsLine = 0;
+  int _ttsSession = 0;
+  double _ttsSpeed = 1.0;
   double _fontSize = 17.0;
   final Map<int, int> _answers = <int, int>{};
 
@@ -451,6 +464,11 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
     _stateSubscription = null;
     _activeLine.value = null;
     _isPlaying.value = false;
+    _ttsSession++;
+    if (_ttsSpeaking) {
+      unawaited(_tts.stop());
+      _ttsSpeaking = false;
+    }
     try {
       final loaded = await widget.repository.load(widget.entry);
       if (!mounted) return;
@@ -589,8 +607,11 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
     // Do not call setState: otherwise 44+ transcript paragraphs get rebuilt
     // whenever a new cue is spoken and older Android phones may show blanks.
     _activeLine.value = active;
-    if (!_autoFollow || active == null ||
-        active < 0 || active >= _anchors.length) return;
+    if (active != null) _followLine(active);
+  }
+
+  void _followLine(int active) {
+    if (!_autoFollow || active < 0 || active >= _anchors.length) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_autoFollow || !_scroll.hasClients) return;
       final lineContext = _anchors[active].currentContext;
@@ -601,9 +622,7 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
         final screenBottom = screenTop + render.size.height;
         final viewport = MediaQuery.sizeOf(context).height;
         final safeTop = MediaQuery.paddingOf(context).top + kToolbarHeight + 20;
-        // Reserve the sticky player and some breathing room.
         final safeBottom = viewport - MediaQuery.paddingOf(context).bottom - 154;
-        // Never animate the scroll position when the line is already visible.
         if (screenTop >= safeTop && screenBottom <= safeBottom) return;
       }
       Scrollable.ensureVisible(lineContext,
@@ -611,6 +630,140 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
           duration: const Duration(milliseconds: 280),
           curve: Curves.easeOutCubic);
     });
+  }
+
+  // Narrate the text-only English A1 script line by line using the device
+  // voice. Each highlight starts when that line is sent to speech; we do
+  // not fabricate timestamps for human recordings or claim exact word sync.
+  Future<void> _readAloudFrom(int start) async {
+    final episode = _episode;
+    if (!mounted || episode == null || !episode.canReadAloud) return;
+    final session = ++_ttsSession;
+    final index = start.clamp(0, episode.dialogue.length - 1);
+    setState(() {
+      _ttsSpeaking = true;
+      _ttsLine = index;
+    });
+    try {
+      await _tts.stop();
+      if (!mounted || session != _ttsSession) return;
+      await _tts.awaitSpeakCompletion(true);
+      await _tts.setLanguage('en-US');
+      await _tts.setSpeechRate((0.46 * _ttsSpeed).clamp(0.20, 0.80));
+      await _tts.setPitch(1.0);
+      for (var lineIndex = index;
+          lineIndex < episode.dialogue.length && session == _ttsSession;
+          lineIndex++) {
+        if (!mounted || !_ttsSpeaking) return;
+        setState(() => _ttsLine = lineIndex);
+        _activeLine.value = lineIndex;
+        _followLine(lineIndex);
+        await _tts.speak(episode.dialogue[lineIndex].text);
+      }
+      if (mounted && session == _ttsSession) {
+        setState(() {
+          _ttsSpeaking = false;
+          _ttsLine = 0;
+        });
+        _activeLine.value = null;
+      }
+    } catch (_) {
+      if (!mounted || session != _ttsSession) return;
+      setState(() => _ttsSpeaking = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(Localizations.localeOf(context).languageCode == 'ar'
+            ? 'تعذر تشغيل القراءة الآلية. تحقق من توفر صوت الإنجليزية على الجهاز.'
+            : 'Device voice unavailable. Check English text-to-speech settings.'),
+      ));
+    }
+  }
+
+  void _stopReadAloud() {
+    ++_ttsSession;
+    unawaited(_tts.stop());
+    if (mounted) setState(() => _ttsSpeaking = false);
+  }
+
+  void _playPauseReadAloud() {
+    if (_ttsSpeaking) {
+      _stopReadAloud();
+    } else {
+      unawaited(_readAloudFrom(_ttsLine));
+    }
+  }
+
+  Widget _readAloudPlayer(AcademyPodcastEpisode episode) {
+    final scheme = Theme.of(context).colorScheme;
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    return SafeArea(
+      top: false,
+      child: Container(
+        key: const ValueKey('podcast-device-tts-player'),
+        padding: const EdgeInsets.fromLTRB(13, 8, 13, 13),
+        decoration: BoxDecoration(
+          color: scheme.surface,
+          border: Border(top: BorderSide(color: scheme.outlineVariant)),
+        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Row(children: [
+            IconButton.filled(
+              key: const ValueKey('podcast-device-tts-play-pause'),
+              onPressed: _playPauseReadAloud,
+              style: IconButton.styleFrom(
+                backgroundColor: const Color(0xFF1F7958),
+                foregroundColor: Colors.white,
+              ),
+              icon: Icon(_ttsSpeaking
+                  ? Icons.pause_rounded : Icons.play_arrow_rounded),
+            ),
+            const SizedBox(width: 9),
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(ar ? 'قراءة إنجليزية بصوت الجهاز (آلي)'
+                    : 'English device voice (synthetic)',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w800,
+                        fontSize: 12)),
+                Text(ar
+                    ? 'السطر ${_ttsLine + 1} من ${episode.dialogue.length}'
+                    : 'Line ${_ttsLine + 1} of ${episode.dialogue.length}',
+                    style: TextStyle(fontSize: 11,
+                        color: scheme.onSurfaceVariant)),
+              ],
+            )),
+            IconButton(
+              key: const ValueKey('podcast-device-tts-restart'),
+              tooltip: ar ? 'البدء من أول المحادثة' : 'Start from first line',
+              onPressed: () => unawaited(_readAloudFrom(0)),
+              icon: const Icon(Icons.replay_rounded),
+            ),
+            DropdownButton<double>(
+              key: const ValueKey('podcast-device-tts-speed'),
+              value: _ttsSpeed,
+              underline: const SizedBox.shrink(),
+              items: const [0.75, 1.0, 1.25].map((value) =>
+                DropdownMenuItem<double>(
+                  value: value, child: Text('$value×'),
+                )).toList(),
+              onChanged: (value) {
+                if (value == null) return;
+                final resume = _ttsSpeaking;
+                setState(() => _ttsSpeed = value);
+                if (resume) unawaited(_readAloudFrom(_ttsLine));
+              },
+            ),
+          ]),
+          const SizedBox(height: 5),
+          LinearProgressIndicator(
+            value: (_ttsLine + 1) / episode.dialogue.length,
+            color: const Color(0xFF237D5C),
+            backgroundColor: scheme.surfaceContainerHighest,
+          ),
+        ]),
+      ),
+    );
   }
 
   void _playPause() {
@@ -645,6 +798,8 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
   void dispose() {
     _positionSubscription?.cancel();
     _stateSubscription?.cancel();
+    ++_ttsSession;
+    unawaited(_tts.stop());
     _player.dispose();
     _scroll.dispose();
     _activeLine.dispose();
@@ -709,7 +864,9 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
             const SizedBox(width: 5),
             Text(episode.canStream
                 ? _clock(Duration(milliseconds: episode.durationMs!))
-                : (ar ? 'نص فقط' : 'Text only'),
+                : (episode.canReadAloud
+                    ? (ar ? 'قراءة آلية' : 'Device voice')
+                    : (ar ? 'نص فقط' : 'Text only')),
                 textDirection: episode.canStream
                     ? TextDirection.ltr : null,
                 style: const TextStyle(color: Color(0xFFF4D790),
@@ -747,12 +904,16 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                           ? (_error == null
                               ? 'جارٍ تحميل التسجيل البشري من VOA...'
                               : 'تعذر تحميل الصوت. افتح المصدر الأصلي أدناه.')
-                          : 'نص قابل للقراءة الآن. التسجيل البشري لم يتوفر بعد.')
+                          : (episode.canReadAloud
+                              ? 'يمكن الاستماع بنطق آلي إنجليزي من جهازك. لا يوجد تسجيل بشري.'
+                              : 'نص قابل للقراءة الآن. التسجيل البشري لم يتوفر بعد.'))
                       : (episode.canStream
                           ? (_error == null
                               ? 'Loading the human recording from VOA...'
                               : 'Audio could not load. Open the original source below.')
-                          : 'The transcript is ready. Human audio has not been published.'),
+                          : (episode.canReadAloud
+                              ? 'Listen with your device’s English synthetic voice. No human recording is available.'
+                              : 'The transcript is ready. Human audio has not been published.')),
                   style: const TextStyle(
                       color: Colors.white, fontSize: 12, height: 1.5),
                 )),
@@ -947,7 +1108,8 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
     final sourceIsArabic = _episode?.language == 'ar';
     final translation = sourceIsArabic
         ? line.translationEn ?? '' : line.translationAr;
-    final canReplay = _audioLoaded && line.startMs != null;
+    final canReplay = (_audioLoaded && line.startMs != null) ||
+        (_episode?.canReadAloud ?? false);
     // The dialogue itself is a cached child. Cue updates repaint only the
     // slim left indicator instead of rebuilding text and avatars.
     final paragraph = Padding(
@@ -1026,7 +1188,10 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
             borderRadius: BorderRadius.circular(12),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
-              onTap: canReplay ? () => _seekLine(line) : null,
+              onTap: !canReplay ? null
+                  : (_episode?.canReadAloud ?? false)
+                      ? () => unawaited(_readAloudFrom(i))
+                      : () => _seekLine(line),
               child: child,
             ),
           ),
@@ -1104,9 +1269,13 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
             : ar ? episode.titleAr : episode.title),
         centerTitle: true,
       ),
-      bottomNavigationBar: episode != null && _audioLoaded
-          ? _fixedPlayer(episode)
-          : null,
+      bottomNavigationBar: episode == null
+          ? null
+          : _audioLoaded
+              ? _fixedPlayer(episode)
+              : episode.canReadAloud
+                  ? _readAloudPlayer(episode)
+                  : null,
       body: episode == null
           ? Center(child: _error == null
               ? const CircularProgressIndicator()
@@ -1190,9 +1359,13 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                             : (ar ? 'يُبرز السطر عند سماعه · اضغط عليه لإعادته'
                                 : 'Follow the highlighted line · Tap to replay'))
                         : (!episode.canStream
-                            ? (ar
-                                ? 'نص تعليمي للقراءة · التسجيل الصوتي غير متوفر بعد.'
-                                : 'Reading transcript · No recording published yet.')
+                            ? (episode.canReadAloud
+                                ? (ar
+                                    ? 'شغّل القراءة الآلية واستمع لكل سطر؛ لا يوجد تسجيل بشري لهذه الحلقة.'
+                                    : 'Play the device voice to follow each line · No human recording.')
+                                : (ar
+                                    ? 'نص تعليمي للقراءة · التسجيل الصوتي غير متوفر بعد.'
+                                    : 'Reading transcript · No recording published yet.'))
                             : (ar
                                 ? 'اقرأ النص مع تشغيل التسجيل الأصلي. مزامنة السطور قيد التحقق.'
                                 : 'Read along with the authentic recording. Line timing is under review.')),

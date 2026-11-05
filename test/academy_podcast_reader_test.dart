@@ -58,6 +58,10 @@ void main() {
     expect(find.byKey(const ValueKey('podcast-auto-follow-toggle')),
         findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-sticky-player')), findsNothing);
+    expect(find.byKey(const ValueKey('podcast-device-tts-player')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('podcast-device-tts-play-pause')),
+        findsOneWidget);
     await tester.tap(
         find.byKey(const ValueKey('podcast-translation-toggle')));
     await tester.pump();
@@ -88,6 +92,7 @@ void main() {
     expect(find.text('Hola, ¿está libre esta silla? Hay mucha gente en la cafetería hoy.'),
         findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-play-pause')), findsNothing);
+    expect(find.byKey(const ValueKey('podcast-device-tts-player')), findsNothing);
     await tester.tap(find.byKey(const ValueKey('podcast-translation-toggle')));
     await tester.pump();
     expect(find.text('مرحبًا، هل هذا الكرسي فارغ؟ هناك أشخاص كثيرون في المقهى اليوم.'),
@@ -124,8 +129,11 @@ void main() {
     await tester.pump();
     expect(tester.takeException(), isNull);
     expect(find.byKey(const ValueKey('podcast-sticky-player')), findsNothing);
-    expect(find.text('Text only'), findsOneWidget);
-    expect(find.text('Reading transcript · No recording published yet.'),
+    expect(find.text('Device voice'), findsOneWidget);
+    expect(find.text(
+        'Play the device voice to follow each line · No human recording.'),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('podcast-device-tts-player')),
         findsOneWidget);
     final jump = find.byKey(const ValueKey('podcast-jump-to-transcript'));
     expect(jump, findsOneWidget);
