@@ -131,6 +131,7 @@ class AcademyPodcastEpisode {
     required this.vocabulary,
     required this.questions,
     this.audioUrl,
+    this.backupAudioUrl,
     this.durationMs,
     this.language = 'en',
     this.recordingKind,
@@ -156,6 +157,7 @@ class AcademyPodcastEpisode {
   final List<String> hosts;
   final List<String> otherSpeakers;
   final String? audioUrl;
+  final String? backupAudioUrl;
   final int? durationMs;
   final List<PodcastDialogueLine> dialogue;
   final List<PodcastVocabulary> vocabulary;
@@ -230,6 +232,7 @@ class AcademyPodcastEpisode {
             ? List<String>.from(json['other_speakers'] as List<dynamic>)
             : const <String>[],
         audioUrl: json['audio_url'] as String?,
+        backupAudioUrl: json['backup_audio_url'] as String?,
         durationMs: json['duration_ms'] as int?,
         dialogue: (json['dialogue'] as List<dynamic>)
             .map((line) => PodcastDialogueLine.fromJson(
