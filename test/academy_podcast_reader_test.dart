@@ -19,6 +19,20 @@ void main() {
     for (final level in ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']) {
       expect(find.byKey(ValueKey('podcast-level-$level')), findsOneWidget);
     }
+    final french = find.byKey(const ValueKey('podcast-language-fr'));
+    await tester.ensureVisible(french);
+    await tester.tap(french);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 120));
+    expect(find.byKey(const ValueKey('podcast-pending-fr')), findsOneWidget);
+    expect(find.byKey(const ValueKey('podcast-episode-en-a1-pod-001')),
+        findsNothing);
+
+    final english = find.byKey(const ValueKey('podcast-language-en'));
+    await tester.ensureVisible(english);
+    await tester.tap(english);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 120));
     expect(find.byKey(const ValueKey('podcast-episode-en-a1-pod-001')),
         findsOneWidget);
     await tester.ensureVisible(
@@ -42,21 +56,4 @@ void main() {
     expect(find.text('مرحبًا! هل هذا المقعد فارغ؟ المقهى مزدحم اليوم.'),
         findsOneWidget);
   });
-  testWidgets('French path remains available without pretending there is audio',
-      (tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: Scaffold(body: SingleChildScrollView(
-        child: PodcastLibrarySection())),
-    ));
-    await tester.pumpAndSettle();
-    final french = find.byKey(const ValueKey('podcast-language-fr'));
-    await tester.ensureVisible(french);
-    await tester.tap(french);
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('podcast-pending-fr')),
-        findsOneWidget);
-    expect(find.byKey(const ValueKey('podcast-episode-en-a1-pod-001')),
-        findsNothing);
-  });
-
 }
