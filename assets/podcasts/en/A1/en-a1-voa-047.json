@@ -1,0 +1,412 @@
+{
+  "schema": 1,
+  "id": "en-a1-voa-047",
+  "language": "en",
+  "level": "A1",
+  "title": "How Can I Help? — VOA Lesson 47",
+  "title_ar": "كيف يمكنني المساعدة؟ — درس VOA 47",
+  "hosts": [
+    "Anna",
+    "Pete"
+  ],
+  "other_speakers": [
+    "Dan",
+    "Master"
+  ],
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "source": "VOA Learning English",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-47-how-can-i-help/3737352.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 47: How Can I Help? Original VOA recording and dialogue. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2017/03/03/8511524b-9e6f-4e73-9fa1-cd3f6b32b495_hq.mp3?download=1",
+  "backup_audio_url": "https://voa-audio.voanews.eu/vle/2017/03/03/8511524b-9e6f-4e73-9fa1-cd3f6b32b495.mp3?download=1",
+  "duration_ms": 191000,
+  "sync_status": "unverified",
+  "dialogue": [
+    {
+      "speaker": "Anna",
+      "text": "Hi, Pete. What are you doing?",
+      "translation_ar": "مرحبًا يا بيت. ماذا تفعل؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Oh! Hi, Anna. Right now, I am fixing my car.",
+      "translation_ar": "أوه! مرحبًا يا آنا. أنا أصلح سيارتي الآن.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "How’s it going?",
+      "translation_ar": "كيف تسير الأمور؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "It’s going … not so good.",
+      "translation_ar": "إنها لا تسير على ما يرام.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "How can I help? I was planning to visit some friends. But if you need help, I can help. I like helping.",
+      "translation_ar": "كيف أساعدك؟ كنت أنوي زيارة بعض الأصدقاء، لكن إن كنت تحتاج إلى مساعدة فأستطيع مساعدتك. أحب مساعدة الآخرين.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Anna, I can fix it myself. But thanks.",
+      "translation_ar": "آنا، أستطيع إصلاحها بنفسي. لكن شكرًا لك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Pete, I think I found your problem. These are spark plugs. (holds them up)",
+      "translation_ar": "يا بيت، أظن أنني وجدت المشكلة. هذه شمعات الإشعال. (ترفعها بيدها)",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "They start the engine.",
+      "translation_ar": "إنها تساعد على تشغيل المحرك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "I know that, Anna. But there were too many spark plugs … in there. So I took out the extra ones.",
+      "translation_ar": "أعرف ذلك يا آنا، لكن عدد شمعات الإشعال كان كبيرًا جدًا هناك، لذا أزلت الزائد منها.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "There are no extras, Pete. You need all of them. Pete, can you fix a car yourself?",
+      "translation_ar": "لا توجد شمعات زائدة يا بيت. أنت تحتاج إليها كلها. هل تستطيع إصلاح سيارة بنفسك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Well, Anna, last night I was watching the online video course, “You CAN Fix a Car Yourself!”",
+      "translation_ar": "حسنًا يا آنا، كنت أشاهد الليلة الماضية دورة فيديو على الإنترنت بعنوان «يمكنك إصلاح سيارتك بنفسك!»",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Dan",
+      "text": "Yes, you CAN fix your car yourself!",
+      "translation_ar": "نعم، يمكنك إصلاح سيارتك بنفسك!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "And I watched the first 10 lessons. So, I think I know what I’m doing.",
+      "translation_ar": "وقد شاهدت أول عشرة دروس، لذا أظن أنني أعرف ما أفعله.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "How many lessons are there?",
+      "translation_ar": "كم عدد الدروس؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Four hundred and fifty.",
+      "translation_ar": "أربعمئة وخمسون.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "450! That'll take too long! If I fix your car, I'll have it running in 10 to 15 minutes.",
+      "translation_ar": "450! هذا سيستغرق وقتًا طويلًا! إذا أصلحتُ سيارتك فستعمل خلال عشر إلى خمس عشرة دقيقة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Where’re your tools?",
+      "translation_ar": "أين أدواتك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "I have this. (puts a useless tool in her hand). And this. (hands her another useless tool)",
+      "translation_ar": "عندي هذه. (يضع أداة غير مفيدة في يدها) وهذه أيضًا. (يناولها أداة أخرى غير مفيدة)",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Great. Um, I’ll get my tools. I’ll be back in a flash!",
+      "translation_ar": "رائع. سأحضر أدواتي. سأعود بسرعة البرق!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "But, Anna, I don’t need your ...",
+      "translation_ar": "لكن يا آنا، لا أحتاج إلى...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "… help.",
+      "translation_ar": "...مساعدتك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Pete, when I was a teenager, I was fixing cars -- myself. I learned from a master.",
+      "translation_ar": "يا بيت، عندما كنت مراهقة كنت أصلح السيارات بنفسي. تعلمت من خبير.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "You can trust me.",
+      "translation_ar": "يمكنك أن تثق بي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Okay.",
+      "translation_ar": "حسنًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Great! But we need teamwork. You sit in the car. When I say “go,” you start the engine.",
+      "translation_ar": "عظيم! لكننا نحتاج إلى العمل الجماعي. اجلس في السيارة، وعندما أقول «ابدأ»، شغّل المحرك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Okay, go!",
+      "translation_ar": "حسنًا، ابدأ!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Stop!",
+      "translation_ar": "توقف!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Okay, go! Huh.",
+      "translation_ar": "حسنًا، ابدأ! همم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "It's not starting! It’s not starting!",
+      "translation_ar": "إنها لا تعمل! لا تعمل!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "What’s wrong?",
+      "translation_ar": "ما المشكلة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "This car is stupid … stupid, stupid!",
+      "translation_ar": "هذه السيارة غبية... غبية، غبية!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Pete, kicking the tires will not help.",
+      "translation_ar": "يا بيت، ركل الإطارات لن يساعد.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Well, you did not help, Anna. You did not help!!",
+      "translation_ar": "حسنًا، أنت لم تساعديني يا آنا. لم تساعديني!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Pete, Pete! Pull yourself together, man. Give me the keys. I must feel the key in the ignition and turn it myself.",
+      "translation_ar": "يا بيت! تمهّل وتماسك. أعطني المفاتيح. يجب أن أمسك المفتاح في مكان التشغيل وأديره بنفسي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Master",
+      "text": "Use the key, Anna. Turn the key, Anna. What are you forgetting, Anna?",
+      "translation_ar": "استخدمي المفتاح يا آنا. أديري المفتاح. ماذا نسيتِ يا آنا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Pete. Pete.",
+      "translation_ar": "بيت، بيت.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "What?",
+      "translation_ar": "ماذا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "You are out of gas.",
+      "translation_ar": "لقد نفد الوقود من سيارتك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "I can’t be out of gas. (looks at gauge) I’m out of gas. Sorry, Anna. I’ll go get some.",
+      "translation_ar": "لا يمكن أن ينفد الوقود. (ينظر إلى المؤشر) لقد نفد فعلًا. آسف يا آنا. سأذهب لأحضره.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Pete. You relax. Clean your face. You can watch the rest of your online video course. It’ll be faster if I go … in a flash. Until next time …",
+      "translation_ar": "يا بيت، استرح ونظّف وجهك. يمكنك مشاهدة بقية دورتك عبر الإنترنت. سيكون أسرع إذا ذهبت أنا... بسرعة البرق. إلى اللقاء!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Dan",
+      "text": "“Lesson 11. Always make sure you have a full tank of gas!”",
+      "translation_ar": "الدرس الحادي عشر: تأكد دائمًا من أن خزان الوقود ممتلئ!",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "spark plug",
+      "meaning_ar": "شمعة إشعال"
+    },
+    {
+      "word": "engine",
+      "meaning_ar": "محرك"
+    },
+    {
+      "word": "fix",
+      "meaning_ar": "يصلح"
+    },
+    {
+      "word": "tools",
+      "meaning_ar": "أدوات"
+    },
+    {
+      "word": "teamwork",
+      "meaning_ar": "عمل جماعي"
+    },
+    {
+      "word": "teenager",
+      "meaning_ar": "مراهق"
+    },
+    {
+      "word": "trust",
+      "meaning_ar": "يثق"
+    },
+    {
+      "word": "ignition",
+      "meaning_ar": "تشغيل المحرك"
+    },
+    {
+      "word": "gas",
+      "meaning_ar": "وقود"
+    },
+    {
+      "word": "flash",
+      "meaning_ar": "سرعة خاطفة"
+    },
+    {
+      "word": "tires",
+      "meaning_ar": "إطارات"
+    },
+    {
+      "word": "full tank",
+      "meaning_ar": "خزان ممتلئ"
+    }
+  ],
+  "questions": [
+    {
+      "question": "What is Pete trying to do?",
+      "options": [
+        "Fix his car",
+        "Write a letter",
+        "Cook dinner"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "What does Anna find missing from the engine?",
+      "options": [
+        "Spark plugs",
+        "Tires",
+        "Windshield"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "How many lessons are in Pete's video course?",
+      "options": [
+        "50",
+        "450",
+        "10"
+      ],
+      "answer": 1
+    },
+    {
+      "question": "What is the real problem with the car?",
+      "options": [
+        "No gas",
+        "A flat tire",
+        "No battery"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "Who offers to get gas?",
+      "options": [
+        "Dan",
+        "Pete",
+        "Anna"
+      ],
+      "answer": 2
+    }
+  ]
+}
