@@ -135,6 +135,11 @@ class AcademyPodcastEpisode {
     this.language = 'en',
     this.recordingKind,
     this.rightsConfirmed = false,
+    this.sourceUrl,
+    this.sourceCredit,
+    this.syncStatus,
+    this.hosts = const ['Anna', 'Daniel'],
+    this.otherSpeakers = const [],
   });
 
   final String id;
@@ -145,30 +150,43 @@ class AcademyPodcastEpisode {
   final String language;
   final String? recordingKind;
   final bool rightsConfirmed;
+  final String? sourceUrl;
+  final String? sourceCredit;
+  final String? syncStatus;
+  final List<String> hosts;
+  final List<String> otherSpeakers;
   final String? audioUrl;
   final int? durationMs;
   final List<PodcastDialogueLine> dialogue;
   final List<PodcastVocabulary> vocabulary;
   final List<PodcastQuestion> questions;
 
-  /// "Published" requires a real five-minute audio URL and *measured* cues
-  /// for every dialogue turn. Never synthesize timestamps from word counts.
-  bool get isPlayable {
-    if (status != 'published' || recordingKind != 'human' ||
-        !rightsConfirmed || durationMs == null ||
-        durationMs! < 285000 || durationMs! > 315000) {
+  /// Real rights-cleared MP3 can stream while sentence-level alignment
+  /// is still pending. Do not invent timings or show a false highlight.
+  bool get canStream {
+    if ((status != 'published' && status != 'published_audio') ||
+        recordingKind != 'human' || !rightsConfirmed ||
+        durationMs == null || durationMs! <= 0) {
       return false;
     }
     final uri = Uri.tryParse(audioUrl ?? '');
-    if (uri == null || uri.scheme != 'https' || uri.host.isEmpty ||
-        dialogue.isEmpty) {
+    return uri != null && uri.scheme == 'https' && uri.host.isNotEmpty &&
+        dialogue.isNotEmpty;
+  }
+
+  /// Line-by-line automatic highlighting requires *measured* cues.
+  /// Older original WorldVoice scripts still use two fixed hosts; VOA
+  /// licensed lessons may also include named incidental performers.
+  bool get isPlayable {
+    if (!canStream || durationMs! < 190000 || durationMs! > 315000) {
       return false;
     }
+    final allowedSpeakers = <String>{...hosts, ...otherSpeakers};
     var previousEnd = 0;
     for (final line in dialogue) {
       final start = line.startMs;
       final end = line.endMs;
-      if ((line.speaker != 'Anna' && line.speaker != 'Daniel') ||
+      if (!allowedSpeakers.contains(line.speaker) ||
           start == null || end == null ||
           start < previousEnd || end <= start || end > durationMs! ||
           line.text.trim().isEmpty ||
@@ -202,6 +220,15 @@ class AcademyPodcastEpisode {
         language: json['language'] as String? ?? 'en',
         recordingKind: json['recording_kind'] as String?,
         rightsConfirmed: json['voice_rights_verified'] as bool? ?? false,
+        sourceUrl: json['source_url'] as String?,
+        sourceCredit: json['source_credit'] as String?,
+        syncStatus: json['sync_status'] as String?,
+        hosts: json['hosts'] is List
+            ? List<String>.from(json['hosts'] as List<dynamic>)
+            : const ['Anna', 'Daniel'],
+        otherSpeakers: json['other_speakers'] is List
+            ? List<String>.from(json['other_speakers'] as List<dynamic>)
+            : const <String>[],
         audioUrl: json['audio_url'] as String?,
         durationMs: json['duration_ms'] as int?,
         dialogue: (json['dialogue'] as List<dynamic>)
