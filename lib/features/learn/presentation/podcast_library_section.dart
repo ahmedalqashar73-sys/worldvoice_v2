@@ -493,10 +493,12 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
           ? Center(child: _error == null
               ? const CircularProgressIndicator()
               : Text(_error!))
-          : ListView(
+          : SingleChildScrollView(
               controller: _scroll,
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 30),
-              children: [
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
                 _audioPanel(episode),
                 const SizedBox(height: 18),
                 Row(children: [
@@ -533,7 +535,8 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                     Chip(label: Text(word.word + ' · ' + word.meaningAr)),
                 ]),
                 _quiz(episode),
-              ],
+                ],
+              ),
             ),
     );
   }
