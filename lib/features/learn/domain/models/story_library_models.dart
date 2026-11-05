@@ -271,6 +271,7 @@ class StoryLibraryEntry {
     required this.title,
     required this.titleAr,
     required this.asset,
+    this.coverImage,
     this.format = 'legacy',
   });
 
@@ -280,6 +281,7 @@ class StoryLibraryEntry {
   final String title;
   final String titleAr;
   final String asset;
+  final String? coverImage;
   final String format;
 
   static const levels = <String>['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
@@ -308,6 +310,7 @@ class StoryLibraryEntry {
       title: _requiredText(json, 'title'),
       titleAr: _requiredText(json, 'title_ar'),
       asset: asset,
+      coverImage: _optionalText(json, 'cover_image'),
       format: format as String,
     );
   }
