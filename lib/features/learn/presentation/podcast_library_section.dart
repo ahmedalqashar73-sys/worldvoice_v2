@@ -310,7 +310,47 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
               builder: (context, state) {
                 final entry = state.data?.where((x) =>
                     x.code == _selectedLanguage).firstOrNull ?? language;
-                return _emptyLanguage(entry, ar);
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _emptyLanguage(entry, ar),
+                    const SizedBox(height: 10),
+                    if (current.isNotEmpty)
+                      Card(
+                        elevation: 0,
+                        color: scheme.surfaceContainerLow,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(17),
+                          side: BorderSide(color: scheme.outlineVariant)),
+                        child: ExpansionTile(
+                          key: ValueKey(
+                              'podcast-planned-$_selectedLanguage-$_selectedLevel'),
+                          leading: const Icon(Icons.library_books_outlined,
+                              color: Color(0xFF438A69)),
+                          title: Text(ar
+                              ? 'عرض مواضيع الحلقات الـ15'
+                              : 'View 15 planned topics',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w800, fontSize: 14)),
+                          subtitle: Text(ar ? 'مواضيع مقترحة، وليست تسجيلات منشورة'
+                              : 'Planned topics — no recordings published',
+                              style: TextStyle(fontSize: 11,
+                                  color: scheme.onSurfaceVariant)),
+                          children: [
+                            for (final item in current)
+                              ListTile(
+                                dense: true,
+                                title: Text(
+                                  ar ? item.titleAr ?? item.title : item.title,
+                                  style: const TextStyle(fontSize: 13)),
+                                trailing: const Icon(Icons.schedule,
+                                    size: 16, color: Colors.grey),
+                              ),
+                          ],
+                        ),
+                      ),
+                  ],
+                );
               },
             );
           }
