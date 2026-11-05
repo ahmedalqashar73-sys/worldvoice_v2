@@ -171,7 +171,10 @@ class AcademyPodcastEpisode {
       if ((line.speaker != 'Anna' && line.speaker != 'Daniel') ||
           start == null || end == null ||
           start < previousEnd || end <= start || end > durationMs! ||
-          line.text.trim().isEmpty || line.translationAr.trim().isEmpty) {
+          line.text.trim().isEmpty ||
+          (language == 'ar'
+              ? (line.translationEn ?? '').trim().isEmpty
+              : line.translationAr.trim().isEmpty)) {
         return false;
       }
       previousEnd = end;
