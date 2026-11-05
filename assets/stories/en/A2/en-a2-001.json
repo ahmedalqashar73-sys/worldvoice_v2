@@ -1,0 +1,438 @@
+{
+  "language": "en",
+  "level": "A2",
+  "story": {
+    "id": "en-a2-001",
+    "title": "The Letter by the Lighthouse",
+    "title_ar": "الرسالة بجانب المنارة",
+    "moral_ar": "قد يكون التصرف الصغير بأمانة ولطف سببًا في إسعاد شخص آخر.",
+    "art_style": "Detailed hand-painted schoolbook watercolor with coherent characters and realistic coastal light. No text in the illustration.",
+    "cover_image_prompt": "Watercolor lighthouse on the English coast, Maya and Adam walking together past boats in warm daylight, no text.",
+    "character_sheet": [
+      {
+        "name": "Maya",
+        "description": "12-year-old girl, medium-brown skin, shoulder-length dark wavy hair, coral jacket, cream trousers, navy sneakers."
+      },
+      {
+        "name": "Adam",
+        "description": "13-year-old boy, olive skin, short curly dark hair, navy-blue sweater, sand-colored trousers and white shoes."
+      },
+      {
+        "name": "Helen",
+        "description": "Older woman, warm light skin, silver hair in a bun, pale-blue coat, navy skirt."
+      },
+      {
+        "name": "Mr. Brown",
+        "description": "Middle-aged man, warm tan skin, salt-and-pepper beard, green checked shirt."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "An Unexpected Discovery",
+        "title_ar": "اكتشاف غير متوقع",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image": "assets/stories/en/A2/illustrations/en-a2-001_scene_01.svg",
+            "image_prompt": "Maya and Adam walk through a picturesque coastal harbor with old stone lighthouse in distance, fishing boats and wild grass",
+            "animation": "pan_left",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "During the spring holidays, Maya visits her uncle in a small **harbor** town. She enjoys the **coast**, where fishing boats move slowly across the water. Her cousin Adam promises to show her the old lighthouse before the afternoon **tide** rises."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "That sounds exciting, Maya says."
+                  }
+                ],
+                "translation_ar": "خلال عطلة الربيع تزور مايا عمها في بلدة ميناء صغيرة. تستمتع بالساحل حيث تتحرك قوارب الصيد ببطء على الماء. يعدها ابن عمها آدم بأن يريها المنارة القديمة قبل ارتفاع المد بعد الظهر. تقول مايا إن الأمر يبدو ممتعًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The path is narrow, so Adam asks Maya to walk **carefully**. They pass a white wall and reach the lighthouse **entrance**. A strong wind moves the grass around them, but the wooden gate is open."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We can look inside, Adam says, as he checks the **stairs**."
+                  }
+                ],
+                "translation_ar": "الممر ضيق، لذا يطلب آدم من مايا السير بحذر. يمران بجدار أبيض ويصلان إلى مدخل المنارة. تحرك رياح قوية العشب من حولهما، لكن البوابة الخشبية مفتوحة. يقول آدم إن بإمكانهما الدخول بينما يفحص الدرج."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image": "assets/stories/en/A2/illustrations/en-a2-001_scene_02.svg",
+            "image_prompt": "Two young cousins discover a letter beneath an old wooden bench inside lighthouse, spiral staircase and seaside sunlight",
+            "animation": "zoom_in_slow",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Inside, Maya notices a small **envelope** under a bench. It is dusty but not damaged. She reads the **name** written on the front and sees a faded drawing of a boat."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "This belongs to someone, she says. Adam suggests finding the **owner** instead of opening it."
+                  }
+                ],
+                "translation_ar": "في الداخل تلاحظ مايا ظرفًا صغيرًا تحت مقعد. عليه غبار لكنه غير تالف. تقرأ الاسم المكتوب عليه وترى رسمًا باهتًا لقارب. تقول إنه يخص شخصًا ما، ويقترح آدم البحث عن صاحبه بدلًا من فتحه."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "They take the envelope to the nearby **visitor** center, where a guide called Mr. Brown works. The guide checks an old **register** of lighthouse guests."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "The name looks familiar, Adam says. Mr. Brown finds a matching **record** from last summer and smiles."
+                  }
+                ],
+                "translation_ar": "يأخذان الظرف إلى مركز الزوار القريب حيث يعمل مرشد اسمه السيد براون. يفحص المرشد سجلًا قديمًا لزوار المنارة. يقول آدم إن الاسم يبدو مألوفًا. يجد السيد براون قيدًا مطابقًا من الصيف الماضي ويبتسم."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The register shows a woman named Helen who often visits the town. Mr. Brown knows her **family** and can contact them. Maya feels **relieved** because the envelope may finally reach the right person."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We should keep it **safe** until she comes, Maya says."
+                  }
+                ],
+                "translation_ar": "يوضح السجل اسم امرأة تدعى هيلين تزور البلدة كثيرًا. يعرف السيد براون عائلتها ويمكنه الاتصال بهم. تشعر مايا بالارتياح لأن الظرف قد يصل أخيرًا إلى صاحبه. تقول إنه ينبغي حفظه بأمان حتى تصل."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "The Story Behind the Letter",
+        "title_ar": "قصة وراء الرسالة",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image": "assets/stories/en/A2/illustrations/en-a2-001_scene_03.svg",
+            "image_prompt": "Maya and Adam hand a found envelope to Helen at the warm seaside visitor center, grandfather's postcard and emotional reunion",
+            "animation": "fade_in",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The next morning, Helen arrives at the visitor center with her grandson. She explains that the envelope contains a **postcard** from her late father. It is a precious **memory** of their last holiday together."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "I thought it was **lost** forever, Helen says quietly."
+                  }
+                ],
+                "translation_ar": "في صباح اليوم التالي تصل هيلين إلى مركز الزوار مع حفيدها. تشرح أن الظرف يحتوي على بطاقة بريدية من والدها الراحل. إنها ذكرى ثمينة من آخر عطلة قضياها معًا. تقول بهدوء إنها ظنتها مفقودة إلى الأبد."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Helen asks how they discovered the envelope. Adam describes their **search** inside the lighthouse, while Maya explains why they did not open it. Helen thanks them for being **honest**."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We wanted to **respect** your privacy, Adam says, and Helen nods with gratitude."
+                  }
+                ],
+                "translation_ar": "تسأل هيلين كيف وجدا الظرف. يصف آدم بحثهما داخل المنارة، وتوضح مايا لماذا لم يفتحاه. تشكرهما هيلين على أمانتهما. يقول آدم إنهما أرادا احترام خصوصيتها، فتهز هيلين رأسها امتنانًا."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image": "assets/stories/en/A2/illustrations/en-a2-001_scene_04.svg",
+            "image_prompt": "Helen invites young cousins onto her family sailboat, golden sunset reflections with distant lighthouse",
+            "animation": "parallax",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "As a small **reward**, Helen invites the cousins to visit her family boat. They sit on the deck and listen to stories about the **past**. Her grandson shows Maya an old **photograph** of the lighthouse before its walls were painted white."
+                  }
+                ],
+                "translation_ar": "كمكافأة صغيرة تدعو هيلين ابني العم لزيارة قارب العائلة. يجلسان على سطحه ويستمعان إلى قصص عن الماضي. يري حفيدها مايا صورة قديمة للمنارة قبل أن تطلى جدرانها بالأبيض."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Later, Adam notices the **sunset** turning the water gold. They return to the harbor by a quiet **route** along the beach."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Today was more interesting than I **expected**, Maya says. Adam agrees that the unexpected meeting made their holiday special."
+                  }
+                ],
+                "translation_ar": "لاحقًا يلاحظ آدم الغروب وهو يحول الماء إلى اللون الذهبي. يعودان إلى الميناء عبر طريق هادئ بمحاذاة الشاطئ. تقول مايا إن اليوم كان أكثر إثارة مما توقعت. يوافق آدم على أن اللقاء غير المتوقع جعل عطلتهما مميزة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Before leaving town, Maya writes about the **experience** in her notebook. She understands that even a small act of **kindness** can mean a great deal to another person."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We made the right **choice**, Adam says. Together they wave goodbye to the lighthouse."
+                  }
+                ],
+                "translation_ar": "قبل مغادرة البلدة تكتب مايا عن التجربة في دفترها. تدرك أن عملًا صغيرًا من اللطف قد يعني الكثير لشخص آخر. يقول آدم إنهما اتخذا الاختيار الصحيح. يلوحان معًا مودعين المنارة."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "harbor",
+        "meaning_ar": "ميناء",
+        "example": "During the spring holidays, Maya visits her uncle in a small harbor town. She enjoys the coast, where fishing boats move slowly across the water. Her cousin Adam promises to show her the old lighthouse before the afternoon tide rises."
+      },
+      {
+        "word": "coast",
+        "meaning_ar": "الساحل",
+        "example": "During the spring holidays, Maya visits her uncle in a small harbor town. She enjoys the coast, where fishing boats move slowly across the water. Her cousin Adam promises to show her the old lighthouse before the afternoon tide rises."
+      },
+      {
+        "word": "tide",
+        "meaning_ar": "المد",
+        "example": "During the spring holidays, Maya visits her uncle in a small harbor town. She enjoys the coast, where fishing boats move slowly across the water. Her cousin Adam promises to show her the old lighthouse before the afternoon tide rises."
+      },
+      {
+        "word": "carefully",
+        "meaning_ar": "بحذر",
+        "example": "The path is narrow, so Adam asks Maya to walk carefully. They pass a white wall and reach the lighthouse entrance. A strong wind moves the grass around them, but the wooden gate is open."
+      },
+      {
+        "word": "entrance",
+        "meaning_ar": "مدخل",
+        "example": "The path is narrow, so Adam asks Maya to walk carefully. They pass a white wall and reach the lighthouse entrance. A strong wind moves the grass around them, but the wooden gate is open."
+      },
+      {
+        "word": "stairs",
+        "meaning_ar": "الدرج",
+        "example": "We can look inside, Adam says, as he checks the stairs."
+      },
+      {
+        "word": "envelope",
+        "meaning_ar": "ظرف",
+        "example": "Inside, Maya notices a small envelope under a bench. It is dusty but not damaged. She reads the name written on the front and sees a faded drawing of a boat."
+      },
+      {
+        "word": "name",
+        "meaning_ar": "اسم",
+        "example": "Inside, Maya notices a small envelope under a bench. It is dusty but not damaged. She reads the name written on the front and sees a faded drawing of a boat."
+      },
+      {
+        "word": "owner",
+        "meaning_ar": "المالك",
+        "example": "This belongs to someone, she says. Adam suggests finding the owner instead of opening it."
+      },
+      {
+        "word": "visitor",
+        "meaning_ar": "زائر",
+        "example": "They take the envelope to the nearby visitor center, where a guide called Mr. Brown works. The guide checks an old register of lighthouse guests."
+      },
+      {
+        "word": "register",
+        "meaning_ar": "سجل",
+        "example": "They take the envelope to the nearby visitor center, where a guide called Mr. Brown works. The guide checks an old register of lighthouse guests."
+      },
+      {
+        "word": "record",
+        "meaning_ar": "قيد",
+        "example": "The name looks familiar, Adam says. Mr. Brown finds a matching record from last summer and smiles."
+      },
+      {
+        "word": "family",
+        "meaning_ar": "عائلة",
+        "example": "The register shows a woman named Helen who often visits the town. Mr. Brown knows her family and can contact them. Maya feels relieved because the envelope may finally reach the right person."
+      },
+      {
+        "word": "relieved",
+        "meaning_ar": "مرتاح",
+        "example": "The register shows a woman named Helen who often visits the town. Mr. Brown knows her family and can contact them. Maya feels relieved because the envelope may finally reach the right person."
+      },
+      {
+        "word": "safe",
+        "meaning_ar": "آمن",
+        "example": "We should keep it safe until she comes, Maya says."
+      },
+      {
+        "word": "postcard",
+        "meaning_ar": "بطاقة بريدية",
+        "example": "The next morning, Helen arrives at the visitor center with her grandson. She explains that the envelope contains a postcard from her late father. It is a precious memory of their last holiday together."
+      },
+      {
+        "word": "memory",
+        "meaning_ar": "ذكرى",
+        "example": "The next morning, Helen arrives at the visitor center with her grandson. She explains that the envelope contains a postcard from her late father. It is a precious memory of their last holiday together."
+      },
+      {
+        "word": "lost",
+        "meaning_ar": "مفقود",
+        "example": "I thought it was lost forever, Helen says quietly."
+      },
+      {
+        "word": "search",
+        "meaning_ar": "بحث",
+        "example": "Helen asks how they discovered the envelope. Adam describes their search inside the lighthouse, while Maya explains why they did not open it. Helen thanks them for being honest."
+      },
+      {
+        "word": "honest",
+        "meaning_ar": "أمين",
+        "example": "Helen asks how they discovered the envelope. Adam describes their search inside the lighthouse, while Maya explains why they did not open it. Helen thanks them for being honest."
+      },
+      {
+        "word": "respect",
+        "meaning_ar": "نحترم",
+        "example": "We wanted to respect your privacy, Adam says, and Helen nods with gratitude."
+      },
+      {
+        "word": "reward",
+        "meaning_ar": "مكافأة",
+        "example": "As a small reward, Helen invites the cousins to visit her family boat. They sit on the deck and listen to stories about the past. Her grandson shows Maya an old photograph of the lighthouse before its walls were painted white."
+      },
+      {
+        "word": "past",
+        "meaning_ar": "الماضي",
+        "example": "As a small reward, Helen invites the cousins to visit her family boat. They sit on the deck and listen to stories about the past. Her grandson shows Maya an old photograph of the lighthouse before its walls were painted white."
+      },
+      {
+        "word": "photograph",
+        "meaning_ar": "صورة فوتوغرافية",
+        "example": "As a small reward, Helen invites the cousins to visit her family boat. They sit on the deck and listen to stories about the past. Her grandson shows Maya an old photograph of the lighthouse before its walls were painted white."
+      },
+      {
+        "word": "sunset",
+        "meaning_ar": "غروب الشمس",
+        "example": "Later, Adam notices the sunset turning the water gold. They return to the harbor by a quiet route along the beach."
+      },
+      {
+        "word": "route",
+        "meaning_ar": "طريق",
+        "example": "Later, Adam notices the sunset turning the water gold. They return to the harbor by a quiet route along the beach."
+      },
+      {
+        "word": "expected",
+        "meaning_ar": "توقعت",
+        "example": "Today was more interesting than I expected, Maya says. Adam agrees that the unexpected meeting made their holiday special."
+      },
+      {
+        "word": "experience",
+        "meaning_ar": "تجربة",
+        "example": "Before leaving town, Maya writes about the experience in her notebook. She understands that even a small act of kindness can mean a great deal to another person."
+      },
+      {
+        "word": "kindness",
+        "meaning_ar": "لطف",
+        "example": "Before leaving town, Maya writes about the experience in her notebook. She understands that even a small act of kindness can mean a great deal to another person."
+      },
+      {
+        "word": "choice",
+        "meaning_ar": "اختيار",
+        "example": "We made the right choice, Adam says. Together they wave goodbye to the lighthouse."
+      }
+    ],
+    "questions": [
+      {
+        "q": "Where are Maya and Adam spending their holiday?",
+        "options": [
+          "In a harbor town",
+          "In a desert village",
+          "At a large airport",
+          "In a mountain hotel"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What do they find under a bench?",
+        "options": [
+          "A silver coin",
+          "A small envelope",
+          "A wooden key",
+          "A map"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "Why do they avoid opening it?",
+        "options": [
+          "It is too heavy",
+          "The guide says no",
+          "They respect the owner's privacy",
+          "They are in a hurry"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "Who helps them check the visitor register?",
+        "options": [
+          "A sailor",
+          "A shopkeeper",
+          "Mr. Brown",
+          "Their teacher"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "Who owns the envelope?",
+        "options": [
+          "Maya",
+          "Helen",
+          "Adam",
+          "The mayor"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What is inside it?",
+        "options": [
+          "A postcard",
+          "A ticket",
+          "A toy",
+          "A recipe"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What does Helen show the cousins?",
+        "options": [
+          "A family boat",
+          "A mountain path",
+          "An art gallery",
+          "A café"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What is the main lesson?",
+        "options": [
+          "Keep every found object",
+          "Small acts of kindness matter",
+          "Never travel",
+          "Forget the past"
+        ],
+        "answer": 1
+      }
+    ]
+  }
+}
