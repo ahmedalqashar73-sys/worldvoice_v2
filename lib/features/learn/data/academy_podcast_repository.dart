@@ -203,13 +203,19 @@ class AcademyPodcastEpisode {
         durationMs! - previousEnd <= 10000;
   }
 
+  /// Keep the last spoken sentence selected through natural pauses.
+  /// The reader advances only when the NEXT sentence actually starts,
+  /// rather than clearing its marker and jumping during a brief silence.
   int? lineAt(Duration position) {
     if (!isPlayable) return null;
     final ms = position.inMilliseconds;
+    if (ms < dialogue.first.startMs! || ms >= durationMs!) return null;
+    int? current;
     for (var i = 0; i < dialogue.length; i++) {
-      if (ms >= dialogue[i].startMs! && ms < dialogue[i].endMs!) return i;
+      if (ms < dialogue[i].startMs!) break;
+      current = i;
     }
-    return null;
+    return current;
   }
 
   factory AcademyPodcastEpisode.fromJson(Map<String, dynamic> json) =>
