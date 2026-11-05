@@ -35,6 +35,13 @@ void main() {
       expect(episode.isPlayable, isFalse,
           reason: 'No invented word timings for ${lesson.id}');
       expect(episode.audioUrl, lesson.audioUrl, reason: lesson.id);
+      if ({2, 4, 5, 6, 7, 8, 9, 10, 11, 12}
+          .contains(lesson.number)) {
+        expect(episode.backupAudioUrl, isNotNull,
+            reason: 'Alternative original VOA bitrate for ${lesson.id}');
+        expect(episode.backupAudioUrl, endsWith('.mp3?download=1'));
+        expect(episode.backupAudioUrl, isNot(episode.audioUrl));
+      }
       expect(episode.sourceUrl, lesson.sourceUrl, reason: lesson.id);
       expect(episode.durationMs, lesson.durationSec * 1000,
           reason: lesson.id);
