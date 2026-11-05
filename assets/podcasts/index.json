@@ -8,24 +8,21 @@
   "target_duration_ms": 300000,
   "episodes": [
     {
-      "id": "en-a1-pod-001",
-      "level": "A1",
-      "title": "What Can You Do? — VOA Lesson 20",
-      "status": "published",
-      "asset": "assets/podcasts/en/A1/en-a1-pod-001.json",
-      "title_ar": "ماذا تستطيع أن تفعل؟ — درس VOA 20",
-      "language": "en",
-      "recording_kind": "human",
-      "duration_ms": 219000,
-      "attribution": "VOA Learning English"
-    },
-    {
       "id": "en-a1-voa-020",
       "level": "A1",
       "title": "What Can You Do?",
       "status": "published_audio",
       "asset": "assets/podcasts/en/A1/en-a1-voa-020.json",
       "title_ar": "ماذا يمكنك أن تفعل؟",
+      "language": "en"
+    },
+    {
+      "id": "en-a1-pod-001",
+      "level": "A1",
+      "title": "Meeting a New Friend",
+      "status": "script_ready",
+      "asset": "assets/podcasts/en/A1/en-a1-pod-001.json",
+      "title_ar": "التعارف مع صديق جديد",
       "language": "en"
     },
     {
