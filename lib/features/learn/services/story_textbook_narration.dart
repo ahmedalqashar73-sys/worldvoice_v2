@@ -144,6 +144,13 @@ class StoryTextbookNarration extends ChangeNotifier {
         _notify();
         await _engine.speak(segment.speechText);
         if (_disposed || !_playing || generation != _generation) return;
+        // Give the learner a natural break between thoughts. The opening
+        // greeting gets a longer breath before the story begins.
+        await Future<void>.delayed(Duration(
+          milliseconds: _cursor == 0 ? 650 :
+              segment.speaker == StoryTextbookSpeaker.narrator ? 260 : 320,
+        ));
+        if (_disposed || !_playing || generation != _generation) return;
         _cursor++;
       }
     } catch (_) {
