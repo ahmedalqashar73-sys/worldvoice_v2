@@ -54,7 +54,7 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
                 color: Color(0xFFBCE2CE), size: 28),
           ]),
           const SizedBox(height: 15),
-          Text(ar ? 'حكايتان، صوتان، لغة جديدة'
+          Text(ar ? 'صوتان، حوار واحد، لغة جديدة'
                   : 'Two voices. One new language.',
               style: const TextStyle(
                   color: Colors.white,
