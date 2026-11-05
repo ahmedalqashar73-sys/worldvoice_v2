@@ -692,10 +692,11 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
             const Spacer(),
             const Icon(Icons.schedule, color: Color(0xFFF4D790), size: 16),
             const SizedBox(width: 5),
-            Text(ready
+            Text(episode.canStream
                 ? _clock(Duration(milliseconds: episode.durationMs!))
-                : _clock(Duration(milliseconds:
-                    episode.durationMs ?? 300000)),
+                : (ar ? 'نص فقط' : 'Text only'),
+                textDirection: episode.canStream
+                    ? TextDirection.ltr : null,
                 style: const TextStyle(color: Color(0xFFF4D790),
                     fontWeight: FontWeight.w800)),
           ]),
@@ -858,6 +859,7 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(episode.title, maxLines: 1,
+                      textDirection: TextDirection.ltr,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontWeight: FontWeight.w800,
                           fontSize: 12)),

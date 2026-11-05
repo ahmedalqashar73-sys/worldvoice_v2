@@ -122,6 +122,7 @@ void main() {
     await tester.pump();
     expect(tester.takeException(), isNull);
     expect(find.byKey(const ValueKey('podcast-sticky-player')), findsNothing);
+    expect(find.text('Text only'), findsOneWidget);
     final follow = find.byKey(const ValueKey('podcast-auto-follow-toggle'));
     expect(tester.widget<IconButton>(follow).tooltip, 'Disable auto-follow');
     await tester.tap(follow);
