@@ -1,0 +1,438 @@
+{
+  "language": "en",
+  "level": "C1",
+  "story": {
+    "id": "en-c1-001",
+    "title": "The Theatre Beneath the Square",
+    "title_ar": "المسرح تحت الساحة",
+    "moral_ar": "حفظ التراث يتطلب الإنصات إلى الروايات المختلفة وحماية أصحابها، لا مجرد ترميم المباني.",
+    "art_style": "Original documentary historical watercolor with coherent characters, no lettering.",
+    "cover_image_prompt": "Historical city square with a stone staircase uncovered during a supervised survey, Lina in olive coat and Hugo in charcoal jacket looking at sealed entrance, early autumn light.",
+    "character_sheet": [
+      {
+        "name": "Lina",
+        "description": "A 23-year-old researcher with brown skin, curly dark hair, olive coat and cream scarf."
+      },
+      {
+        "name": "Hugo",
+        "description": "A 24-year-old historian with freckled fair skin, sandy hair, charcoal jacket and satchel."
+      },
+      {
+        "name": "Ms. Idris",
+        "description": "A 62-year-old former director with silver hair, olive skin and burgundy shawl."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "A Door Behind the Wall",
+        "title_ar": "باب خلف الجدار",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Historical city square with a stone staircase uncovered during a supervised survey, Lina in olive coat and Hugo in charcoal jacket looking at sealed entrance, early autumn light. Original detailed heritage watercolor book illustration, consistent cast: Lina A 23-year-old researcher with brown skin, curly dark hair, olive coat and cream scarf.; Hugo A 24-year-old historian with freckled fair skin, sandy hair, charcoal jacket and satchel.; Ms. Idris A 62-year-old former director with silver hair, olive skin and burgundy shawl.. No writing.",
+            "animation": "fade_in",
+            "image": "assets/stories/en/C1/illustrations/en-c1-001_scene_01.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "During the renovation of the central square, workers uncovered a sealed staircase that the council initially dismissed as an old storage entrance. Lina, an architectural researcher, recognized the curve of a forgotten **proscenium** in an archival photograph and requested a supervised inspection. She suspected that the passage led to a theatre closed during the neighborhood's controversial **redevelopment** decades earlier. Her colleague Hugo warned that a dramatic discovery did not automatically justify opening the space to curious visitors. The masonry might be unstable, while surviving records could represent only influential families. They agreed to establish the site's condition and **provenance** before making public claims. Their first responsibility was to distinguish evidence from an attractive story, however eager the public might be to hear one."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "A compelling discovery can still produce an incomplete history, Lina observed."
+                  }
+                ],
+                "translation_ar": "أثناء ترميم الساحة اكتشف العمال درجًا مغلقًا، لكن لينا الباحثة المعمارية لاحظت في صورة أرشيفية قوس مسرح منسي وطلبت فحصًا بإشراف مختصين. حذر هوغو من فتح المكان قبل التأكد من سلامته، ومن أن الوثائق قد تمثل العائلات النافذة وحدها. اتفقا على تحديد أصل المكان وحالته والتمييز بين الأدلة والحكاية المشوقة. قالت لينا إن الاكتشاف المثير قد يقدم تاريخًا ناقصًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "After engineers secured the entrance, the researchers entered a narrow hall containing wooden seats, faded curtains, and scattered programmes. Hugo found names of neighborhood ensembles absent from the city's official **chronicle**, suggesting that the theatre had supported performers overlooked by conventional institutions. A box of old photographs raised questions about **attribution**, because several people could not be identified and no permission for publication had survived. Museum staff proposed displaying the images immediately, hoping to attract attention and funding. Lina argued that premature publicity might expose private families or distort the historical context of a particular event. The team carefully recorded each object and requested further **consultation** with former residents before granting public access. They preferred a slower investigation to an impressive exhibition whose mistakes could prove difficult to correct."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Discovering a record does not mean we understand its meaning, Hugo said."
+                  }
+                ],
+                "translation_ar": "بعد تأمين المدخل وجد الباحثان مقاعد وبرامج عروض قديمة، وكشف هوغو أسماء فرق غابت عن السجل الرسمي. أثارت الصور مجهولة الأسماء أسئلة عن نسبها وحقوق نشرها. أراد موظفو المتحف عرضها سريعًا، لكن لينا حذرت من كشف خصوصيات العائلات أو تشويه السياق. وثق الفريق المقتنيات وطلب التشاور مع السكان السابقين قبل العرض. قال هوغو إن العثور على الوثيقة لا يعني فهم معناها."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Underground abandoned theater with dusty red seats and stage curtain, Ms Idris speaking to Lina and Hugo, flashlight beams and warm daylight from entrance. Original detailed heritage watercolor book illustration, consistent cast: Lina A 23-year-old researcher with brown skin, curly dark hair, olive coat and cream scarf.; Hugo A 24-year-old historian with freckled fair skin, sandy hair, charcoal jacket and satchel.; Ms. Idris A 62-year-old former director with silver hair, olive skin and burgundy shawl.. No writing.",
+            "animation": "pan_left",
+            "image": "assets/stories/en/C1/illustrations/en-c1-001_scene_02.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Ms. Idris, a retired stage director, contacted the researchers after recognizing the theatre in a newspaper photograph. She remembered immigrant families, students, and factory workers who had created performances without access to expensive venues. Her account complicated the familiar **narrative** that the theatre had simply lost its audience. Increasing rents and contested property decisions had gradually weakened its financial **viability**. Hugo asked to record her recollections, explaining precisely where the audio would be stored and how it might be used. She welcomed the project but requested that a painful family episode remain private. Lina understood that informed **consent** required genuine control over personal testimony, including the right to withhold material that historians might consider significant. The director's trust mattered more than possessing every possible detail."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Our memories belong to us before they belong to any archive, Ms. Idris reminded them."
+                  }
+                ],
+                "translation_ar": "تواصلت المديرة السابقة السيدة إدريس مع الباحثين وروت أن المسرح خدم عائلات مهاجرة وعمالًا وطلابًا. وأوضحت أن ارتفاع الإيجارات والنزاعات حول الملكية ساهما في إغلاقه، لا تراجع الجمهور فحسب. طلب هوغو تسجيل شهادتها وشرح استخدام الصوت، فوافقت بشرط عدم نشر واقعة أسرية مؤلمة. أدركت لينا أن الموافقة الحقيقية تمنح صاحب الذاكرة سلطة حجب بعض تفاصيلها. قالت السيدة إدريس إن الذكريات ملك أصحابها أولًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The council proposed converting the hall into an exclusive restaurant, reasoning that commercial income could finance structural repairs. Several owners supported the scheme, but former performers feared that privatization would reproduce the original theatre's **exclusion**. Lina acknowledged the substantial cost of restoration without dismissing the emotional importance of the place. Hugo prepared a comparative **assessment** of cultural projects, separating reliable maintenance budgets from speculative tourism forecasts. At a public hearing, they outlined alternatives, including a modest venue with shared management and carefully limited opening hours. Their aim was not to dictate a conclusion but to reveal the **trade-offs** concealed by confident political slogans. They also urged the council to publish its assumptions, allowing residents to scrutinize the projected benefits and burdens. Public trust would depend on how honestly officials explained the decision."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "An informed choice begins by admitting what each option costs, Hugo said."
+                  }
+                ],
+                "translation_ar": "اقترح المجلس مطعمًا فاخرًا لتمويل إصلاحات المسرح. أيد بعض التجار الفكرة، وخشي الفنانون إقصاء المجتمع مجددًا. اعترفت لينا بالتكاليف واحتياجات السكان، وأعد هوغو مقارنة بمشاريع ثقافية مماثلة تميز التمويل الواقعي من التوقعات المتفائلة. عرضا بدائل لمكان عام بإدارة مشتركة، وطلبا نشر الافتراضات والتكاليف بوضوح. قال هوغو إن القرار الواعي يبدأ بالاعتراف بثمن كل خيار."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "A sensational newspaper article then claimed that one family had secretly arranged the theatre's closure. Hugo found the allegation **unsubstantiated**; surviving documents pointed toward several overlapping decisions rather than a single conspiracy. He issued a public correction that acknowledged historical **uncertainty** without minimizing residents' frustration. Lina invited families linked to the venue to review an early exhibition draft. Some contributed photographs, others declined, and several disagreed sharply about the **interpretation** of events. The researchers resisted weaving these conflicting memories into a conveniently tidy explanation. Instead, they marked which claims rested on documents and which remained contested personal recollections. An honest display might invite difficult questions rather than provide a villain everyone could blame, but that discomfort was preferable to teaching visitors a false certainty."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Historical honesty is not the same as offering a satisfying ending, Lina said."
+                  }
+                ],
+                "translation_ar": "اتهمت صحيفة عائلة واحدة سرًا بإغلاق المسرح، لكن هوغو وجد أن الادعاء بلا سند وأن القرارات كانت متداخلة. نشر تصحيحًا يوضح حدود المعرفة دون إنكار إحباط السكان. دعت لينا عائلات مرتبطة بالمسرح لمراجعة معرض أولي، فاختلفت رواياتهم بشدة. رفض الباحثان جمع الشهادات في حكاية مبسطة، وميزا الوثائق المؤكدة من الذكريات المتنازع عليها. قالت لينا إن الأمانة التاريخية لا تقدم دائمًا نهاية مرضية."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "Whose Story Is Preserved?",
+        "title_ar": "رواية من نحفظها؟",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Community discussion in a civic hall about restoration, Lina Hugo and Ms Idris beside maps and old photographs, residents engaged in conversation. Original detailed heritage watercolor book illustration, consistent cast: Lina A 23-year-old researcher with brown skin, curly dark hair, olive coat and cream scarf.; Hugo A 24-year-old historian with freckled fair skin, sandy hair, charcoal jacket and satchel.; Ms. Idris A 62-year-old former director with silver hair, olive skin and burgundy shawl.. No writing.",
+            "animation": "zoom_in_slow",
+            "image": "assets/stories/en/C1/illustrations/en-c1-001_scene_03.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "A revised plan eventually gained support: the hall would become a small publicly managed cultural space, with occasional bookings helping cover upkeep. An independent committee of residents, historians, and accessibility specialists was appointed to provide **oversight**. Engineers would complete safety work before opening, while the curators established procedures for handling private testimony. Ms. Idris insisted that young performers participate in decisions rather than appear merely as symbols of cultural **renewal**. Lina agreed that preserving a building without preserving opportunities for its users would produce an elegant but lifeless monument. Hugo drafted an **agreement** clarifying the council's obligations, community responsibilities, and arrangements for annual public review. Every party knew that cooperation could fail unless expectations were explicit and disputes could be discussed without threatening the survival of the project."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Shared responsibility requires more than a ceremonial handshake, Hugo remarked."
+                  }
+                ],
+                "translation_ar": "حظي اتفاق جديد بالدعم: يصبح المسرح مساحة ثقافية عامة تساهم الحجوزات المحدودة في صيانتها. شُكلت لجنة رقابة مستقلة، ووُضعت إجراءات للسلامة وحماية الشهادات الخاصة. طالبت السيدة إدريس بإشراك الفنانين الشباب فعليًا لا جعلهم رمزًا دعائيًا. أعد هوغو اتفاقًا يحدد واجبات المجلس والمجتمع والمراجعة السنوية وسبل حل الخلافات. قال إن المسؤولية المشتركة تتطلب أكثر من مصافحة احتفالية."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "During restoration, workers uncovered handwritten notes beneath the stage boards. Some contained practical instructions, but others appeared to be private poetry left by anonymous performers. Hugo initially supported publishing every page in the name of **transparency**. Ms. Idris challenged him to consider whether the writings were ever intended for an audience. After discussion, the team released only excerpts whose context they could establish, while retaining the originals under restricted **custody**. Lina added a clear explanation of the selection principles and their limitations. Although visitors questioned the decision, it established an important **precedent**: cultural curiosity would not automatically outweigh privacy. The team also preserved a record of its reasoning so future curators could revisit the choice if new evidence emerged. Their restraint protected relationships essential to the historical work."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Sometimes careful limits are another form of respect, Ms. Idris said."
+                  }
+                ],
+                "translation_ar": "وجد العمال ملاحظات وشعرًا مخفيًا تحت خشبة المسرح. أراد هوغو نشر كل الأوراق باسم الشفافية، لكن السيدة إدريس تساءلت إن كانت الكتابات الشخصية مخصصة للعرض أصلًا. اختار الفريق مقتطفات يمكن توضيح سياقها وحفظ البقية بوصول مقيد. سجلوا أسباب القرار ليستطيع أمناء المستقبل مراجعته عند ظهور أدلة جديدة. وضعت هذه الخطوة سابقة تحترم الخصوصية. قالت السيدة إدريس إن القيود المدروسة قد تكون احترامًا."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Restored intimate underground theater with accessible walkway and young performers, audience including former residents, warm cinematic light, Lina Hugo Ms Idris smiling. Original detailed heritage watercolor book illustration, consistent cast: Lina A 23-year-old researcher with brown skin, curly dark hair, olive coat and cream scarf.; Hugo A 24-year-old historian with freckled fair skin, sandy hair, charcoal jacket and satchel.; Ms. Idris A 62-year-old former director with silver hair, olive skin and burgundy shawl.. No writing.",
+            "animation": "parallax",
+            "image": "assets/stories/en/C1/illustrations/en-c1-001_scene_04.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "At the first rehearsal, young performers staged a piece about changing neighborhoods rather than recreating an idealized past. Former residents were invited to discuss their experiences afterward, but participation remained entirely **voluntary**. Hugo heard gratitude, anger, and grief in the same room, without any possibility of complete **consensus**. Lina focused on ordinary operational details alongside the emotional responses: lighting, clear routes, and the comfort of visitors using mobility aids. A wheelchair user praised the accessible entrance but reported an inconvenient door mechanism. The team scheduled immediate **remediation** instead of treating a successful opening as proof that inclusion had been achieved. The performers also asked for a regular forum to raise concerns after the press attention had faded. Their requests became part of the venue's first operational review."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We are protecting a living conversation, not unveiling a perfect monument, Hugo said."
+                  }
+                ],
+                "translation_ar": "في أول عرض قدم الشباب عملًا عن تغير الأحياء بدل تمجيد الماضي. دُعي السكان السابقون للتعبير طوعًا، فظهر الحزن والغضب والامتنان دون إجماع. تابعت لينا أيضًا تفاصيل الإضاءة ومسارات الحركة، ونبّه زائر يستخدم كرسيًا متحركًا إلى باب صعب الفتح. تقرر إصلاحه فورًا وإقامة منتدى دوري لآراء الفنانين. قال هوغو إنهم يحافظون على حوار حي لا نصب مثالي."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Six months later, attendance figures looked encouraging, yet a closer review revealed uneven **participation**. Daytime programmes favored people with flexible schedules, while families working long shifts remained underrepresented. Lina recommended evening and weekend sessions rather than relying on impressive headline statistics. Hugo examined the finances and identified a modest **subsidy** necessary to keep entry affordable. Ms. Idris urged the committee to publish these shortcomings openly and invite suggestions from groups that rarely attended. The next annual report therefore listed measurable **commitments**, including accessible events, shared decision-making, and transparent spending. The team accepted that improvement would require patience, recurring assessment, and occasional uncomfortable revisions to its early assumptions. They refused to mistake visibility for genuine community ownership."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Preservation only matters if people continue to find a place within it, Lina explained."
+                  }
+                ],
+                "translation_ar": "بعد ستة أشهر بدت أعداد الحضور جيدة، لكن مراجعة أدق كشفت ضعف مشاركة الأسر العاملة ساعات طويلة. اقترحت لينا عروضًا مسائية وعطلات نهاية الأسبوع، وحدد هوغو دعمًا ماليًا محدودًا لإبقاء التذاكر ميسرة. شجعت السيدة إدريس نشر أوجه القصور ودعوة الفئات غير الممثلة. ضم التقرير التزامات قابلة للقياس بشأن الوصول والإدارة والشفافية. قالت لينا إن حفظ المكان لا يفيد إن لم يجد الناس مكانًا فيه."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "On the anniversary of the discovery, Lina watched students descend the staircase that had once been hidden beneath the square. She no longer regarded the theatre as a treasure waiting for experts to rescue it, but as a place whose meaning depended on continuing **negotiation** among people with different needs. Hugo's digital catalogue now distinguished verified records from personal **recollections**, while Ms. Idris mentored new directors. Their work had produced visible changes without resolving every historical disagreement. Lina understood that **stewardship** required accepting incomplete knowledge, protecting vulnerable voices, and revising decisions when better evidence appeared. The most valuable discovery was not the stage itself but the relationships that had grown around it. Those relationships, unlike stone walls, would need attention long after the restoration team departed."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "A place remembers only when its people remain willing to listen, Lina said."
+                  }
+                ],
+                "translation_ar": "في الذكرى السنوية للاكتشاف شاهدت لينا الطلاب ينزلون الدرج الذي كان مخفيًا. لم تعد ترى المسرح كنزًا ينقذه الخبراء، بل مكانًا يتشكل بمعاني الناس وحاجاتهم المختلفة. أنشأ هوغو فهرسًا يميز الوثائق من الذكريات، وواصلت السيدة إدريس تدريب مخرجين شباب. فهمت لينا أن الرعاية تعني قبول عدم اكتمال المعرفة وحماية الأصوات الهشة ومراجعة القرارات. كانت العلاقات التي نشأت حول المسرح أهم من خشبته. قالت إن المكان يتذكر ما دام الناس يصغون."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "proscenium",
+        "meaning_ar": "قوس مقدمة المسرح",
+        "example": "During the renovation of the central square, workers uncovered a sealed staircase that the council initially dismissed as an old storage entrance. Lina, an architectural researcher, recognized the curve of a forgotten proscenium in an archival photograph and requested a supervised inspection. She suspected that the passage led to a theatre closed during the neighborhood's controversial redevelopment decades earlier. Her colleague Hugo warned that a dramatic discovery did not automatically justify opening the space to curious visitors. The masonry might be unstable, while surviving records could represent only influential families. They agreed to establish the site's condition and provenance before making public claims. Their first responsibility was to distinguish evidence from an attractive story, however eager the public might be to hear one."
+      },
+      {
+        "word": "redevelopment",
+        "meaning_ar": "إعادة تطوير",
+        "example": "During the renovation of the central square, workers uncovered a sealed staircase that the council initially dismissed as an old storage entrance. Lina, an architectural researcher, recognized the curve of a forgotten proscenium in an archival photograph and requested a supervised inspection. She suspected that the passage led to a theatre closed during the neighborhood's controversial redevelopment decades earlier. Her colleague Hugo warned that a dramatic discovery did not automatically justify opening the space to curious visitors. The masonry might be unstable, while surviving records could represent only influential families. They agreed to establish the site's condition and provenance before making public claims. Their first responsibility was to distinguish evidence from an attractive story, however eager the public might be to hear one."
+      },
+      {
+        "word": "provenance",
+        "meaning_ar": "أصل موثّق",
+        "example": "During the renovation of the central square, workers uncovered a sealed staircase that the council initially dismissed as an old storage entrance. Lina, an architectural researcher, recognized the curve of a forgotten proscenium in an archival photograph and requested a supervised inspection. She suspected that the passage led to a theatre closed during the neighborhood's controversial redevelopment decades earlier. Her colleague Hugo warned that a dramatic discovery did not automatically justify opening the space to curious visitors. The masonry might be unstable, while surviving records could represent only influential families. They agreed to establish the site's condition and provenance before making public claims. Their first responsibility was to distinguish evidence from an attractive story, however eager the public might be to hear one."
+      },
+      {
+        "word": "chronicle",
+        "meaning_ar": "سجل تاريخي",
+        "example": "After engineers secured the entrance, the researchers entered a narrow hall containing wooden seats, faded curtains, and scattered programmes. Hugo found names of neighborhood ensembles absent from the city's official chronicle, suggesting that the theatre had supported performers overlooked by conventional institutions. A box of old photographs raised questions about attribution, because several people could not be identified and no permission for publication had survived. Museum staff proposed displaying the images immediately, hoping to attract attention and funding. Lina argued that premature publicity might expose private families or distort the historical context of a particular event. The team carefully recorded each object and requested further consultation with former residents before granting public access. They preferred a slower investigation to an impressive exhibition whose mistakes could prove difficult to correct."
+      },
+      {
+        "word": "attribution",
+        "meaning_ar": "نسبة العمل لصاحبه",
+        "example": "After engineers secured the entrance, the researchers entered a narrow hall containing wooden seats, faded curtains, and scattered programmes. Hugo found names of neighborhood ensembles absent from the city's official chronicle, suggesting that the theatre had supported performers overlooked by conventional institutions. A box of old photographs raised questions about attribution, because several people could not be identified and no permission for publication had survived. Museum staff proposed displaying the images immediately, hoping to attract attention and funding. Lina argued that premature publicity might expose private families or distort the historical context of a particular event. The team carefully recorded each object and requested further consultation with former residents before granting public access. They preferred a slower investigation to an impressive exhibition whose mistakes could prove difficult to correct."
+      },
+      {
+        "word": "consultation",
+        "meaning_ar": "تشاور",
+        "example": "After engineers secured the entrance, the researchers entered a narrow hall containing wooden seats, faded curtains, and scattered programmes. Hugo found names of neighborhood ensembles absent from the city's official chronicle, suggesting that the theatre had supported performers overlooked by conventional institutions. A box of old photographs raised questions about attribution, because several people could not be identified and no permission for publication had survived. Museum staff proposed displaying the images immediately, hoping to attract attention and funding. Lina argued that premature publicity might expose private families or distort the historical context of a particular event. The team carefully recorded each object and requested further consultation with former residents before granting public access. They preferred a slower investigation to an impressive exhibition whose mistakes could prove difficult to correct."
+      },
+      {
+        "word": "narrative",
+        "meaning_ar": "رواية",
+        "example": "Ms. Idris, a retired stage director, contacted the researchers after recognizing the theatre in a newspaper photograph. She remembered immigrant families, students, and factory workers who had created performances without access to expensive venues. Her account complicated the familiar narrative that the theatre had simply lost its audience. Increasing rents and contested property decisions had gradually weakened its financial viability. Hugo asked to record her recollections, explaining precisely where the audio would be stored and how it might be used. She welcomed the project but requested that a painful family episode remain private. Lina understood that informed consent required genuine control over personal testimony, including the right to withhold material that historians might consider significant. The director's trust mattered more than possessing every possible detail."
+      },
+      {
+        "word": "viability",
+        "meaning_ar": "قابلية الاستمرار",
+        "example": "Ms. Idris, a retired stage director, contacted the researchers after recognizing the theatre in a newspaper photograph. She remembered immigrant families, students, and factory workers who had created performances without access to expensive venues. Her account complicated the familiar narrative that the theatre had simply lost its audience. Increasing rents and contested property decisions had gradually weakened its financial viability. Hugo asked to record her recollections, explaining precisely where the audio would be stored and how it might be used. She welcomed the project but requested that a painful family episode remain private. Lina understood that informed consent required genuine control over personal testimony, including the right to withhold material that historians might consider significant. The director's trust mattered more than possessing every possible detail."
+      },
+      {
+        "word": "consent",
+        "meaning_ar": "موافقة",
+        "example": "Ms. Idris, a retired stage director, contacted the researchers after recognizing the theatre in a newspaper photograph. She remembered immigrant families, students, and factory workers who had created performances without access to expensive venues. Her account complicated the familiar narrative that the theatre had simply lost its audience. Increasing rents and contested property decisions had gradually weakened its financial viability. Hugo asked to record her recollections, explaining precisely where the audio would be stored and how it might be used. She welcomed the project but requested that a painful family episode remain private. Lina understood that informed consent required genuine control over personal testimony, including the right to withhold material that historians might consider significant. The director's trust mattered more than possessing every possible detail."
+      },
+      {
+        "word": "exclusion",
+        "meaning_ar": "إقصاء",
+        "example": "The council proposed converting the hall into an exclusive restaurant, reasoning that commercial income could finance structural repairs. Several owners supported the scheme, but former performers feared that privatization would reproduce the original theatre's exclusion. Lina acknowledged the substantial cost of restoration without dismissing the emotional importance of the place. Hugo prepared a comparative assessment of cultural projects, separating reliable maintenance budgets from speculative tourism forecasts. At a public hearing, they outlined alternatives, including a modest venue with shared management and carefully limited opening hours. Their aim was not to dictate a conclusion but to reveal the trade-offs concealed by confident political slogans. They also urged the council to publish its assumptions, allowing residents to scrutinize the projected benefits and burdens. Public trust would depend on how honestly officials explained the decision."
+      },
+      {
+        "word": "assessment",
+        "meaning_ar": "تقييم",
+        "example": "The council proposed converting the hall into an exclusive restaurant, reasoning that commercial income could finance structural repairs. Several owners supported the scheme, but former performers feared that privatization would reproduce the original theatre's exclusion. Lina acknowledged the substantial cost of restoration without dismissing the emotional importance of the place. Hugo prepared a comparative assessment of cultural projects, separating reliable maintenance budgets from speculative tourism forecasts. At a public hearing, they outlined alternatives, including a modest venue with shared management and carefully limited opening hours. Their aim was not to dictate a conclusion but to reveal the trade-offs concealed by confident political slogans. They also urged the council to publish its assumptions, allowing residents to scrutinize the projected benefits and burdens. Public trust would depend on how honestly officials explained the decision."
+      },
+      {
+        "word": "trade-offs",
+        "meaning_ar": "مفاضلات",
+        "example": "The council proposed converting the hall into an exclusive restaurant, reasoning that commercial income could finance structural repairs. Several owners supported the scheme, but former performers feared that privatization would reproduce the original theatre's exclusion. Lina acknowledged the substantial cost of restoration without dismissing the emotional importance of the place. Hugo prepared a comparative assessment of cultural projects, separating reliable maintenance budgets from speculative tourism forecasts. At a public hearing, they outlined alternatives, including a modest venue with shared management and carefully limited opening hours. Their aim was not to dictate a conclusion but to reveal the trade-offs concealed by confident political slogans. They also urged the council to publish its assumptions, allowing residents to scrutinize the projected benefits and burdens. Public trust would depend on how honestly officials explained the decision."
+      },
+      {
+        "word": "unsubstantiated",
+        "meaning_ar": "بلا دليل",
+        "example": "A sensational newspaper article then claimed that one family had secretly arranged the theatre's closure. Hugo found the allegation unsubstantiated; surviving documents pointed toward several overlapping decisions rather than a single conspiracy. He issued a public correction that acknowledged historical uncertainty without minimizing residents' frustration. Lina invited families linked to the venue to review an early exhibition draft. Some contributed photographs, others declined, and several disagreed sharply about the interpretation of events. The researchers resisted weaving these conflicting memories into a conveniently tidy explanation. Instead, they marked which claims rested on documents and which remained contested personal recollections. An honest display might invite difficult questions rather than provide a villain everyone could blame, but that discomfort was preferable to teaching visitors a false certainty."
+      },
+      {
+        "word": "uncertainty",
+        "meaning_ar": "عدم يقين",
+        "example": "A sensational newspaper article then claimed that one family had secretly arranged the theatre's closure. Hugo found the allegation unsubstantiated; surviving documents pointed toward several overlapping decisions rather than a single conspiracy. He issued a public correction that acknowledged historical uncertainty without minimizing residents' frustration. Lina invited families linked to the venue to review an early exhibition draft. Some contributed photographs, others declined, and several disagreed sharply about the interpretation of events. The researchers resisted weaving these conflicting memories into a conveniently tidy explanation. Instead, they marked which claims rested on documents and which remained contested personal recollections. An honest display might invite difficult questions rather than provide a villain everyone could blame, but that discomfort was preferable to teaching visitors a false certainty."
+      },
+      {
+        "word": "interpretation",
+        "meaning_ar": "تفسير",
+        "example": "A sensational newspaper article then claimed that one family had secretly arranged the theatre's closure. Hugo found the allegation unsubstantiated; surviving documents pointed toward several overlapping decisions rather than a single conspiracy. He issued a public correction that acknowledged historical uncertainty without minimizing residents' frustration. Lina invited families linked to the venue to review an early exhibition draft. Some contributed photographs, others declined, and several disagreed sharply about the interpretation of events. The researchers resisted weaving these conflicting memories into a conveniently tidy explanation. Instead, they marked which claims rested on documents and which remained contested personal recollections. An honest display might invite difficult questions rather than provide a villain everyone could blame, but that discomfort was preferable to teaching visitors a false certainty."
+      },
+      {
+        "word": "oversight",
+        "meaning_ar": "رقابة",
+        "example": "A revised plan eventually gained support: the hall would become a small publicly managed cultural space, with occasional bookings helping cover upkeep. An independent committee of residents, historians, and accessibility specialists was appointed to provide oversight. Engineers would complete safety work before opening, while the curators established procedures for handling private testimony. Ms. Idris insisted that young performers participate in decisions rather than appear merely as symbols of cultural renewal. Lina agreed that preserving a building without preserving opportunities for its users would produce an elegant but lifeless monument. Hugo drafted an agreement clarifying the council's obligations, community responsibilities, and arrangements for annual public review. Every party knew that cooperation could fail unless expectations were explicit and disputes could be discussed without threatening the survival of the project."
+      },
+      {
+        "word": "renewal",
+        "meaning_ar": "تجديد",
+        "example": "A revised plan eventually gained support: the hall would become a small publicly managed cultural space, with occasional bookings helping cover upkeep. An independent committee of residents, historians, and accessibility specialists was appointed to provide oversight. Engineers would complete safety work before opening, while the curators established procedures for handling private testimony. Ms. Idris insisted that young performers participate in decisions rather than appear merely as symbols of cultural renewal. Lina agreed that preserving a building without preserving opportunities for its users would produce an elegant but lifeless monument. Hugo drafted an agreement clarifying the council's obligations, community responsibilities, and arrangements for annual public review. Every party knew that cooperation could fail unless expectations were explicit and disputes could be discussed without threatening the survival of the project."
+      },
+      {
+        "word": "agreement",
+        "meaning_ar": "اتفاق",
+        "example": "A revised plan eventually gained support: the hall would become a small publicly managed cultural space, with occasional bookings helping cover upkeep. An independent committee of residents, historians, and accessibility specialists was appointed to provide oversight. Engineers would complete safety work before opening, while the curators established procedures for handling private testimony. Ms. Idris insisted that young performers participate in decisions rather than appear merely as symbols of cultural renewal. Lina agreed that preserving a building without preserving opportunities for its users would produce an elegant but lifeless monument. Hugo drafted an agreement clarifying the council's obligations, community responsibilities, and arrangements for annual public review. Every party knew that cooperation could fail unless expectations were explicit and disputes could be discussed without threatening the survival of the project."
+      },
+      {
+        "word": "transparency",
+        "meaning_ar": "شفافية",
+        "example": "During restoration, workers uncovered handwritten notes beneath the stage boards. Some contained practical instructions, but others appeared to be private poetry left by anonymous performers. Hugo initially supported publishing every page in the name of transparency. Ms. Idris challenged him to consider whether the writings were ever intended for an audience. After discussion, the team released only excerpts whose context they could establish, while retaining the originals under restricted custody. Lina added a clear explanation of the selection principles and their limitations. Although visitors questioned the decision, it established an important precedent: cultural curiosity would not automatically outweigh privacy. The team also preserved a record of its reasoning so future curators could revisit the choice if new evidence emerged. Their restraint protected relationships essential to the historical work."
+      },
+      {
+        "word": "custody",
+        "meaning_ar": "حفظ مؤتمن",
+        "example": "During restoration, workers uncovered handwritten notes beneath the stage boards. Some contained practical instructions, but others appeared to be private poetry left by anonymous performers. Hugo initially supported publishing every page in the name of transparency. Ms. Idris challenged him to consider whether the writings were ever intended for an audience. After discussion, the team released only excerpts whose context they could establish, while retaining the originals under restricted custody. Lina added a clear explanation of the selection principles and their limitations. Although visitors questioned the decision, it established an important precedent: cultural curiosity would not automatically outweigh privacy. The team also preserved a record of its reasoning so future curators could revisit the choice if new evidence emerged. Their restraint protected relationships essential to the historical work."
+      },
+      {
+        "word": "precedent",
+        "meaning_ar": "سابقة",
+        "example": "During restoration, workers uncovered handwritten notes beneath the stage boards. Some contained practical instructions, but others appeared to be private poetry left by anonymous performers. Hugo initially supported publishing every page in the name of transparency. Ms. Idris challenged him to consider whether the writings were ever intended for an audience. After discussion, the team released only excerpts whose context they could establish, while retaining the originals under restricted custody. Lina added a clear explanation of the selection principles and their limitations. Although visitors questioned the decision, it established an important precedent: cultural curiosity would not automatically outweigh privacy. The team also preserved a record of its reasoning so future curators could revisit the choice if new evidence emerged. Their restraint protected relationships essential to the historical work."
+      },
+      {
+        "word": "voluntary",
+        "meaning_ar": "طوعي",
+        "example": "At the first rehearsal, young performers staged a piece about changing neighborhoods rather than recreating an idealized past. Former residents were invited to discuss their experiences afterward, but participation remained entirely voluntary. Hugo heard gratitude, anger, and grief in the same room, without any possibility of complete consensus. Lina focused on ordinary operational details alongside the emotional responses: lighting, clear routes, and the comfort of visitors using mobility aids. A wheelchair user praised the accessible entrance but reported an inconvenient door mechanism. The team scheduled immediate remediation instead of treating a successful opening as proof that inclusion had been achieved. The performers also asked for a regular forum to raise concerns after the press attention had faded. Their requests became part of the venue's first operational review."
+      },
+      {
+        "word": "consensus",
+        "meaning_ar": "إجماع",
+        "example": "At the first rehearsal, young performers staged a piece about changing neighborhoods rather than recreating an idealized past. Former residents were invited to discuss their experiences afterward, but participation remained entirely voluntary. Hugo heard gratitude, anger, and grief in the same room, without any possibility of complete consensus. Lina focused on ordinary operational details alongside the emotional responses: lighting, clear routes, and the comfort of visitors using mobility aids. A wheelchair user praised the accessible entrance but reported an inconvenient door mechanism. The team scheduled immediate remediation instead of treating a successful opening as proof that inclusion had been achieved. The performers also asked for a regular forum to raise concerns after the press attention had faded. Their requests became part of the venue's first operational review."
+      },
+      {
+        "word": "remediation",
+        "meaning_ar": "إصلاح",
+        "example": "At the first rehearsal, young performers staged a piece about changing neighborhoods rather than recreating an idealized past. Former residents were invited to discuss their experiences afterward, but participation remained entirely voluntary. Hugo heard gratitude, anger, and grief in the same room, without any possibility of complete consensus. Lina focused on ordinary operational details alongside the emotional responses: lighting, clear routes, and the comfort of visitors using mobility aids. A wheelchair user praised the accessible entrance but reported an inconvenient door mechanism. The team scheduled immediate remediation instead of treating a successful opening as proof that inclusion had been achieved. The performers also asked for a regular forum to raise concerns after the press attention had faded. Their requests became part of the venue's first operational review."
+      },
+      {
+        "word": "participation",
+        "meaning_ar": "مشاركة",
+        "example": "Six months later, attendance figures looked encouraging, yet a closer review revealed uneven participation. Daytime programmes favored people with flexible schedules, while families working long shifts remained underrepresented. Lina recommended evening and weekend sessions rather than relying on impressive headline statistics. Hugo examined the finances and identified a modest subsidy necessary to keep entry affordable. Ms. Idris urged the committee to publish these shortcomings openly and invite suggestions from groups that rarely attended. The next annual report therefore listed measurable commitments, including accessible events, shared decision-making, and transparent spending. The team accepted that improvement would require patience, recurring assessment, and occasional uncomfortable revisions to its early assumptions. They refused to mistake visibility for genuine community ownership."
+      },
+      {
+        "word": "subsidy",
+        "meaning_ar": "دعم مالي",
+        "example": "Six months later, attendance figures looked encouraging, yet a closer review revealed uneven participation. Daytime programmes favored people with flexible schedules, while families working long shifts remained underrepresented. Lina recommended evening and weekend sessions rather than relying on impressive headline statistics. Hugo examined the finances and identified a modest subsidy necessary to keep entry affordable. Ms. Idris urged the committee to publish these shortcomings openly and invite suggestions from groups that rarely attended. The next annual report therefore listed measurable commitments, including accessible events, shared decision-making, and transparent spending. The team accepted that improvement would require patience, recurring assessment, and occasional uncomfortable revisions to its early assumptions. They refused to mistake visibility for genuine community ownership."
+      },
+      {
+        "word": "commitments",
+        "meaning_ar": "التزامات",
+        "example": "Six months later, attendance figures looked encouraging, yet a closer review revealed uneven participation. Daytime programmes favored people with flexible schedules, while families working long shifts remained underrepresented. Lina recommended evening and weekend sessions rather than relying on impressive headline statistics. Hugo examined the finances and identified a modest subsidy necessary to keep entry affordable. Ms. Idris urged the committee to publish these shortcomings openly and invite suggestions from groups that rarely attended. The next annual report therefore listed measurable commitments, including accessible events, shared decision-making, and transparent spending. The team accepted that improvement would require patience, recurring assessment, and occasional uncomfortable revisions to its early assumptions. They refused to mistake visibility for genuine community ownership."
+      },
+      {
+        "word": "negotiation",
+        "meaning_ar": "تفاوض",
+        "example": "On the anniversary of the discovery, Lina watched students descend the staircase that had once been hidden beneath the square. She no longer regarded the theatre as a treasure waiting for experts to rescue it, but as a place whose meaning depended on continuing negotiation among people with different needs. Hugo's digital catalogue now distinguished verified records from personal recollections, while Ms. Idris mentored new directors. Their work had produced visible changes without resolving every historical disagreement. Lina understood that stewardship required accepting incomplete knowledge, protecting vulnerable voices, and revising decisions when better evidence appeared. The most valuable discovery was not the stage itself but the relationships that had grown around it. Those relationships, unlike stone walls, would need attention long after the restoration team departed."
+      },
+      {
+        "word": "recollections",
+        "meaning_ar": "ذكريات",
+        "example": "On the anniversary of the discovery, Lina watched students descend the staircase that had once been hidden beneath the square. She no longer regarded the theatre as a treasure waiting for experts to rescue it, but as a place whose meaning depended on continuing negotiation among people with different needs. Hugo's digital catalogue now distinguished verified records from personal recollections, while Ms. Idris mentored new directors. Their work had produced visible changes without resolving every historical disagreement. Lina understood that stewardship required accepting incomplete knowledge, protecting vulnerable voices, and revising decisions when better evidence appeared. The most valuable discovery was not the stage itself but the relationships that had grown around it. Those relationships, unlike stone walls, would need attention long after the restoration team departed."
+      },
+      {
+        "word": "stewardship",
+        "meaning_ar": "رعاية مسؤولة",
+        "example": "On the anniversary of the discovery, Lina watched students descend the staircase that had once been hidden beneath the square. She no longer regarded the theatre as a treasure waiting for experts to rescue it, but as a place whose meaning depended on continuing negotiation among people with different needs. Hugo's digital catalogue now distinguished verified records from personal recollections, while Ms. Idris mentored new directors. Their work had produced visible changes without resolving every historical disagreement. Lina understood that stewardship required accepting incomplete knowledge, protecting vulnerable voices, and revising decisions when better evidence appeared. The most valuable discovery was not the stage itself but the relationships that had grown around it. Those relationships, unlike stone walls, would need attention long after the restoration team departed."
+      }
+    ],
+    "questions": [
+      {
+        "q": "What first led Lina to suspect a theatre existed?",
+        "options": [
+          "An advertisement",
+          "An old photograph showing a stage arch",
+          "A modern restaurant",
+          "A new map"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "Why did the team avoid immediately publishing photographs?",
+        "options": [
+          "They were colorful",
+          "The museum was closed",
+          "Consent and attribution were unclear",
+          "They were drawings"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "What helped explain the theatre's closure?",
+        "options": [
+          "A single weather event",
+          "A fire",
+          "A music ban",
+          "Rising rents and disputed decisions"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "What was the purpose of the public hearing?",
+        "options": [
+          "To clarify alternatives and trade-offs",
+          "To close the square",
+          "To sell old seats",
+          "To choose a villain"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Why were some written notes restricted?",
+        "options": [
+          "They were printed poorly",
+          "They might have been private",
+          "They were duplicates",
+          "They belonged to a shop"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What did the team do after an accessibility complaint?",
+        "options": [
+          "Ignore the visitor",
+          "Cancel all shows",
+          "Schedule a repair",
+          "Sell the property"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "Why were evening sessions recommended?",
+        "options": [
+          "They cost less",
+          "They had louder music",
+          "They avoided the community",
+          "They better served families with work commitments"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "What did Lina learn about stewardship?",
+        "options": [
+          "It involves ongoing listening and revision",
+          "It ends at the opening",
+          "It has no relation to people",
+          "It requires one final account"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+}
