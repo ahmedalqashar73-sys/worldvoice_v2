@@ -1,0 +1,398 @@
+{
+  "language": "en",
+  "level": "A1",
+  "story": {
+    "id": "en-a1-005",
+    "title": "The Little Music Show",
+    "title_ar": "الحفل الموسيقي الصغير",
+    "moral_ar": "الشجاعة والعمل الجماعي أهم من تقديم أداء كامل دون أخطاء.",
+    "art_style": "Warm original schoolbook watercolor, consistent character design, gentle lighting, no text in image.",
+    "cover_image_prompt": "Eva and Noah stand in a school music room with a small keyboard piano and posters without writing, warm late morning, medium wide eye level. Warm original schoolbook watercolor, no text in image",
+    "character_sheet": [
+      {
+        "name": "Eva",
+        "description": "Girl aged 12 with long curly black hair, medium brown skin, lavender cardigan, dark blue skirt and white sneakers."
+      },
+      {
+        "name": "Noah",
+        "description": "Boy aged 12 with short straight black hair, light tan skin, red checked shirt, dark gray trousers and brown shoes."
+      },
+      {
+        "name": "Ms. Rose",
+        "description": "Woman aged 39 with light skin, wavy shoulder-length chestnut hair, dark green dress and small gold earrings."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "Before the Show",
+        "title_ar": "قبل الحفل",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Eva and Noah stand in a school music room with a small keyboard piano and posters without writing, warm late morning, medium wide eye level. Characters: Eva: Girl aged 12 with long curly black hair, medium brown skin, lavender cardigan, dark blue skirt and white sneakers.. Noah: Boy aged 12 with short straight black hair, light tan skin, red checked shirt, dark gray trousers and brown shoes.. Ms. Rose: Woman aged 39 with light skin, wavy shoulder-length chestnut hair, dark green dress and small gold earrings.. Original warm schoolbook watercolor art, gentle natural colors, realistic friendly expressions, no text in image.",
+            "animation": "fade_in",
+            "image": "assets/stories/en/A1/illustrations/en-a1-005_scene_01.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Eva and Noah have a school **music** **show** on Friday. They stand near the little **stage** and look at the chairs. Many students will come to listen in the afternoon."
+                  }
+                ],
+                "translation_ar": "لدى إيفا ونوح حفل موسيقي مدرسي يوم الجمعة. يقفان قرب المسرح الصغير وينظران إلى الكراسي. سيأتي طلاب كثيرون للاستماع بعد الظهر."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Eva knows a happy **song**. Noah can play the **piano**. They **practice** together after lunch. F:We can do this, Eva says. Noah plays a slow tune and nods."
+                  }
+                ],
+                "translation_ar": "تعرف إيفا أغنية سعيدة. يستطيع نوح عزف البيانو. يتدربان معًا بعد الغداء. تقول إيفا: «نستطيع فعل هذا». يعزف نوح لحنًا بطيئًا ويومئ."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "The electric keyboard has no sound and Eva and Noah look worried in the school hall before a performance, stage curtains, soft indoor light. Characters: Eva: Girl aged 12 with long curly black hair, medium brown skin, lavender cardigan, dark blue skirt and white sneakers.. Noah: Boy aged 12 with short straight black hair, light tan skin, red checked shirt, dark gray trousers and brown shoes.. Ms. Rose: Woman aged 39 with light skin, wavy shoulder-length chestnut hair, dark green dress and small gold earrings.. Original warm schoolbook watercolor art, gentle natural colors, realistic friendly expressions, no text in image.",
+            "animation": "pan_left",
+            "image": "assets/stories/en/A1/illustrations/en-a1-005_scene_02.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Eva feels **nervous** when she sees the **audience** chairs. Her **voice** is very quiet. M:You sing well, Noah tells her. F:Thank you, she says, but my hands still shake."
+                  }
+                ],
+                "translation_ar": "تشعر إيفا بالتوتر عندما ترى مقاعد الجمهور. صوتها هادئ جدًا. يقول لها نوح: «أنت تغنين جيدًا». تقول: «شكرًا، لكن يديّ لا تزالان ترتجفان»."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "One hour before the show, the **keyboard** stops working. It is **broken**, and there is no **sound**. Noah looks down. M:What can we do now? he asks Eva."
+                  }
+                ],
+                "translation_ar": "قبل الحفل بساعة يتوقف الأورغ الكهربائي عن العمل. إنه معطل ولا يصدر أي صوت. ينظر نوح إلى الأسفل ويسأل إيفا: «ماذا سنفعل الآن؟»"
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Eva has an **idea**. She uses her **hands** to make a simple **rhythm**. F:We can sing and clap, she says. Noah listens and begins to clap with her."
+                  }
+                ],
+                "translation_ar": "لدى إيفا فكرة. تستخدم يديها لصنع إيقاع بسيط. تقول: «يمكننا الغناء والتصفيق». يستمع نوح ويبدأ بالتصفيق معها."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "A New Kind of Music",
+        "title_ar": "موسيقى من نوع جديد",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Music teacher Ms Rose claps a rhythm with Eva and Noah beside the small stage, friendly rehearsal room, natural side window light. Characters: Eva: Girl aged 12 with long curly black hair, medium brown skin, lavender cardigan, dark blue skirt and white sneakers.. Noah: Boy aged 12 with short straight black hair, light tan skin, red checked shirt, dark gray trousers and brown shoes.. Ms. Rose: Woman aged 39 with light skin, wavy shoulder-length chestnut hair, dark green dress and small gold earrings.. Original warm schoolbook watercolor art, gentle natural colors, realistic friendly expressions, no text in image.",
+            "animation": "zoom_in_slow",
+            "image": "assets/stories/en/A1/illustrations/en-a1-005_scene_03.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Their **teacher**, Ms. Rose, hears the music. F:That sounds good! she says. She asks everyone to **clap** to the **beat**. Eva and Noah try it several times."
+                  }
+                ],
+                "translation_ar": "تسمع معلمتهما السيدة روز الموسيقى. تقول: «هذا يبدو رائعًا!» تطلب من الجميع التصفيق مع الإيقاع. تحاول إيفا ونوح عدة مرات."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Eva and Noah stand **together** near the stage. F:Let us **sing**, Eva says. Noah gives her a friendly **smile**. Now she feels a little better about the show."
+                  }
+                ],
+                "translation_ar": "تقف إيفا ونوح معًا قرب المسرح. تقول إيفا: «هيا نغني». يمنحها نوح ابتسامة ودودة. تشعر الآن بتحسن قليل تجاه الحفل."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Eva and Noah perform by singing and clapping on stage, cheerful students in the audience applaud, warm theater lighting wide view. Characters: Eva: Girl aged 12 with long curly black hair, medium brown skin, lavender cardigan, dark blue skirt and white sneakers.. Noah: Boy aged 12 with short straight black hair, light tan skin, red checked shirt, dark gray trousers and brown shoes.. Ms. Rose: Woman aged 39 with light skin, wavy shoulder-length chestnut hair, dark green dress and small gold earrings.. Original warm schoolbook watercolor art, gentle natural colors, realistic friendly expressions, no text in image.",
+            "animation": "parallax",
+            "image": "assets/stories/en/A1/illustrations/en-a1-005_scene_04.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "They start **slowly** and **listen** to each other. Eva sings the first line, and Noah claps. Their music sounds **strong** when they keep the same beat and work as one team."
+                  }
+                ],
+                "translation_ar": "يبدآن ببطء ويستمع كل منهما إلى الآخر. تغني إيفا السطر الأول ويصفق نوح. تبدو موسيقاهما قوية عندما يحافظان على الإيقاع نفسه ويعملان كفريق واحد."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The students **cheer** when the song ends. Eva feels **happy**. She sees her **friends** in the front row. M:We made good music, Noah says. Eva laughs and takes a bow."
+                  }
+                ],
+                "translation_ar": "يهتف الطلاب عندما تنتهي الأغنية. تشعر إيفا بالسعادة. ترى أصدقاءها في الصف الأمامي. يقول نوح: «صنعنا موسيقى جميلة». تضحك إيفا وتنحني."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Eva knows a **mistake** does not end a good day. She feels **brave** because she can always **try** a new way. F:Next time, we can sing again, she tells Noah."
+                  }
+                ],
+                "translation_ar": "تعرف إيفا أن الخطأ لا ينهي اليوم الجميل. تشعر بالشجاعة لأنها تستطيع دائمًا تجربة طريقة جديدة. تقول لنوح: «في المرة القادمة يمكننا الغناء مجددًا»."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "music",
+        "meaning_ar": "موسيقى",
+        "example": "Eva and Noah have a school music show on Friday. They stand near the little stage and look at the chairs. Many students will come to listen in the afternoon."
+      },
+      {
+        "word": "show",
+        "meaning_ar": "عرض",
+        "example": "Eva and Noah have a school music show on Friday. They stand near the little stage and look at the chairs. Many students will come to listen in the afternoon."
+      },
+      {
+        "word": "stage",
+        "meaning_ar": "مسرح",
+        "example": "Eva and Noah have a school music show on Friday. They stand near the little stage and look at the chairs. Many students will come to listen in the afternoon."
+      },
+      {
+        "word": "song",
+        "meaning_ar": "أغنية",
+        "example": "Eva knows a happy song. Noah can play the piano. They practice together after lunch. F:We can do this, Eva says. Noah plays a slow tune and nods."
+      },
+      {
+        "word": "piano",
+        "meaning_ar": "بيانو",
+        "example": "Eva knows a happy song. Noah can play the piano. They practice together after lunch. F:We can do this, Eva says. Noah plays a slow tune and nods."
+      },
+      {
+        "word": "practice",
+        "meaning_ar": "يتدرب",
+        "example": "Eva knows a happy song. Noah can play the piano. They practice together after lunch. F:We can do this, Eva says. Noah plays a slow tune and nods."
+      },
+      {
+        "word": "nervous",
+        "meaning_ar": "متوتر",
+        "example": "Eva feels nervous when she sees the audience chairs. Her voice is very quiet. M:You sing well, Noah tells her. F:Thank you, she says, but my hands still shake."
+      },
+      {
+        "word": "audience",
+        "meaning_ar": "جمهور",
+        "example": "Eva feels nervous when she sees the audience chairs. Her voice is very quiet. M:You sing well, Noah tells her. F:Thank you, she says, but my hands still shake."
+      },
+      {
+        "word": "voice",
+        "meaning_ar": "صوت",
+        "example": "Eva feels nervous when she sees the audience chairs. Her voice is very quiet. M:You sing well, Noah tells her. F:Thank you, she says, but my hands still shake."
+      },
+      {
+        "word": "keyboard",
+        "meaning_ar": "أورغ كهربائي",
+        "example": "One hour before the show, the keyboard stops working. It is broken, and there is no sound. Noah looks down. M:What can we do now? he asks Eva."
+      },
+      {
+        "word": "broken",
+        "meaning_ar": "معطل",
+        "example": "One hour before the show, the keyboard stops working. It is broken, and there is no sound. Noah looks down. M:What can we do now? he asks Eva."
+      },
+      {
+        "word": "sound",
+        "meaning_ar": "صوت مسموع",
+        "example": "One hour before the show, the keyboard stops working. It is broken, and there is no sound. Noah looks down. M:What can we do now? he asks Eva."
+      },
+      {
+        "word": "idea",
+        "meaning_ar": "فكرة",
+        "example": "Eva has an idea. She uses her hands to make a simple rhythm. F:We can sing and clap, she says. Noah listens and begins to clap with her."
+      },
+      {
+        "word": "hands",
+        "meaning_ar": "يدان",
+        "example": "Eva has an idea. She uses her hands to make a simple rhythm. F:We can sing and clap, she says. Noah listens and begins to clap with her."
+      },
+      {
+        "word": "rhythm",
+        "meaning_ar": "إيقاع",
+        "example": "Eva has an idea. She uses her hands to make a simple rhythm. F:We can sing and clap, she says. Noah listens and begins to clap with her."
+      },
+      {
+        "word": "teacher",
+        "meaning_ar": "معلمة",
+        "example": "Their teacher, Ms. Rose, hears the music. F:That sounds good! she says. She asks everyone to clap to the beat. Eva and Noah try it several times."
+      },
+      {
+        "word": "clap",
+        "meaning_ar": "يصفق",
+        "example": "Their teacher, Ms. Rose, hears the music. F:That sounds good! she says. She asks everyone to clap to the beat. Eva and Noah try it several times."
+      },
+      {
+        "word": "beat",
+        "meaning_ar": "إيقاع",
+        "example": "Their teacher, Ms. Rose, hears the music. F:That sounds good! she says. She asks everyone to clap to the beat. Eva and Noah try it several times."
+      },
+      {
+        "word": "together",
+        "meaning_ar": "معًا",
+        "example": "Eva and Noah stand together near the stage. F:Let us sing, Eva says. Noah gives her a friendly smile. Now she feels a little better about the show."
+      },
+      {
+        "word": "sing",
+        "meaning_ar": "يغني",
+        "example": "Eva and Noah stand together near the stage. F:Let us sing, Eva says. Noah gives her a friendly smile. Now she feels a little better about the show."
+      },
+      {
+        "word": "smile",
+        "meaning_ar": "ابتسامة",
+        "example": "Eva and Noah stand together near the stage. F:Let us sing, Eva says. Noah gives her a friendly smile. Now she feels a little better about the show."
+      },
+      {
+        "word": "slowly",
+        "meaning_ar": "ببطء",
+        "example": "They start slowly and listen to each other. Eva sings the first line, and Noah claps. Their music sounds strong when they keep the same beat and work as one team."
+      },
+      {
+        "word": "listen",
+        "meaning_ar": "يستمع",
+        "example": "They start slowly and listen to each other. Eva sings the first line, and Noah claps. Their music sounds strong when they keep the same beat and work as one team."
+      },
+      {
+        "word": "strong",
+        "meaning_ar": "قوي",
+        "example": "They start slowly and listen to each other. Eva sings the first line, and Noah claps. Their music sounds strong when they keep the same beat and work as one team."
+      },
+      {
+        "word": "cheer",
+        "meaning_ar": "يهتف",
+        "example": "The students cheer when the song ends. Eva feels happy. She sees her friends in the front row. M:We made good music, Noah says. Eva laughs and takes a bow."
+      },
+      {
+        "word": "happy",
+        "meaning_ar": "سعيد",
+        "example": "The students cheer when the song ends. Eva feels happy. She sees her friends in the front row. M:We made good music, Noah says. Eva laughs and takes a bow."
+      },
+      {
+        "word": "friends",
+        "meaning_ar": "أصدقاء",
+        "example": "The students cheer when the song ends. Eva feels happy. She sees her friends in the front row. M:We made good music, Noah says. Eva laughs and takes a bow."
+      },
+      {
+        "word": "mistake",
+        "meaning_ar": "خطأ",
+        "example": "Eva knows a mistake does not end a good day. She feels brave because she can always try a new way. F:Next time, we can sing again, she tells Noah."
+      },
+      {
+        "word": "brave",
+        "meaning_ar": "شجاع",
+        "example": "Eva knows a mistake does not end a good day. She feels brave because she can always try a new way. F:Next time, we can sing again, she tells Noah."
+      },
+      {
+        "word": "try",
+        "meaning_ar": "يحاول",
+        "example": "Eva knows a mistake does not end a good day. She feels brave because she can always try a new way. F:Next time, we can sing again, she tells Noah."
+      }
+    ],
+    "questions": [
+      {
+        "q": "Where is the music show?",
+        "options": [
+          "At school",
+          "At the beach",
+          "At a farm",
+          "At a shop"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Who plays the piano?",
+        "options": [
+          "Eva",
+          "Noah",
+          "Ms. Rose",
+          "A visitor"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "How does Eva feel before the show?",
+        "options": [
+          "Nervous",
+          "Angry",
+          "Hungry",
+          "Sleepy"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What happens to the keyboard?",
+        "options": [
+          "It becomes red",
+          "It breaks",
+          "It gets wet",
+          "It falls outside"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What is Eva's new idea?",
+        "options": [
+          "Clap and sing",
+          "Go home",
+          "Buy a book",
+          "Play a game"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Who is Ms. Rose?",
+        "options": [
+          "A teacher",
+          "A shopkeeper",
+          "A driver",
+          "A doctor"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What do the students do after the song?",
+        "options": [
+          "Cheer",
+          "Run away",
+          "Sleep",
+          "Cry"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What does Eva learn?",
+        "options": [
+          "Try a new way after a problem",
+          "Always stop",
+          "Never sing",
+          "Do not help"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+}
