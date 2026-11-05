@@ -108,6 +108,56 @@
       "format": "textbook",
       "asset": "assets/stories/en/A2/en-a2-005.json",
       "cover_image": "assets/stories/en/A2/illustrations/en-a2-005_scene_01.svg"
+    },
+    {
+      "id": "en-b1-001",
+      "language": "en",
+      "level": "B1",
+      "title": "The Clockmaker's Notebook",
+      "title_ar": "دفتر صانع الساعات",
+      "format": "textbook",
+      "asset": "assets/stories/en/B1/en-b1-001.json",
+      "cover_image": "assets/stories/en/B1/illustrations/en-b1-001_scene_01.svg"
+    },
+    {
+      "id": "en-b1-002",
+      "language": "en",
+      "level": "B1",
+      "title": "The River After the Storm",
+      "title_ar": "النهر بعد العاصفة",
+      "format": "textbook",
+      "asset": "assets/stories/en/B1/en-b1-002.json",
+      "cover_image": "assets/stories/en/B1/illustrations/en-b1-002_scene_01.svg"
+    },
+    {
+      "id": "en-b1-003",
+      "language": "en",
+      "level": "B1",
+      "title": "The Library on Wheels",
+      "title_ar": "المكتبة المتنقلة",
+      "format": "textbook",
+      "asset": "assets/stories/en/B1/en-b1-003.json",
+      "cover_image": "assets/stories/en/B1/illustrations/en-b1-003_scene_01.svg"
+    },
+    {
+      "id": "en-b1-004",
+      "language": "en",
+      "level": "B1",
+      "title": "The Night at Cedar Hill",
+      "title_ar": "ليلة على تل الأرز",
+      "format": "textbook",
+      "asset": "assets/stories/en/B1/en-b1-004.json",
+      "cover_image": "assets/stories/en/B1/illustrations/en-b1-004_scene_01.svg"
+    },
+    {
+      "id": "en-b1-005",
+      "language": "en",
+      "level": "B1",
+      "title": "The Garden Behind the Station",
+      "title_ar": "الحديقة خلف المحطة",
+      "format": "textbook",
+      "asset": "assets/stories/en/B1/en-b1-005.json",
+      "cover_image": "assets/stories/en/B1/illustrations/en-b1-005_scene_01.svg"
     }
   ]
 }
