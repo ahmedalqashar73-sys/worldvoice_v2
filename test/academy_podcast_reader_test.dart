@@ -56,4 +56,34 @@ void main() {
     expect(find.text('مرحبًا! هل هذا المقعد فارغ؟ المقهى مزدحم اليوم.'),
         findsOneWidget);
   });
+  testWidgets('Spanish A1 shows its complete bilingual readable pilot',
+      (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(
+        body: SingleChildScrollView(child: PodcastLibrarySection()),
+      ),
+    ));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+    final spanish = find.byKey(const ValueKey('podcast-language-es'));
+    await tester.ensureVisible(spanish);
+    await tester.tap(spanish);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
+
+    final pilot = find.byKey(const ValueKey('podcast-episode-es-a1-pod-001'));
+    expect(pilot, findsOneWidget);
+    await tester.ensureVisible(pilot);
+    await tester.tap(pilot);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Hola, ¿está libre esta silla? Hay mucha gente en la cafetería hoy.'),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('podcast-play-pause')), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('podcast-translation-toggle')));
+    await tester.pump();
+    expect(find.text('مرحبًا، هل هذا الكرسي فارغ؟ هناك أشخاص كثيرون في المقهى اليوم.'),
+        findsOneWidget);
+  });
+
 }
