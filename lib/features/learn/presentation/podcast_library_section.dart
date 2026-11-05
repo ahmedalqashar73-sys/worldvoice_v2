@@ -26,7 +26,9 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
   String _selectedLanguage = 'en';
   String _selectedLevel = 'A1';
 
-  Widget _hero(bool ar) => Container(
+  Widget _hero(bool ar) {
+    final voaPilot = _selectedLanguage == 'en' && _selectedLevel == 'A1';
+    return Container(
         key: const ValueKey('podcast-hero'),
         padding: const EdgeInsets.all(19),
         decoration: BoxDecoration(
@@ -65,8 +67,12 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
                   fontWeight: FontWeight.w900, fontSize: 21)),
           const SizedBox(height: 6),
           Text(
-            ar ? 'بودكاست حواري بين آنا ودانيال. تعلّم بالاستماع والقراءة معًا.'
-               : 'Anna and Daniel talk. You listen, read and learn.',
+            ar ? (voaPilot
+                ? 'استمع إلى آنا وبيت من VOA واقرأ الحوار الأصلي مع الصوت.'
+                : 'محادثات تعليمية للاستماع والقراءة في وقت واحد.')
+               : (voaPilot
+                ? 'Hear Anna and Pete in the original VOA conversation.'
+                : 'Read and listen to language conversations.'),
             style: const TextStyle(
                 color: Color(0xFFE0EEE5), height: 1.5, fontSize: 13),
           ),
@@ -75,18 +81,19 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
             _hostPill('ANNA', Icons.face_3_rounded,
                 const Color(0xFFF2BDD6)),
             const SizedBox(width: 9),
-            _hostPill('DANIEL', Icons.face_rounded,
+            _hostPill(voaPilot ? 'PETE' : 'DANIEL', Icons.face_rounded,
                 const Color(0xFFC1DBFF)),
             const Spacer(),
             const Icon(Icons.schedule_rounded,
                 color: Color(0xFFF1D98F), size: 16),
             const SizedBox(width: 4),
-            const Text('≈ 05:00',
+            Text(voaPilot ? '03:39' : '≈ 05:00',
                 style: TextStyle(color: Color(0xFFF1D98F),
                     fontWeight: FontWeight.w800, fontSize: 13)),
           ]),
         ]),
       );
+  }
 
   Widget _hostPill(String name, IconData icon, Color color) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
@@ -157,7 +164,10 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
           padding: const EdgeInsets.only(top: 4),
           child: Text(
             isPublished
-                ? (ar ? 'صوت VOA الأصلي · النص والترجمة' : 'Original VOA audio · transcript')
+                ? (entry.status == 'published_audio'
+                    ? (ar ? 'VOA · صوت بشري · تزامن تجريبي'
+                        : 'VOA human audio · provisional sync')
+                    : (ar ? 'صوت ونص متزامنان' : 'Audio + synced reading'))
                 : enabled
                     ? (ar ? 'اقرأ المحادثة · التسجيل لم يُضف بعد'
                         : 'Read transcript · No recording yet')
