@@ -13,7 +13,7 @@ void main() {
     await tester.pumpAndSettle();
 
     for (final level in ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']) {
-      expect(find.byKey(ValueKey('podcast-level-' + level)), findsOneWidget);
+      expect(find.byKey(ValueKey('podcast-level-$level')), findsOneWidget);
     }
     expect(find.byKey(const ValueKey('podcast-episode-en-a1-pod-001')),
         findsOneWidget);
