@@ -1,0 +1,438 @@
+{
+  "language": "en",
+  "level": "C1",
+  "story": {
+    "id": "en-c1-004",
+    "title": "The Letters Behind the Wall",
+    "title_ar": "الرسائل خلف الجدار",
+    "moral_ar": "الحفاظ على التاريخ لا يعني كشف خصوصيات الناس؛ فالثقة جزء من المسؤولية العلمية.",
+    "art_style": "Original richly detailed historical literary watercolors, consistent characters, no labels or text in illustrations.",
+    "cover_image_prompt": "Renovation in mountain town historic wooden library, hidden bundle of old letters discovered behind wall panel, Mira in green coat and Tomas in navy sweater with director Noor.",
+    "character_sheet": [
+      {
+        "name": "Mira",
+        "description": "27-year-old photographer with olive skin, long dark hair and green coat."
+      },
+      {
+        "name": "Tomas",
+        "description": "29-year-old historian with light skin, short brown hair and navy sweater."
+      },
+      {
+        "name": "Ms. Noor",
+        "description": "61-year-old archive director with medium brown skin, silver hair and plum jacket."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "The Discovery",
+        "title_ar": "الاكتشاف",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Renovation in mountain town historic wooden library, hidden bundle of old letters discovered behind wall panel, Mira in green coat and Tomas in navy sweater with director Noor.. Original richly detailed editorial watercolor, three consistent characters, no lettering.",
+            "image": "assets/stories/en/C1/illustrations/en-c1-004_scene_01.svg",
+            "animation": "fade_in",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The discovery of old letters behind a panel at the mountain library initially seemed like a perfect story for its reopening. Mira, a photographer, wanted to document the discovery, while Tomas, a historian, hoped to connect it with the town's disputed past. Their enthusiasm faded when director Ms. Noor reminded them that the documents' ****provenance**** was unknown. The library had found the papers, but possession did not guarantee permission to publish personal correspondence. She requested a professional ****assessment**** and warned that premature publicity could amount to an ****intrusion**** into living families' private lives. Mira photographed the surroundings rather than opening the bundle. The builders reluctantly agreed to pause renovation near the wall, and the three researchers began keeping a careful record of every decision."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "A discovery gives us a responsibility, not automatic permission to reveal everything, Mira said."
+                  }
+                ],
+                "translation_ar": "بدأ اكتشاف رسائل قديمة خلف جدار المكتبة وكأنه قصة مثالية للافتتاح. أرادت ميرا توثيق المشهد ورغب توماس في ربطه بتاريخ البلدة. لكن المديرة نور ذكّرتهما بجهل مصدر الوثائق، وأن الحيازة لا تمنح حق كشف المراسلات الشخصية. طلبت فحصًا مهنيًا وحذرت من التطفل على الأسر. صورت ميرا الموقع فقط وتوقف العمال مؤقتًا، وبدأ الفريق تسجيل قراراته."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "A conservator unfolded the papers in a controlled room and found exchanges between two families separated by an old economic conflict. Some letters described harvests and school lessons, while others contained personal grievances. Tomas argued that the collection offered rare ****testimony**** about a forgotten period, especially because several surnames remained familiar locally. Mira worried that indiscriminate ****disclosure**** might harm descendants who had never agreed to participate. Ms. Noor suggested a limited ****inventory**** recording dates, materials and broad themes without copying sensitive quotations into shared files. Tomas disliked the restriction, but recognized that a historian could not treat private words as public entertainment. They also checked whether the writers' identities could be established accurately before deciding what any passage might mean."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "The documents may be valuable even if parts of them remain private, Tomas admitted."
+                  }
+                ],
+                "translation_ar": "فتح مختص الرسائل ووجد مراسلات بين أسرتين فرقهما نزاع اقتصادي. تضمنت تفاصيل حياة وشكاوى شخصية. رأى توماس أنها شهادة نادرة عن الماضي، وخشيت ميرا أن يؤذي الإفصاح العشوائي أحفاد الكاتبين. طلبت نور جردًا للتواريخ والمواد والموضوعات العامة دون نقل المقاطع الحساسة. لم يرتح توماس أولًا، ثم فهم أن الكلمات الخاصة ليست مادة للترفيه."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Conservation archive study table, old correspondence in protective sleeves, Mira Tomas and director Noor examining material in daylight from mountain window.. Original richly detailed editorial watercolor, three consistent characters, no lettering.",
+            "image": "assets/stories/en/C1/illustrations/en-c1-004_scene_02.svg",
+            "animation": "pan_left",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "One passage apparently contradicted a popular account of why the families had left the town. Tomas wanted to challenge what he regarded as a comfortable ****myth****; Mira argued that a letter written under pressure could not settle a historical dispute by itself. They investigated the broader ****context**** through public records and discovered a date that made the supposed contradiction less clear. Ms. Noor warned them against building an exhibition around an unsupported ****assumption**** merely because it would attract attention. Instead, they prepared a chronology showing which events were firmly documented and which remained uncertain. Their first draft lacked a dramatic ending, but it revealed how selective evidence could distort a complicated history. Tomas began to admire the discipline required to leave questions open."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Uncertainty is part of historical knowledge, not a weakness to hide, Mira observed."
+                  }
+                ],
+                "translation_ar": "بدت إحدى الرسائل مناقضة لرواية محلية، وأراد توماس تحديها. لكن ميرا أوضحت أن خطابًا شخصيًا لا يحسم النزاع وحده. راجعا السجلات فظهر تاريخ ملتبس يغير التفسير. حذرت نور من بناء المعرض على افتراض مثير بلا دليل. أعدا تسلسلًا زمنيًا يفرق بين الأحداث الموثقة والأسئلة المفتوحة. اكتشف توماس أن ترك بعض الأسئلة دون جواب قد يكون أكثر صدقًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Before contacting relatives, the director consulted an independent adviser about the library's ethical ****obligations****. They established a ****protocol**** that limited access to sensitive records, documented each consultation and allowed families to decline participation. A few colleagues considered this excessive, assuming that a publicly owned building made every discovery public property. Ms. Noor rejected the ****simplification****, explaining that ownership, legal permissions and moral responsibility were not identical. Mira drafted careful invitations that described the project without attaching private photographs. Tomas prepared a summary of the research questions rather than a list of accusations. Their new plan took longer than expected, yet it protected the relationships the library would need if future residents were to trust the institution with personal archives."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "The method determines whether anyone will trust our conclusions, Tomas said."
+                  }
+                ],
+                "translation_ar": "استشارت نور خبيرًا مستقلًا بشأن الالتزامات الأخلاقية ووضع الفريق بروتوكولًا يمنح الأسر حرية الرفض. اعتبر بعض الموظفين ذلك تعقيدًا لأن المبنى عام، لكن نور رفضت الخلط بين الملكية والمسؤولية. أعدت ميرا دعوات لا تتضمن الصور الخاصة، وكتب توماس أسئلة البحث بدل اتهامات. احتاج المسار وقتًا أطول لكنه حمى ثقة الناس بالمكتبة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The first reply came from a retired teacher who recognized her grandmother's name but requested time to discuss the collection with her family. Tomas regarded the delay as an obstacle; Mira recognized it as understandable ****hesitation****. Another descendant asked that one particularly painful passage remain ****confidential****. The director recorded both requests and suggested replacing dramatic quotations with maps, timelines and broader accounts of daily life. Tomas initially worried that such restraint would weaken the exhibition's ****appeal****. Yet the redesign offered an opportunity to explore how ordinary families experienced conflict without turning individual suffering into entertainment. The researchers reviewed their priorities and asked what visitors genuinely needed to understand. Gradually, Tomas stopped measuring success by the number of dramatic revelations he could make."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Respecting a person's decision is not the same as erasing their history, Mira said."
+                  }
+                ],
+                "translation_ar": "تعرفت معلمة متقاعدة على اسم جدتها وطلبت مهلة للتشاور مع الأسرة، وطلب قريب آخر إبقاء مقطع مؤلم سريًا. سجّلت نور الطلبات واقترحت خرائط وخطوطًا زمنية بدل الاقتباسات المثيرة. خشي توماس أن يفقد المعرض جاذبيته، ثم أدرك أن احترام الاختيارات لا يمحو التاريخ، وأنه يمكن شرح تجارب الأسر دون تحويل آلامها إلى مشهد."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "The People Behind the Documents",
+        "title_ar": "أصحاب الوثائق",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Community workshop in restored library, archival staff explains historical map to interested residents, Mira and Tomas discussing oral histories.. Original richly detailed editorial watercolor, three consistent characters, no lettering.",
+            "image": "assets/stories/en/C1/illustrations/en-c1-004_scene_03.svg",
+            "animation": "parallax",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "To understand the valley beyond the letters, the library held a listening session for residents who did not wish to be recorded. Memories differed considerably: some described the conflict as unavoidable, while others emphasized its lasting ****repercussions****. Tomas proposed a ****framework**** separating contemporary documents from recollections recorded decades later, since neither form of evidence was entirely neutral. Mira suggested photographing streets and shared spaces rather than identifying people who had expressed private grief. The conversation gradually moved from assigning blame to examining how communities recover from ****division****. Ms. Noor insisted that anyone whose words appeared in the exhibit should approve the quotation first. The emerging history remained complicated, but its competing perspectives made the account more credible than a single confident explanation."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Perhaps showing the disagreements honestly is the most useful outcome, Tomas said."
+                  }
+                ],
+                "translation_ar": "عقدت المكتبة جلسة استماع بلا تسجيل. اختلف السكان في تفسير النزاع وآثاره المستمرة. اقترح توماس إطارًا يفرق بين الوثائق المعاصرة والذكريات المتأخرة، واقترحت ميرا تصوير الأماكن المشتركة بدل الوجوه الحزينة. انتقل الحديث من لوم الأفراد إلى فهم تجاوز الانقسام. اشترطت نور الموافقة قبل اقتباس أي شهادة. أصبح السرد أكثر تعقيدًا وأصدق."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "An exhibition designer helped create an accessible sequence of maps, contextual notes and excerpts approved by participants. Mira photographed places associated with the correspondence to suggest the writers' ****circumstances**** without exposing their handwriting. Tomas wrote descriptions that distinguished documented facts from plausible ****interpretations****, while Ms. Noor reviewed every caption for unintended ****implications****. When students tested the display, they asked about evidence and consent rather than seeking a scandal. The team realized that restraint could encourage stronger engagement by giving visitors room to think. They reorganized the exhibition so that historical context appeared before each quotation. Clear language, large print and optional audio made the displays easier to understand without reducing their academic accuracy. The designers also documented their revisions, helping future staff understand why some attractive ideas had been rejected after consultation."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "We can invite visitors into a difficult conversation without offering them someone else's secrets, Mira said."
+                  }
+                ],
+                "translation_ar": "صمم الفريق معرضًا يجمع خرائط وشروحًا ومقتطفات مصرحًا بها. صورت ميرا مواقع مرتبطة بالمراسلات بدل كشف خط أصحابها. ميّز توماس بين الحقائق والتفسيرات، وراجعت نور الإيحاءات الممكنة. سأل الطلاب عن الأدلة والموافقة لا الفضائح. قدّم الفريق السياق قبل الاقتباسات وأضاف نصًا واضحًا وصوتًا اختياريًا، مما عمّق النقاش دون كشف الأسرار."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Opening exhibition in sunny restored mountain library, careful timeline displays and community conversations, Mira Tomas and director Noor beside window overlooking hills.. Original richly detailed editorial watercolor, three consistent characters, no lettering.",
+            "image": "assets/stories/en/C1/illustrations/en-c1-004_scene_04.svg",
+            "animation": "zoom_in_slow",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "A week before opening, a blogger claimed that the letters proved an act of betrayal, although the article cited no evidence. Tomas wanted to issue a forceful ****rebuttal**** containing private quotations. Mira warned that releasing personal material to defeat a rumor might create a second ****violation****. Ms. Noor published a measured statement identifying what had been ****verified**** and directing readers to available public sources. She explained why sensitive material would remain restricted rather than arguing with every invented detail. The blogger refused to correct the headline, but the excitement faded when no dramatic evidence emerged. Tomas learned that being transparent did not require abandoning discretion merely because someone else preferred an exaggerated version of events."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "A reliable institution must decide what is right before deciding what is popular, Tomas admitted."
+                  }
+                ],
+                "translation_ar": "قبل الافتتاح نشر مدون اتهامًا بالخيانة دون دليل. أراد توماس الرد باقتباسات خاصة، لكن ميرا حذرته من انتهاك جديد. نشرت نور بيانًا متزنًا يوضح الحقائق المتحقق منها والمصادر العامة وأسباب السرية. رفض المدون تصحيح عنوانه، ثم خفت الضجة. تعلم توماس أن الشفافية لا تستلزم التخلي عن التحفظ لإرضاء الإثارة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "On opening day, school groups and descendants visited an exhibition that explained its ****methodology**** as carefully as its discoveries. Visitors learned why certain documents were restricted and how the archive compared conflicting ****accounts****. A relative thanked Ms. Noor for protecting her family's choices while recognizing its connection to local history. Mira photographed conversations rather than the sealed letters, noticing thoughtful ****engagement**** throughout the room. Tomas was surprised by questions about memory, fairness and historical uncertainty. The show received fewer sensational headlines than he had once hoped, but visitors returned with their own stories. Many offered to contribute family photographs under clear access conditions, suggesting that a trustworthy process could create new possibilities for research rather than simply closing doors."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "This is what responsible public history can look like, Mira said."
+                  }
+                ],
+                "translation_ar": "افتتح المعرض موضحًا منهجيته وأسباب تقييد بعض الوثائق وكيفية مقارنة الروايات المختلفة. شكرت إحدى القريبات نور على احترام خيارات أسرتها. صورت ميرا حوارات الزوار بدل الرسائل المغلقة، ولاحظ توماس أسئلة عن الذاكرة والإنصاف. لم يحقق المعرض ضجة كبيرة لكنه شجع زوارًا على العودة وتقديم صور أسرية بشروط واضحة. أثبتت الثقة أنها تفتح أبوابًا جديدة للبحث."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Months later, the library introduced a permanent policy for personal collections, allowing donors to specify access rules and request periodic ****review****. Tomas incorporated these principles into his university seminars, admitting that he had once confused public curiosity with an automatic right to know. Mira continued documenting the renovated building and its visitors. Ms. Noor regarded the project as an exercise in ****stewardship****: preserving evidence while protecting the people connected with it. The letters remained secure, with selected excerpts available through agreed procedures. When a student questioned whether limiting access reduced the archive's value, Tomas answered that intellectual ****integrity**** sometimes required saying less. He no longer considered that an admission of failure but a mature recognition of the responsibilities accompanying historical knowledge."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "A trustworthy archive does not expose every life simply because it can, Tomas replied."
+                  }
+                ],
+                "translation_ar": "بعد أشهر وضعت المكتبة سياسة للمجموعات الشخصية تسمح بشروط وصول ومراجعات دورية. أدخل توماس هذه المبادئ في تدريسه، واعترف بأنه خلط بين الفضول وحق المعرفة. واصلت ميرا توثيق المكتبة وزوارها. رأت نور أن الرعاية المسؤولة تعني حفظ الأدلة وحماية أصحابها. ظلت الرسائل آمنة وأتيح بعض محتواها عبر اتفاقات. أجاب توماس طالبًا بأن النزاهة قد تتطلب عدم نشر كل شيء، وهذا ليس فشلًا بل مسؤولية."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "provenance",
+        "meaning_ar": "مصدر الوثيقة",
+        "example": "The discovery of old letters behind a panel at the mountain library initially seemed like a perfect story for its reopening. Mira, a photographer, wanted to document the discovery, while Tomas, a historian, hoped to connect it with the town's disputed past. Their enthusiasm faded when director Ms. Noor reminded them that the documents' provenance was unknown. The library had found the papers, but possession did not guarantee permission to publish personal correspondence. She requested a professional assessment and warned that premature publicity could amount to an intrusion into living families' private lives. Mira photographed the surroundings rather than opening the bundle. The builders reluctantly agreed to pause renovation near the wall, and the three researchers began keeping a careful record of every decision."
+      },
+      {
+        "word": "assessment",
+        "meaning_ar": "تقييم",
+        "example": "The discovery of old letters behind a panel at the mountain library initially seemed like a perfect story for its reopening. Mira, a photographer, wanted to document the discovery, while Tomas, a historian, hoped to connect it with the town's disputed past. Their enthusiasm faded when director Ms. Noor reminded them that the documents' provenance was unknown. The library had found the papers, but possession did not guarantee permission to publish personal correspondence. She requested a professional assessment and warned that premature publicity could amount to an intrusion into living families' private lives. Mira photographed the surroundings rather than opening the bundle. The builders reluctantly agreed to pause renovation near the wall, and the three researchers began keeping a careful record of every decision."
+      },
+      {
+        "word": "intrusion",
+        "meaning_ar": "تطفل",
+        "example": "The discovery of old letters behind a panel at the mountain library initially seemed like a perfect story for its reopening. Mira, a photographer, wanted to document the discovery, while Tomas, a historian, hoped to connect it with the town's disputed past. Their enthusiasm faded when director Ms. Noor reminded them that the documents' provenance was unknown. The library had found the papers, but possession did not guarantee permission to publish personal correspondence. She requested a professional assessment and warned that premature publicity could amount to an intrusion into living families' private lives. Mira photographed the surroundings rather than opening the bundle. The builders reluctantly agreed to pause renovation near the wall, and the three researchers began keeping a careful record of every decision."
+      },
+      {
+        "word": "testimony",
+        "meaning_ar": "شهادة",
+        "example": "A conservator unfolded the papers in a controlled room and found exchanges between two families separated by an old economic conflict. Some letters described harvests and school lessons, while others contained personal grievances. Tomas argued that the collection offered rare testimony about a forgotten period, especially because several surnames remained familiar locally. Mira worried that indiscriminate disclosure might harm descendants who had never agreed to participate. Ms. Noor suggested a limited inventory recording dates, materials and broad themes without copying sensitive quotations into shared files. Tomas disliked the restriction, but recognized that a historian could not treat private words as public entertainment. They also checked whether the writers' identities could be established accurately before deciding what any passage might mean."
+      },
+      {
+        "word": "disclosure",
+        "meaning_ar": "إفصاح",
+        "example": "A conservator unfolded the papers in a controlled room and found exchanges between two families separated by an old economic conflict. Some letters described harvests and school lessons, while others contained personal grievances. Tomas argued that the collection offered rare testimony about a forgotten period, especially because several surnames remained familiar locally. Mira worried that indiscriminate disclosure might harm descendants who had never agreed to participate. Ms. Noor suggested a limited inventory recording dates, materials and broad themes without copying sensitive quotations into shared files. Tomas disliked the restriction, but recognized that a historian could not treat private words as public entertainment. They also checked whether the writers' identities could be established accurately before deciding what any passage might mean."
+      },
+      {
+        "word": "inventory",
+        "meaning_ar": "جرد",
+        "example": "A conservator unfolded the papers in a controlled room and found exchanges between two families separated by an old economic conflict. Some letters described harvests and school lessons, while others contained personal grievances. Tomas argued that the collection offered rare testimony about a forgotten period, especially because several surnames remained familiar locally. Mira worried that indiscriminate disclosure might harm descendants who had never agreed to participate. Ms. Noor suggested a limited inventory recording dates, materials and broad themes without copying sensitive quotations into shared files. Tomas disliked the restriction, but recognized that a historian could not treat private words as public entertainment. They also checked whether the writers' identities could be established accurately before deciding what any passage might mean."
+      },
+      {
+        "word": "myth",
+        "meaning_ar": "أسطورة شائعة",
+        "example": "One passage apparently contradicted a popular account of why the families had left the town. Tomas wanted to challenge what he regarded as a comfortable myth; Mira argued that a letter written under pressure could not settle a historical dispute by itself. They investigated the broader context through public records and discovered a date that made the supposed contradiction less clear. Ms. Noor warned them against building an exhibition around an unsupported assumption merely because it would attract attention. Instead, they prepared a chronology showing which events were firmly documented and which remained uncertain. Their first draft lacked a dramatic ending, but it revealed how selective evidence could distort a complicated history. Tomas began to admire the discipline required to leave questions open."
+      },
+      {
+        "word": "context",
+        "meaning_ar": "سياق",
+        "example": "One passage apparently contradicted a popular account of why the families had left the town. Tomas wanted to challenge what he regarded as a comfortable myth; Mira argued that a letter written under pressure could not settle a historical dispute by itself. They investigated the broader context through public records and discovered a date that made the supposed contradiction less clear. Ms. Noor warned them against building an exhibition around an unsupported assumption merely because it would attract attention. Instead, they prepared a chronology showing which events were firmly documented and which remained uncertain. Their first draft lacked a dramatic ending, but it revealed how selective evidence could distort a complicated history. Tomas began to admire the discipline required to leave questions open."
+      },
+      {
+        "word": "assumption",
+        "meaning_ar": "افتراض",
+        "example": "One passage apparently contradicted a popular account of why the families had left the town. Tomas wanted to challenge what he regarded as a comfortable myth; Mira argued that a letter written under pressure could not settle a historical dispute by itself. They investigated the broader context through public records and discovered a date that made the supposed contradiction less clear. Ms. Noor warned them against building an exhibition around an unsupported assumption merely because it would attract attention. Instead, they prepared a chronology showing which events were firmly documented and which remained uncertain. Their first draft lacked a dramatic ending, but it revealed how selective evidence could distort a complicated history. Tomas began to admire the discipline required to leave questions open."
+      },
+      {
+        "word": "obligations",
+        "meaning_ar": "التزامات",
+        "example": "Before contacting relatives, the director consulted an independent adviser about the library's ethical obligations. They established a protocol that limited access to sensitive records, documented each consultation and allowed families to decline participation. A few colleagues considered this excessive, assuming that a publicly owned building made every discovery public property. Ms. Noor rejected the simplification, explaining that ownership, legal permissions and moral responsibility were not identical. Mira drafted careful invitations that described the project without attaching private photographs. Tomas prepared a summary of the research questions rather than a list of accusations. Their new plan took longer than expected, yet it protected the relationships the library would need if future residents were to trust the institution with personal archives."
+      },
+      {
+        "word": "protocol",
+        "meaning_ar": "بروتوكول",
+        "example": "Before contacting relatives, the director consulted an independent adviser about the library's ethical obligations. They established a protocol that limited access to sensitive records, documented each consultation and allowed families to decline participation. A few colleagues considered this excessive, assuming that a publicly owned building made every discovery public property. Ms. Noor rejected the simplification, explaining that ownership, legal permissions and moral responsibility were not identical. Mira drafted careful invitations that described the project without attaching private photographs. Tomas prepared a summary of the research questions rather than a list of accusations. Their new plan took longer than expected, yet it protected the relationships the library would need if future residents were to trust the institution with personal archives."
+      },
+      {
+        "word": "simplification",
+        "meaning_ar": "تبسيط مخل",
+        "example": "Before contacting relatives, the director consulted an independent adviser about the library's ethical obligations. They established a protocol that limited access to sensitive records, documented each consultation and allowed families to decline participation. A few colleagues considered this excessive, assuming that a publicly owned building made every discovery public property. Ms. Noor rejected the simplification, explaining that ownership, legal permissions and moral responsibility were not identical. Mira drafted careful invitations that described the project without attaching private photographs. Tomas prepared a summary of the research questions rather than a list of accusations. Their new plan took longer than expected, yet it protected the relationships the library would need if future residents were to trust the institution with personal archives."
+      },
+      {
+        "word": "hesitation",
+        "meaning_ar": "تردد",
+        "example": "The first reply came from a retired teacher who recognized her grandmother's name but requested time to discuss the collection with her family. Tomas regarded the delay as an obstacle; Mira recognized it as understandable hesitation. Another descendant asked that one particularly painful passage remain confidential. The director recorded both requests and suggested replacing dramatic quotations with maps, timelines and broader accounts of daily life. Tomas initially worried that such restraint would weaken the exhibition's appeal. Yet the redesign offered an opportunity to explore how ordinary families experienced conflict without turning individual suffering into entertainment. The researchers reviewed their priorities and asked what visitors genuinely needed to understand. Gradually, Tomas stopped measuring success by the number of dramatic revelations he could make."
+      },
+      {
+        "word": "confidential",
+        "meaning_ar": "سري",
+        "example": "The first reply came from a retired teacher who recognized her grandmother's name but requested time to discuss the collection with her family. Tomas regarded the delay as an obstacle; Mira recognized it as understandable hesitation. Another descendant asked that one particularly painful passage remain confidential. The director recorded both requests and suggested replacing dramatic quotations with maps, timelines and broader accounts of daily life. Tomas initially worried that such restraint would weaken the exhibition's appeal. Yet the redesign offered an opportunity to explore how ordinary families experienced conflict without turning individual suffering into entertainment. The researchers reviewed their priorities and asked what visitors genuinely needed to understand. Gradually, Tomas stopped measuring success by the number of dramatic revelations he could make."
+      },
+      {
+        "word": "appeal",
+        "meaning_ar": "جاذبية",
+        "example": "The first reply came from a retired teacher who recognized her grandmother's name but requested time to discuss the collection with her family. Tomas regarded the delay as an obstacle; Mira recognized it as understandable hesitation. Another descendant asked that one particularly painful passage remain confidential. The director recorded both requests and suggested replacing dramatic quotations with maps, timelines and broader accounts of daily life. Tomas initially worried that such restraint would weaken the exhibition's appeal. Yet the redesign offered an opportunity to explore how ordinary families experienced conflict without turning individual suffering into entertainment. The researchers reviewed their priorities and asked what visitors genuinely needed to understand. Gradually, Tomas stopped measuring success by the number of dramatic revelations he could make."
+      },
+      {
+        "word": "repercussions",
+        "meaning_ar": "تداعيات",
+        "example": "To understand the valley beyond the letters, the library held a listening session for residents who did not wish to be recorded. Memories differed considerably: some described the conflict as unavoidable, while others emphasized its lasting repercussions. Tomas proposed a framework separating contemporary documents from recollections recorded decades later, since neither form of evidence was entirely neutral. Mira suggested photographing streets and shared spaces rather than identifying people who had expressed private grief. The conversation gradually moved from assigning blame to examining how communities recover from division. Ms. Noor insisted that anyone whose words appeared in the exhibit should approve the quotation first. The emerging history remained complicated, but its competing perspectives made the account more credible than a single confident explanation."
+      },
+      {
+        "word": "framework",
+        "meaning_ar": "إطار",
+        "example": "To understand the valley beyond the letters, the library held a listening session for residents who did not wish to be recorded. Memories differed considerably: some described the conflict as unavoidable, while others emphasized its lasting repercussions. Tomas proposed a framework separating contemporary documents from recollections recorded decades later, since neither form of evidence was entirely neutral. Mira suggested photographing streets and shared spaces rather than identifying people who had expressed private grief. The conversation gradually moved from assigning blame to examining how communities recover from division. Ms. Noor insisted that anyone whose words appeared in the exhibit should approve the quotation first. The emerging history remained complicated, but its competing perspectives made the account more credible than a single confident explanation."
+      },
+      {
+        "word": "division",
+        "meaning_ar": "انقسام",
+        "example": "To understand the valley beyond the letters, the library held a listening session for residents who did not wish to be recorded. Memories differed considerably: some described the conflict as unavoidable, while others emphasized its lasting repercussions. Tomas proposed a framework separating contemporary documents from recollections recorded decades later, since neither form of evidence was entirely neutral. Mira suggested photographing streets and shared spaces rather than identifying people who had expressed private grief. The conversation gradually moved from assigning blame to examining how communities recover from division. Ms. Noor insisted that anyone whose words appeared in the exhibit should approve the quotation first. The emerging history remained complicated, but its competing perspectives made the account more credible than a single confident explanation."
+      },
+      {
+        "word": "circumstances",
+        "meaning_ar": "ظروف",
+        "example": "An exhibition designer helped create an accessible sequence of maps, contextual notes and excerpts approved by participants. Mira photographed places associated with the correspondence to suggest the writers' circumstances without exposing their handwriting. Tomas wrote descriptions that distinguished documented facts from plausible interpretations, while Ms. Noor reviewed every caption for unintended implications. When students tested the display, they asked about evidence and consent rather than seeking a scandal. The team realized that restraint could encourage stronger engagement by giving visitors room to think. They reorganized the exhibition so that historical context appeared before each quotation. Clear language, large print and optional audio made the displays easier to understand without reducing their academic accuracy. The designers also documented their revisions, helping future staff understand why some attractive ideas had been rejected after consultation."
+      },
+      {
+        "word": "interpretations",
+        "meaning_ar": "تفسيرات",
+        "example": "An exhibition designer helped create an accessible sequence of maps, contextual notes and excerpts approved by participants. Mira photographed places associated with the correspondence to suggest the writers' circumstances without exposing their handwriting. Tomas wrote descriptions that distinguished documented facts from plausible interpretations, while Ms. Noor reviewed every caption for unintended implications. When students tested the display, they asked about evidence and consent rather than seeking a scandal. The team realized that restraint could encourage stronger engagement by giving visitors room to think. They reorganized the exhibition so that historical context appeared before each quotation. Clear language, large print and optional audio made the displays easier to understand without reducing their academic accuracy. The designers also documented their revisions, helping future staff understand why some attractive ideas had been rejected after consultation."
+      },
+      {
+        "word": "implications",
+        "meaning_ar": "إيحاءات",
+        "example": "An exhibition designer helped create an accessible sequence of maps, contextual notes and excerpts approved by participants. Mira photographed places associated with the correspondence to suggest the writers' circumstances without exposing their handwriting. Tomas wrote descriptions that distinguished documented facts from plausible interpretations, while Ms. Noor reviewed every caption for unintended implications. When students tested the display, they asked about evidence and consent rather than seeking a scandal. The team realized that restraint could encourage stronger engagement by giving visitors room to think. They reorganized the exhibition so that historical context appeared before each quotation. Clear language, large print and optional audio made the displays easier to understand without reducing their academic accuracy. The designers also documented their revisions, helping future staff understand why some attractive ideas had been rejected after consultation."
+      },
+      {
+        "word": "rebuttal",
+        "meaning_ar": "تفنيد",
+        "example": "A week before opening, a blogger claimed that the letters proved an act of betrayal, although the article cited no evidence. Tomas wanted to issue a forceful rebuttal containing private quotations. Mira warned that releasing personal material to defeat a rumor might create a second violation. Ms. Noor published a measured statement identifying what had been verified and directing readers to available public sources. She explained why sensitive material would remain restricted rather than arguing with every invented detail. The blogger refused to correct the headline, but the excitement faded when no dramatic evidence emerged. Tomas learned that being transparent did not require abandoning discretion merely because someone else preferred an exaggerated version of events."
+      },
+      {
+        "word": "violation",
+        "meaning_ar": "انتهاك",
+        "example": "A week before opening, a blogger claimed that the letters proved an act of betrayal, although the article cited no evidence. Tomas wanted to issue a forceful rebuttal containing private quotations. Mira warned that releasing personal material to defeat a rumor might create a second violation. Ms. Noor published a measured statement identifying what had been verified and directing readers to available public sources. She explained why sensitive material would remain restricted rather than arguing with every invented detail. The blogger refused to correct the headline, but the excitement faded when no dramatic evidence emerged. Tomas learned that being transparent did not require abandoning discretion merely because someone else preferred an exaggerated version of events."
+      },
+      {
+        "word": "verified",
+        "meaning_ar": "متحقق منه",
+        "example": "A week before opening, a blogger claimed that the letters proved an act of betrayal, although the article cited no evidence. Tomas wanted to issue a forceful rebuttal containing private quotations. Mira warned that releasing personal material to defeat a rumor might create a second violation. Ms. Noor published a measured statement identifying what had been verified and directing readers to available public sources. She explained why sensitive material would remain restricted rather than arguing with every invented detail. The blogger refused to correct the headline, but the excitement faded when no dramatic evidence emerged. Tomas learned that being transparent did not require abandoning discretion merely because someone else preferred an exaggerated version of events."
+      },
+      {
+        "word": "methodology",
+        "meaning_ar": "منهجية",
+        "example": "On opening day, school groups and descendants visited an exhibition that explained its methodology as carefully as its discoveries. Visitors learned why certain documents were restricted and how the archive compared conflicting accounts. A relative thanked Ms. Noor for protecting her family's choices while recognizing its connection to local history. Mira photographed conversations rather than the sealed letters, noticing thoughtful engagement throughout the room. Tomas was surprised by questions about memory, fairness and historical uncertainty. The show received fewer sensational headlines than he had once hoped, but visitors returned with their own stories. Many offered to contribute family photographs under clear access conditions, suggesting that a trustworthy process could create new possibilities for research rather than simply closing doors."
+      },
+      {
+        "word": "accounts",
+        "meaning_ar": "روايات",
+        "example": "On opening day, school groups and descendants visited an exhibition that explained its methodology as carefully as its discoveries. Visitors learned why certain documents were restricted and how the archive compared conflicting accounts. A relative thanked Ms. Noor for protecting her family's choices while recognizing its connection to local history. Mira photographed conversations rather than the sealed letters, noticing thoughtful engagement throughout the room. Tomas was surprised by questions about memory, fairness and historical uncertainty. The show received fewer sensational headlines than he had once hoped, but visitors returned with their own stories. Many offered to contribute family photographs under clear access conditions, suggesting that a trustworthy process could create new possibilities for research rather than simply closing doors."
+      },
+      {
+        "word": "engagement",
+        "meaning_ar": "تفاعل",
+        "example": "On opening day, school groups and descendants visited an exhibition that explained its methodology as carefully as its discoveries. Visitors learned why certain documents were restricted and how the archive compared conflicting accounts. A relative thanked Ms. Noor for protecting her family's choices while recognizing its connection to local history. Mira photographed conversations rather than the sealed letters, noticing thoughtful engagement throughout the room. Tomas was surprised by questions about memory, fairness and historical uncertainty. The show received fewer sensational headlines than he had once hoped, but visitors returned with their own stories. Many offered to contribute family photographs under clear access conditions, suggesting that a trustworthy process could create new possibilities for research rather than simply closing doors."
+      },
+      {
+        "word": "review",
+        "meaning_ar": "مراجعة",
+        "example": "Months later, the library introduced a permanent policy for personal collections, allowing donors to specify access rules and request periodic review. Tomas incorporated these principles into his university seminars, admitting that he had once confused public curiosity with an automatic right to know. Mira continued documenting the renovated building and its visitors. Ms. Noor regarded the project as an exercise in stewardship: preserving evidence while protecting the people connected with it. The letters remained secure, with selected excerpts available through agreed procedures. When a student questioned whether limiting access reduced the archive's value, Tomas answered that intellectual integrity sometimes required saying less. He no longer considered that an admission of failure but a mature recognition of the responsibilities accompanying historical knowledge."
+      },
+      {
+        "word": "stewardship",
+        "meaning_ar": "رعاية مسؤولة",
+        "example": "Months later, the library introduced a permanent policy for personal collections, allowing donors to specify access rules and request periodic review. Tomas incorporated these principles into his university seminars, admitting that he had once confused public curiosity with an automatic right to know. Mira continued documenting the renovated building and its visitors. Ms. Noor regarded the project as an exercise in stewardship: preserving evidence while protecting the people connected with it. The letters remained secure, with selected excerpts available through agreed procedures. When a student questioned whether limiting access reduced the archive's value, Tomas answered that intellectual integrity sometimes required saying less. He no longer considered that an admission of failure but a mature recognition of the responsibilities accompanying historical knowledge."
+      },
+      {
+        "word": "integrity",
+        "meaning_ar": "نزاهة",
+        "example": "Months later, the library introduced a permanent policy for personal collections, allowing donors to specify access rules and request periodic review. Tomas incorporated these principles into his university seminars, admitting that he had once confused public curiosity with an automatic right to know. Mira continued documenting the renovated building and its visitors. Ms. Noor regarded the project as an exercise in stewardship: preserving evidence while protecting the people connected with it. The letters remained secure, with selected excerpts available through agreed procedures. When a student questioned whether limiting access reduced the archive's value, Tomas answered that intellectual integrity sometimes required saying less. He no longer considered that an admission of failure but a mature recognition of the responsibilities accompanying historical knowledge."
+      }
+    ],
+    "questions": [
+      {
+        "q": "Why was the discovered bundle not immediately opened?",
+        "options": [
+          "It was fake",
+          "Its origin and condition were uncertain",
+          "The librarian disliked history",
+          "There was no camera"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What worried Mira about publication?",
+        "options": [
+          "There was no audience",
+          "The building might close",
+          "Descendants' privacy could be affected",
+          "The ink would disappear"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "Why was the old letter insufficient proof of the local legend?",
+        "options": [
+          "It was too short",
+          "It was written in pencil",
+          "The town had moved",
+          "Its context and dating were uncertain"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "What choice were descendants given?",
+        "options": [
+          "Whether to participate",
+          "Which tickets to buy",
+          "Which journalist to hire",
+          "Which year to use"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "What did the listening session reveal?",
+        "options": [
+          "Every memory was identical",
+          "Residents had different experiences of the dispute",
+          "The letters were forged",
+          "No one had lived there"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "Why did students respond positively to the revised exhibit?",
+        "options": [
+          "They liked the scandal",
+          "It offered secret passages",
+          "It invited careful historical questions",
+          "It rejected every source"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "How did the director answer the blogger's claim?",
+        "options": [
+          "By leaking all private letters",
+          "By closing the museum",
+          "By suing everyone",
+          "With a measured, evidence-based statement"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "What did Tomas learn?",
+        "options": [
+          "Integrity requires discretion and transparency",
+          "All histories have simple endings",
+          "Private letters are always worthless",
+          "An archive should hide every discovery"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+}
