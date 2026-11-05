@@ -463,7 +463,9 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
       _positionSubscription = _player.positionStream.listen(_onPosition);
       _stateSubscription = _player.playerStateStream.listen((state) {
         // Only the play/pause icon listens to this, not the transcript.
-        if (mounted) _isPlaying.value = state.playing;
+        if (mounted) {
+          _isPlaying.value = state.playing;
+        }
       });
       final local = await _offlineAudioFile(loaded);
       final offline = await local.exists() && await local.length() > 100000;
@@ -977,8 +979,10 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
         return Container(
           key: _anchors[i],
           margin: const EdgeInsets.only(bottom: 7),
+          // A non-uniform Border and borderRadius together trigger a Flutter
+          // paint exception, leaving the entire dialogue card empty.
+          // The rounded corner belongs to Material, not to this border.
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(13),
             border: Border(
               left: BorderSide(
                   color: current

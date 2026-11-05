@@ -118,6 +118,9 @@ void main() {
     expect(tester.widget<Material>(row).color, const Color(0xFF22302A));
     expect(find.byKey(const ValueKey('podcast-line-text-0')), findsOneWidget);
     expect(find.text('Anna'), findsWidgets);
+    // A paint exception here used to produce blank transcript cards.
+    await tester.pump();
+    expect(tester.takeException(), isNull);
     expect(find.byKey(const ValueKey('podcast-sticky-player')), findsNothing);
     final follow = find.byKey(const ValueKey('podcast-auto-follow-toggle'));
     expect(tester.widget<IconButton>(follow).tooltip, 'Disable auto-follow');
