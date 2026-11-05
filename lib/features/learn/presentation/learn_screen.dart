@@ -8,6 +8,7 @@ import 'academy_english_a1_screen.dart';
 import '../services/academy_progress_service.dart';
 import 'academy_course_screen.dart';
 import 'story_library_section.dart';
+import 'podcast_library_section.dart';
 
 /// WorldVoice Academy: first-class courses, not placeholder chat contacts.
 /// The six lesson types are implemented per unit; only reviewed A1 content is
@@ -317,8 +318,7 @@ class _LearnScreenState extends State<LearnScreen> {
                   textAlign: TextAlign.center),
                 ],
                 if (_academyTab == 1) const StoryLibrarySection(),
-                // Intentionally empty until the Podcast feature is developed.
-                if (_academyTab == 2) const SizedBox(height: 240),
+                if (_academyTab == 2) const PodcastLibrarySection(),
               ],
             );
           },
