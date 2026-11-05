@@ -3,11 +3,11 @@
   "id": "en-a1-voa-001",
   "language": "en",
   "level": "A1",
-  "title": "Welcome!",
-  "title_ar": "مرحبًا!",
+  "title": "Welcome! — VOA Lesson 1",
+  "title_ar": "مرحبًا! — درس VOA 1",
   "hosts": [
-    "Pete",
-    "Anna"
+    "Anna",
+    "Pete"
   ],
   "other_speakers": [],
   "status": "published_audio",
@@ -15,7 +15,7 @@
   "voice_rights_verified": true,
   "source": "VOA Learning English",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-one/3111026.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 1. Official human conversation audio and matching dialogue. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 1. Original VOA conversation audio and dialogue. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2016/02/08/49485bf8-4277-47f6-9abe-617ee2473f8c.mp3?download=1",
   "duration_ms": 29000,
   "sync_status": "unverified",
@@ -44,35 +44,35 @@
     {
       "speaker": "Anna",
       "text": "Nice to meet you.",
-      "translation_ar": "تشرفت بلقائك.",
+      "translation_ar": "سعيدة بلقائك.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Let's try that again. I'm Anna. Nice to meet you.",
-      "translation_ar": "لنجرب ذلك مرة أخرى. أنا آنا. تشرفت بلقائك.",
+      "translation_ar": "لنحاول ذلك مجددًا. أنا آنا، سعيدة بلقائك.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Pete",
       "text": "I'm Pete. \"Anna\" Is that A-N-A?",
-      "translation_ar": "أنا بيت. «آنا»، هل تكتب A-N-A؟",
+      "translation_ar": "أنا بيت. «آنا»، هل تُكتب A-N-A؟",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "No. A-N-N-A",
-      "translation_ar": "لا، A-N-N-A.",
+      "translation_ar": "لا، تُكتب A-N-N-A.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Pete",
       "text": "Well, Anna with two \"n's\" ... Welcome to ... 1400 Irving Street!",
-      "translation_ar": "حسنًا، آنا بحرفَي N. أهلًا بك في شارع إيرفينغ رقم 1400!",
+      "translation_ar": "حسنًا يا آنا بحرفَي N، أهلًا بك في 1400 شارع إرفينغ!",
       "start_ms": null,
       "end_ms": null
     },
@@ -87,34 +87,20 @@
   "vocabulary": [
     {
       "word": "welcome",
-      "meaning_ar": "مرحبًا بك"
+      "meaning_ar": "مرحبًا"
     },
     {
       "word": "apartment",
       "meaning_ar": "شقة"
     },
     {
+      "word": "nice",
+      "meaning_ar": "لطيف"
+    },
+    {
       "word": "meet",
-      "meaning_ar": "يلتقي"
-    },
-    {
-      "word": "street",
-      "meaning_ar": "شارع"
-    },
-    {
-      "word": "again",
-      "meaning_ar": "مرة أخرى"
+      "meaning_ar": "يقابل"
     }
   ],
-  "questions": [
-    {
-      "question": "Who welcomes Anna to the building?",
-      "options": [
-        "Pete",
-        "Marsha",
-        "Jonathan"
-      ],
-      "answer": 0
-    }
-  ]
+  "questions": []
 }

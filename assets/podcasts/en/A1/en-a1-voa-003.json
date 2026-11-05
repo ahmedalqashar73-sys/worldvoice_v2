@@ -3,36 +3,50 @@
   "id": "en-a1-voa-003",
   "language": "en",
   "level": "A1",
-  "title": "I'm Here!",
-  "title_ar": "لقد وصلت!",
+  "title": "I'm Here! — VOA Lesson 3",
+  "title_ar": "لقد وصلت! — درس VOA 3",
   "hosts": [
     "Anna",
-    "Man"
+    "Marsha"
   ],
   "other_speakers": [
-    "Marsha"
+    "Man"
   ],
   "status": "published_audio",
   "recording_kind": "human",
   "voice_rights_verified": true,
   "source": "VOA Learning English",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-3-i-am-here/3126527.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 3. Official human conversation audio and matching dialogue. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 3. Original VOA conversation audio and dialogue. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2016/02/18/a82baaf4-0a91-4d43-8ab6-78f72cef8fce.mp3?download=1",
   "duration_ms": 120000,
   "sync_status": "unverified",
   "dialogue": [
     {
       "speaker": "Anna",
-      "text": "I am in my new apartment! Great! I live with Marsha. We’re roommates.",
-      "translation_ar": "أنا في شقتي الجديدة! رائع! أعيش مع مارشا. نحن زميلتان في السكن.",
+      "text": "I am in my new apartment! Great!",
+      "translation_ar": "أنا في شقتي الجديدة! رائع!",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
-      "text": "I want to cook dinner. Oh! Hmmm. Is there a supermarket near here? Marsha knows. Marsha's work number is 555-8986.",
-      "translation_ar": "أريد إعداد العشاء. هل يوجد متجر قريب؟ مارشا تعرف. رقم عملها 555-8986.",
+      "text": "I live with Marsha. We’re roommates.",
+      "translation_ar": "أعيش مع مارشا. نحن شريكتان في السكن.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I want to cook dinner. Oh! Hmmm. Is there a supermarket near here?",
+      "translation_ar": "أريد إعداد العشاء. هممم، هل يوجد سوبرماركت قريب من هنا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Marsha knows. Marsha's work number is 555-8986.",
+      "translation_ar": "مارشا تعرف. رقم عملها هو 555-8986.",
       "start_ms": null,
       "end_ms": null
     },
@@ -53,21 +67,21 @@
     {
       "speaker": "Man",
       "text": "I am sorry. You have the wrong number.",
-      "translation_ar": "آسف. اتصلتِ برقم خاطئ.",
+      "translation_ar": "آسف. لقد اتصلت بالرقم الخطأ.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Oh. Is this 555-8986?",
-      "translation_ar": "أوه. أليس هذا الرقم 555-8986؟",
+      "translation_ar": "أوه، أليس هذا الرقم 555-8986؟",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Man",
       "text": "No. This is 555-8689.",
-      "translation_ar": "لا. هذا الرقم 555-8689.",
+      "translation_ar": "لا، هذا الرقم 555-8689.",
       "start_ms": null,
       "end_ms": null
     },
@@ -88,35 +102,35 @@
     {
       "speaker": "Anna",
       "text": "One more time. 555-8986. Please be Marsha.",
-      "translation_ar": "مرة أخرى. 555-8986. آمل أن تكون مارشا.",
+      "translation_ar": "مرة أخرى، 555-8986. أرجوك أن تكون مارشا.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Marsha",
       "text": "Hello. This is Marsha.",
-      "translation_ar": "مرحبًا. معك مارشا.",
+      "translation_ar": "مرحبًا، معك مارشا.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Yes, Marsha. I want to cook dinner.",
-      "translation_ar": "نعم يا مارشا. أريد أن أعد العشاء.",
+      "translation_ar": "نعم يا مارشا، أريد إعداد العشاء.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Marsha",
       "text": "Excuse me? Anna? Is that you?",
-      "translation_ar": "المعذرة؟ آنا؟ هل هذه أنتِ؟",
+      "translation_ar": "عفوًا؟ آنا؟ هل هذه أنت؟",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Oh, yes. I am here!",
-      "translation_ar": "أجل. لقد وصلت!",
+      "translation_ar": "أوه، نعم. لقد وصلت!",
       "start_ms": null,
       "end_ms": null
     },
@@ -130,35 +144,35 @@
     {
       "speaker": "Anna",
       "text": "I want to find a supermarket.",
-      "translation_ar": "أريد العثور على متجر.",
+      "translation_ar": "أريد العثور على سوبرماركت.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Marsha",
       "text": "Oh, okay. The supermarket is at 1500 Irving Street. It is near the apartment.",
-      "translation_ar": "حسنًا. المتجر في شارع إيرفينغ رقم 1500. إنه قرب الشقة.",
+      "translation_ar": "حسنًا، السوبرماركت في 1500 شارع إرفينغ، بالقرب من الشقة.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Great! Goodbye!",
-      "translation_ar": "رائع! وداعًا!",
+      "translation_ar": "رائع! إلى اللقاء!",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Marsha",
       "text": "Goodbye, Anna.",
-      "translation_ar": "وداعًا يا آنا.",
+      "translation_ar": "إلى اللقاء يا آنا.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "There is a big supermarket on our street. And Marsha says I am a good cook! Until next time! Bye!",
-      "translation_ar": "يوجد متجر كبير في شارعنا. ومارشا تقول إنني طاهية جيدة! إلى المرة القادمة، وداعًا!",
+      "translation_ar": "يوجد سوبرماركت كبير في شارعنا. وتقول مارشا إنني طباخة ماهرة! إلى المرة القادمة، وداعًا!",
       "start_ms": null,
       "end_ms": null
     }
@@ -166,34 +180,20 @@
   "vocabulary": [
     {
       "word": "supermarket",
-      "meaning_ar": "متجر كبير"
+      "meaning_ar": "سوبرماركت"
     },
     {
-      "word": "wrong number",
-      "meaning_ar": "رقم خاطئ"
-    },
-    {
-      "word": "cook",
-      "meaning_ar": "يطبخ"
-    },
-    {
-      "word": "near",
-      "meaning_ar": "قريب"
+      "word": "number",
+      "meaning_ar": "رقم"
     },
     {
       "word": "dinner",
       "meaning_ar": "عشاء"
+    },
+    {
+      "word": "near",
+      "meaning_ar": "بالقرب من"
     }
   ],
-  "questions": [
-    {
-      "question": "Where is the supermarket?",
-      "options": [
-        "At 1500 Irving Street",
-        "Inside the apartment",
-        "At the airport"
-      ],
-      "answer": 0
-    }
-  ]
+  "questions": []
 }

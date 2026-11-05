@@ -3,8 +3,8 @@
   "id": "en-a1-voa-006",
   "language": "en",
   "level": "A1",
-  "title": "Where Is the Gym?",
-  "title_ar": "أين النادي الرياضي؟",
+  "title": "Where Is the Gym? — VOA Lesson 6",
+  "title_ar": "أين الصالة الرياضية؟ — درس VOA 6",
   "hosts": [
     "Anna",
     "Pete"
@@ -15,7 +15,7 @@
   "voice_rights_verified": true,
   "source": "VOA Learning English",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-6-where-is-the-gym/3225958.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 6. Official human conversation audio and matching dialogue. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 6. Original VOA conversation audio and dialogue. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2016/03/10/66b63229-1dc5-40ab-886d-1f4b891adf6b_hq.mp3?download=1",
   "duration_ms": 108000,
   "sync_status": "unverified",
@@ -23,28 +23,28 @@
     {
       "speaker": "Anna",
       "text": "Hi there! I’m Anna and I live in Washington, D.C. Every day I learn more about this great city. People in Washington like to work out! Oh, hi, Pete. How’s it going?",
-      "translation_ar": "أهلًا! أنا آنا وأعيش في واشنطن. أتعلم كل يوم المزيد عن هذه المدينة الرائعة. يحب الناس هنا ممارسة الرياضة! مرحبًا يا بيت، كيف الحال؟",
+      "translation_ar": "مرحبًا! أنا آنا وأعيش في واشنطن. أتعلم كل يوم المزيد عن هذه المدينة الرائعة. يحب الناس هنا ممارسة الرياضة! مرحبًا يا بيت، كيف الحال؟",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Pete",
       "text": "Hi, Anna. It’s going great. How’s it going with you?",
-      "translation_ar": "مرحبًا يا آنا. كل شيء ممتاز. وكيف حالك؟",
+      "translation_ar": "مرحبًا يا آنا. الأمور رائعة. وكيف حالك؟",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Things are awesome! Pete, I want to work out. Where is the gym?",
-      "translation_ar": "الأمور رائعة! يا بيت، أريد ممارسة الرياضة. أين النادي الرياضي؟",
+      "translation_ar": "الأمور رائعة! بيت، أريد ممارسة الرياضة. أين الصالة الرياضية؟",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Pete",
       "text": "The gym is across from the lounge. It’s next to the mailroom. Go that way.",
-      "translation_ar": "النادي مقابل صالة الاستراحة وبجوار غرفة البريد. اذهبي من هناك.",
+      "translation_ar": "الصالة مقابل الاستراحة، بجوار غرفة البريد. اذهبي من ذلك الطريق.",
       "start_ms": null,
       "end_ms": null
     },
@@ -58,63 +58,63 @@
     {
       "speaker": "Pete",
       "text": "No, Anna! Not that way! Go that way!",
-      "translation_ar": "لا يا آنا! ليس من ذلك الطريق! اذهبي من هناك!",
+      "translation_ar": "لا يا آنا! ليس ذلك الطريق! اذهبي من هناك!",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Oh, Pete. This is not the gym.",
-      "translation_ar": "أوه يا بيت، هذا ليس النادي.",
+      "translation_ar": "أوه يا بيت. هذه ليست الصالة الرياضية.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Pete",
       "text": "That’s right, Anna. This is the mailroom.",
-      "translation_ar": "صحيح يا آنا، هذه غرفة البريد.",
+      "translation_ar": "صحيح يا آنا. هذه غرفة البريد.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "The gym is across from … what?",
-      "translation_ar": "النادي مقابل... ماذا؟",
+      "translation_ar": "الصالة مقابل... ماذا؟",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Pete",
       "text": "The gym is across from the lounge.",
-      "translation_ar": "النادي مقابل صالة الاستراحة.",
+      "translation_ar": "الصالة مقابل الاستراحة.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Across from the lounge. Right. Thanks!",
-      "translation_ar": "مقابل صالة الاستراحة. صحيح، شكرًا!",
+      "translation_ar": "مقابل الاستراحة، صحيح. شكرًا!",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Pete! This is not the gym!",
-      "translation_ar": "يا بيت! هذا ليس النادي!",
+      "translation_ar": "بيت! هذه ليست الصالة!",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Pete",
       "text": "The gym is across from the lounge. It is behind the lobby.",
-      "translation_ar": "النادي مقابل صالة الاستراحة وخلف البهو.",
+      "translation_ar": "الصالة مقابل الاستراحة، خلف البهو.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Right. Right. See you.",
-      "translation_ar": "صحيح، صحيح. أراك لاحقًا.",
+      "translation_ar": "حسنًا، حسنًا. أراك لاحقًا.",
       "start_ms": null,
       "end_ms": null
     },
@@ -135,35 +135,35 @@
     {
       "speaker": "Pete",
       "text": "See you, Anna.",
-      "translation_ar": "أراك يا آنا.",
+      "translation_ar": "إلى اللقاء يا آنا.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "This is not the gym. This is a parking garage.",
-      "translation_ar": "هذا ليس النادي، هذا مرآب سيارات.",
+      "translation_ar": "هذه ليست الصالة. هذا مرآب للسيارات.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Hello? Pete?",
-      "translation_ar": "ألو؟ بيت؟",
+      "translation_ar": "مرحبًا؟ بيت؟",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "This is not a gym. This is a rooftop.",
-      "translation_ar": "هذا ليس ناديًا، هذا سطح المبنى.",
+      "translation_ar": "هذه ليست صالة، هذا سطح المبنى.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Pete! Pete?",
-      "translation_ar": "بيت! أين أنت؟",
+      "translation_ar": "بيت! بيت؟",
       "start_ms": null,
       "end_ms": null
     },
@@ -177,7 +177,7 @@
     {
       "speaker": "Anna",
       "text": "I’m good.",
-      "translation_ar": "لا، شكرًا، أنا بخير.",
+      "translation_ar": "لا شكرًا، أنا بخير.",
       "start_ms": null,
       "end_ms": null
     }
@@ -185,34 +185,20 @@
   "vocabulary": [
     {
       "word": "gym",
-      "meaning_ar": "نادٍ رياضي"
+      "meaning_ar": "صالة رياضية"
+    },
+    {
+      "word": "lounge",
+      "meaning_ar": "استراحة"
+    },
+    {
+      "word": "garage",
+      "meaning_ar": "مرآب"
     },
     {
       "word": "across from",
       "meaning_ar": "مقابل"
-    },
-    {
-      "word": "mailroom",
-      "meaning_ar": "غرفة البريد"
-    },
-    {
-      "word": "lounge",
-      "meaning_ar": "صالة الاستراحة"
-    },
-    {
-      "word": "rooftop",
-      "meaning_ar": "سطح المبنى"
     }
   ],
-  "questions": [
-    {
-      "question": "Where is the gym?",
-      "options": [
-        "Across from the lounge",
-        "Inside the mailroom",
-        "On the street"
-      ],
-      "answer": 0
-    }
-  ]
+  "questions": []
 }

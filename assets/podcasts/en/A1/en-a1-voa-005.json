@@ -3,8 +3,8 @@
   "id": "en-a1-voa-005",
   "language": "en",
   "level": "A1",
-  "title": "Where Are You?",
-  "title_ar": "أين أنت؟",
+  "title": "Where Are You? — VOA Lesson 5",
+  "title_ar": "أين أنت؟ — درس VOA 5",
   "hosts": [
     "Anna",
     "Marsha"
@@ -15,7 +15,7 @@
   "voice_rights_verified": true,
   "source": "VOA Learning English",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-5-where-are-you/3168971.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 5. Official human conversation audio and matching dialogue. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 5. Original VOA conversation audio and dialogue. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2016/03/01/ab9c2944-eddc-4806-9296-290bfa8c6ff2_hq.mp3?download=1",
   "duration_ms": 60000,
   "sync_status": "unverified",
@@ -23,7 +23,7 @@
     {
       "speaker": "Anna",
       "text": "Hello, everyone! Today my friend Marsha is at her friend's house. She says it is beautiful. I want to see this house! Here we are!",
-      "translation_ar": "أهلًا بالجميع! صديقتي مارشا اليوم في منزل صديقتها وتقول إنه جميل. أريد رؤيته! ها قد وصلنا!",
+      "translation_ar": "مرحبًا بالجميع! اليوم مارشا في بيت صديقتها. تقول إنه جميل. أريد رؤية هذا البيت! ها نحن هنا!",
       "start_ms": null,
       "end_ms": null
     },
@@ -37,7 +37,7 @@
     {
       "speaker": "Marsha",
       "text": "It is beautiful. We cook in the kitchen.",
-      "translation_ar": "إنه جميل. نحن نطبخ في المطبخ.",
+      "translation_ar": "إنه جميل. نطبخ في المطبخ.",
       "start_ms": null,
       "end_ms": null
     },
@@ -58,14 +58,14 @@
     {
       "speaker": "Anna",
       "text": "I relax in the living room. Marsha, let’s go upstairs!",
-      "translation_ar": "أسترخي في غرفة المعيشة. مارشا، هيا نصعد إلى الطابق العلوي!",
+      "translation_ar": "أسترخي في غرفة المعيشة. مارشا، لنصعد إلى الأعلى!",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Marsha",
       "text": "Anna? Where are you?",
-      "translation_ar": "آنا؟ أين أنتِ؟",
+      "translation_ar": "آنا؟ أين أنت؟",
       "start_ms": null,
       "end_ms": null
     },
@@ -79,7 +79,7 @@
     {
       "speaker": "Marsha",
       "text": "I am in the bedroom. We sleep in the bedroom.",
-      "translation_ar": "أنا في غرفة النوم. نحن ننام في غرفة النوم.",
+      "translation_ar": "أنا في غرفة النوم. ننام في غرفة النوم.",
       "start_ms": null,
       "end_ms": null
     },
@@ -97,31 +97,17 @@
       "meaning_ar": "مطبخ"
     },
     {
-      "word": "bathroom",
-      "meaning_ar": "حمام"
+      "word": "living room",
+      "meaning_ar": "غرفة المعيشة"
     },
     {
       "word": "bedroom",
-      "meaning_ar": "غرفة نوم"
+      "meaning_ar": "غرفة النوم"
     },
     {
-      "word": "living room",
-      "meaning_ar": "غرفة معيشة"
-    },
-    {
-      "word": "upstairs",
-      "meaning_ar": "الطابق العلوي"
+      "word": "bathroom",
+      "meaning_ar": "حمام"
     }
   ],
-  "questions": [
-    {
-      "question": "Where do Marsha and Anna sleep?",
-      "options": [
-        "In the bedroom",
-        "In the kitchen",
-        "On the roof"
-      ],
-      "answer": 0
-    }
-  ]
+  "questions": []
 }
