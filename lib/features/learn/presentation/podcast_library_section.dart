@@ -734,7 +734,14 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
               ),
             ),
           ],
-          if (episode.canStream && !episode.isPlayable) ...[
+          if (episode.canStream && episode.syncStatus == 'provisional') ...[
+            const SizedBox(height: 8),
+            Text(ar
+                ? 'تمييز الجمل تجريبي ومبني على مطابقة التسجيل الأصلي؛ قد يحتاج ضبطًا في بعض المواضع.'
+                : 'Sentence highlighting is provisional, aligned from the original recording and pending listening review.',
+                style: const TextStyle(
+                    color: Color(0xFFF4D790), fontSize: 11, height: 1.4)),
+          ] else if (episode.canStream && !episode.isPlayable) ...[
             const SizedBox(height: 8),
             Text(ar
                 ? 'الصوت والنص الأصلي متاحان. تمييز الجملة تلقائيًا غير مفعل حتى مراجعة توقيتها مع التسجيل.'
@@ -1058,8 +1065,11 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                   padding: const EdgeInsets.only(bottom: 5),
                   child: Text(
                     episode.isPlayable
-                        ? (ar ? 'يُبرز السطر عند سماعه · اضغط عليه لإعادته'
-                            : 'Follow the highlighted line · Tap to replay')
+                        ? (episode.syncStatus == 'provisional'
+                            ? (ar ? 'تزامن الجمل تجريبي · اضغط على الجملة لإعادة سماعها'
+                                : 'Provisional sync · Tap any line to replay')
+                            : (ar ? 'يُبرز السطر عند سماعه · اضغط عليه لإعادته'
+                                : 'Follow the highlighted line · Tap to replay'))
                         : (ar
                             ? 'اقرأ النص مع تشغيل التسجيل الأصلي. مزامنة السطور قيد التحقق.'
                             : 'Read along with the authentic recording. Line timing is under review.'),
@@ -1079,6 +1089,13 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                     Chip(label: Text('${word.word} · ${word.meaningAr}')),
                 ]),
                 _quiz(episode),
+                if (episode.sourceCredit != null) ...[
+                  const SizedBox(height: 15),
+                  Text(episode.sourceCredit!,
+                    style: TextStyle(
+                      color: scheme.onSurfaceVariant,
+                      fontSize: 11, height: 1.5)),
+                ],
                 ],
               ),
             ),
