@@ -1,0 +1,438 @@
+{
+  "language": "en",
+  "level": "C1",
+  "story": {
+    "id": "en-c1-002",
+    "title": "The Orchard Agreement",
+    "title_ar": "اتفاق البستان",
+    "moral_ar": "لا يكفي أن نقسم الموارد بالتساوي؛ بل علينا فهم الاحتياجات والحقوق والبيانات لصنع اتفاق قابل للاستمرار.",
+    "art_style": "Professional hand-painted orchard watercolor with strong natural light, consistent original character designs.",
+    "cover_image_prompt": "Dry late summer orchard on a terraced hillside, Mariam with field clipboard and Ethan by rows of fruit trees, irrigation pipes, pale sun, watercolor realism.",
+    "character_sheet": [
+      {
+        "name": "Mariam",
+        "description": "A 25-year-old agricultural planner with deep brown skin, curly black hair gathered in a bun, forest-green field jacket, beige trousers."
+      },
+      {
+        "name": "Ethan",
+        "description": "A 27-year-old orchard owner with fair skin, short ginger hair, checked brown shirt and worn work boots."
+      },
+      {
+        "name": "Ms. Noor",
+        "description": "A 55-year-old cooperative chairwoman with olive skin, long gray hair under a loose cotton headscarf, blue tunic."
+      }
+    ],
+    "chapters": [
+      {
+        "chapter": 1,
+        "title": "When the Wells Ran Low",
+        "title_ar": "حين انخفض الماء",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Dry late summer orchard on a terraced hillside, Mariam with field clipboard and Ethan by rows of fruit trees, irrigation pipes, pale sun, watercolor realism. Editorial landscape watercolor with realistic original people and consistent character features: Mariam A 25-year-old agricultural planner with deep brown skin, curly black hair gathered in a bun, forest-green field jacket, beige trousers.; Ethan A 27-year-old orchard owner with fair skin, short ginger hair, checked brown shirt and worn work boots.; Ms. Noor A 55-year-old cooperative chairwoman with olive skin, long gray hair under a loose cotton headscarf, blue tunic.. No typography.",
+            "animation": "fade_in",
+            "image": "assets/stories/en/C1/illustrations/en-c1-002_scene_01.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The orchards around Marlow Valley had survived countless dry summers, but the latest season exposed a troubling imbalance. Several growers relied on an aging canal, while newer farms had installed private pumps that operated beyond the village's traditional **allocation** system. Mariam, a young agricultural planner, was invited to investigate after two neighbors accused each other of taking more water than they deserved. She quickly realized that an argument about fairness concealed a deeper **discrepancy** between recorded usage and actual demand. Ethan, whose family had cultivated pears for three generations, worried that changing the rules would threaten his livelihood. Mariam refused to offer an immediate verdict, requesting meter readings and historical agreements instead. She needed to know which obligations were legal and which were merely **customary** practices before suggesting anything that might divide the community further."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "An equal number of hours may not mean an equal share, Mariam observed."
+                  }
+                ],
+                "translation_ar": "صمدت بساتين وادي مارلو أمام فصول جفاف كثيرة، لكن الصيف الأخير كشف خللًا في توزيع المياه. اتهم مزارعون بعضهم باستعمال حصص غير عادلة. جاءت مريم الباحثة الزراعية للتحقيق، فاكتشفت فرقًا بين السجلات والحاجة الفعلية. خشي إيثان على مزرعته الموروثة، لكن مريم رفضت الحكم السريع وطلبت قراءات العدادات والاتفاقات القديمة لفهم الحقوق والعادات. قالت إن عدد ساعات الري المتساوي لا يعني بالضرورة حصة عادلة."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "At the first cooperative meeting, emotions threatened to overwhelm the discussion. One farmer insisted that senior families possessed an unquestionable **entitlement**, while younger growers demanded rules based solely on current acreage. Ms. Noor, who chaired the meeting, asked everyone to distinguish a legitimate claim from a convenient assumption. Mariam presented a preliminary **inventory** of water sources, pointing out that the canal lost a significant amount before reaching the lower farms. Ethan was surprised to learn that some of the apparent overuse might actually reflect **leakage** rather than deliberate dishonesty. The group agreed to commission a technical inspection before accusing individuals, and Ms. Noor proposed a temporary schedule that no one regarded as ideal but everyone could accept. The compromise kept the community working together while the facts were established."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We may have been arguing over water that never arrived, Ethan admitted."
+                  }
+                ],
+                "translation_ar": "في الاجتماع الأول احتدم النقاش بين عائلات قديمة ومزارعين جدد. طلبت السيدة نور التمييز بين الحق الفعلي والافتراض. عرضت مريم جردًا لمصادر المياه وأوضحت أن القناة تفقد كمية كبيرة قبل وصولها إلى المزارع المنخفضة. فوجئ إيثان بأن التسرب قد يفسر جزءًا من الهدر المنسوب إلى أشخاص. وافق الجميع على فحص فني وجدول مؤقت، رغم أنه ليس مثاليًا. قال إيثان إنهم ربما اختلفوا حول ماء لم يصل أصلًا."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Village agricultural cooperative meeting under wood pergola, Ms Noor with gray hair explaining water-use chart to Mariam Ethan and growers, evening light. Editorial landscape watercolor with realistic original people and consistent character features: Mariam A 25-year-old agricultural planner with deep brown skin, curly black hair gathered in a bun, forest-green field jacket, beige trousers.; Ethan A 27-year-old orchard owner with fair skin, short ginger hair, checked brown shirt and worn work boots.; Ms. Noor A 55-year-old cooperative chairwoman with olive skin, long gray hair under a loose cotton headscarf, blue tunic.. No typography.",
+            "animation": "pan_left",
+            "image": "assets/stories/en/C1/illustrations/en-c1-002_scene_02.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The engineers confirmed several damaged joints, but their report introduced another complication: repairing the canal would not solve the valley's declining rainfall. Mariam recommended a shared **monitoring** programme that measured both supply and soil moisture, enabling decisions to reflect actual conditions. Ethan objected that complicated equipment might favor wealthier growers who could afford professional advice. His concern highlighted a serious issue of **equity**: a technically efficient policy could still exclude people who lacked money or training. Ms. Noor suggested practical workshops and a cooperative fund to maintain the instruments. The farmers eventually agreed that readings should be publicly accessible and explained in ordinary language. That **transparency** would make the figures more difficult to manipulate while preventing expertise from becoming another form of power. Mariam also insisted that independent checks be scheduled before every planting season."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Data is useful only when everyone can question it, she said."
+                  }
+                ],
+                "translation_ar": "أكد المهندسون تلف وصلات في القناة، لكن إصلاحها لن يعوض نقص المطر. اقترحت مريم متابعة جماعية للمياه ورطوبة التربة. اعترض إيثان بأن المعدات قد تمنح الأغنياء أفضلية، فظهر سؤال الإنصاف. اقترحت السيدة نور ورشًا وتعاونية للصيانة، واتفقوا على نشر القراءات وشرحها بلغة مفهومة وإخضاعها لفحص مستقل. قالت مريم إن البيانات مفيدة حين يستطيع الجميع مناقشتها."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "As the project advanced, Mariam interviewed seasonal workers who had rarely attended cooperative meetings. They explained that sudden changes in irrigation times affected harvesting schedules and sometimes reduced paid working hours. Their testimony revealed an overlooked **dependency** between water decisions and household income. Ethan, initially impatient with what he called unnecessary delays, began to recognize that the existing plan treated labor as invisible. Ms. Noor agreed to reserve seats for worker representatives, although some landowners resisted expanding the committee's **mandate**. Mariam argued that a sustainable arrangement required hearing from everyone who carried its costs, not merely those who owned property. The revised consultations were slower, but their **legitimacy** increased as previously excluded groups gained a genuine opportunity to influence proposals. Ethan found himself defending a process he had once dismissed as impractical."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "A rule changes more lives than the names written beside it, he said."
+                  }
+                ],
+                "translation_ar": "قابلت مريم عمالًا موسميين لا يحضرون الاجتماعات عادة، فعرفت أن تغيير الري يؤثر في الحصاد والأجر. كشف ذلك اعتماد الأسر على قرارات المياه. بدأ إيثان يدرك أن الخطة القديمة تجاهلت العمال. وافقت السيدة نور على تمثيلهم في اللجنة رغم اعتراض بعض الملاك. أكدت مريم أن الاتفاق المستدام يسمع من يتحمل تكلفته لا من يملك الأرض فقط. ورغم بطء المشاورات زادت شرعية القرارات. قال إيثان إن القانون يؤثر في أشخاص أكثر مما تظهر أسماؤهم."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The cooperative experimented with drip irrigation on two neighboring plots, measuring the effect on fruit quality and total water consumption. Early results were encouraging, but Mariam cautioned against turning a brief **trial** into an unconditional recommendation. Different soils, tree ages, and maintenance routines could alter the outcome substantially. Ethan proposed documenting the **limitations** alongside the savings, so other farmers would know what the experiment had not established. The group also calculated the financial **incentives** needed to help small growers purchase equipment without taking on unreasonable debt. Rather than requiring everyone to adopt one method, they drafted several options suited to different conditions. Ms. Noor praised the approach because it recognized that flexibility could be more valuable than simple uniformity. Their findings would be reviewed after the following harvest rather than celebrated immediately."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "A promising result becomes trustworthy when its limits are visible, Mariam said."
+                  }
+                ],
+                "translation_ar": "جربت التعاونية الري بالتنقيط في قطعتين متجاورتين وقاست الجودة والاستهلاك. كانت النتائج مبشرة، لكن مريم حذرت من تعميم تجربة قصيرة بسبب اختلاف التربة والأشجار. اقترح إيثان تسجيل حدود التجربة إلى جانب التوفير، وحسب الفريق الحوافز اللازمة لمساعدة المزارعين الصغار دون ديون مفرطة. صمموا بدائل مرنة بدل فرض حل موحد. أشادت السيدة نور بذلك وقرروا مراجعة النتائج بعد الحصاد المقبل. قالت مريم إن وضوح حدود التجربة يزيد الثقة."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "chapter": 2,
+        "title": "A Promise Measured in Seasons",
+        "title_ar": "وعد يُقاس بالمواسم",
+        "blocks": [
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Mariam and Ethan examining irrigation meters in a small orchard beside a test garden with mulched soil, accessible safe field work, golden afternoon. Editorial landscape watercolor with realistic original people and consistent character features: Mariam A 25-year-old agricultural planner with deep brown skin, curly black hair gathered in a bun, forest-green field jacket, beige trousers.; Ethan A 27-year-old orchard owner with fair skin, short ginger hair, checked brown shirt and worn work boots.; Ms. Noor A 55-year-old cooperative chairwoman with olive skin, long gray hair under a loose cotton headscarf, blue tunic.. No typography.",
+            "animation": "zoom_in_slow",
+            "image": "assets/stories/en/C1/illustrations/en-c1-002_scene_03.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "When the autumn rains finally arrived, the committee presented a draft agreement combining emergency reserves, measured withdrawals, and an appeal process for unexpected losses. A few growers feared that the new **regulations** would punish them for circumstances beyond their control. Mariam acknowledged those risks and proposed independent **arbitration** for disputes that could not be resolved locally. Ethan insisted that the agreement protect younger orchards during their most vulnerable years, while worker representatives requested advance notice of schedule changes. The resulting document was more complex than the original village rules, but it was also more **accountable**: each decision had an identified authority, an explanation, and a way to challenge it. Ms. Noor refused to call the agreement perfect, describing it instead as a framework that could improve through experience and public review."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "A fair process matters when a season turns against us, Ethan said."
+                  }
+                ],
+                "translation_ar": "حين وصل مطر الخريف قدمت اللجنة اتفاقًا يشمل احتياطي الطوارئ والسحب المقاس وحق الاعتراض. خشي بعض المزارعين عقوبات لا يتحكمون في أسبابها، فاقترحت مريم تحكيمًا مستقلًا. طالب إيثان بحماية الأشجار الصغيرة، وطلب ممثلو العمال إشعارًا مسبقًا بتغير الجداول. صار الاتفاق أطول من الأعراف القديمة لكنه أكثر وضوحًا في المسؤوليات وطرق المراجعة. قالت السيدة نور إنه إطار قابل للتطوير لا صيغة مثالية."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The first difficult test came in spring, when unexpected heat increased demand just as one pump failed. Older tensions resurfaced, and a group of farmers accused the committee of favoring particular orchards. Instead of responding defensively, Ms. Noor activated the agreed **contingency** procedure and invited independent observers to review the figures. Mariam published a clear comparison between estimated and actual consumption, identifying an error in the previous week's calculations. The admission briefly damaged confidence, but openly correcting the mistake helped restore the committee's **credibility**. Ethan supported an emergency redistribution that temporarily reduced his own allocation, acknowledging the **reciprocity** built into the agreement. The decision was costly, yet it prevented more severe losses across the valley. They had discovered that a cooperative arrangement mattered most when circumstances made cooperation uncomfortable."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Trust grows when we correct mistakes before blaming others, Mariam said."
+                  }
+                ],
+                "translation_ar": "جاء الاختبار الأول مع موجة حر وعطل مضخة. عادت الاتهامات القديمة، لكن السيدة نور فعّلت إجراء الطوارئ وطلبت مراقبة مستقلة. نشرت مريم مقارنة بين الاستهلاك المتوقع والفعلي واعترفت بخطأ حسابي. أضعف الاعتراف الثقة قليلًا لكنه أعاد المصداقية عندما صححوه. قبل إيثان خفض حصته مؤقتًا حفاظًا على المزارع الأخرى، مجسدًا مبدأ المعاملة بالمثل. قالت مريم إن الثقة تنمو عندما نصحح الأخطاء قبل لوم الآخرين."
+              }
+            ]
+          },
+          {
+            "type": "paragraph_group",
+            "image_prompt": "Harvest festival in rehabilitated orchard, community cooperative with farmers sharing fruit baskets and viewing updated water schedule, green trees and warm light. Editorial landscape watercolor with realistic original people and consistent character features: Mariam A 25-year-old agricultural planner with deep brown skin, curly black hair gathered in a bun, forest-green field jacket, beige trousers.; Ethan A 27-year-old orchard owner with fair skin, short ginger hair, checked brown shirt and worn work boots.; Ms. Noor A 55-year-old cooperative chairwoman with olive skin, long gray hair under a loose cotton headscarf, blue tunic.. No typography.",
+            "animation": "parallax",
+            "image": "assets/stories/en/C1/illustrations/en-c1-002_scene_04.svg",
+            "paragraphs": [
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "By midsummer, the cooperative's records suggested that the repaired canal and improved schedules had reduced waste. Nevertheless, Mariam challenged the group to distinguish short-term savings from genuine ecological **resilience**. A single favorable season could disguise continued pressure on underground water reserves. She proposed independent annual **audits**, soil-health assessments, and public reporting of cumulative withdrawals. Some participants complained about the cost, but Ms. Noor argued that refusing to measure risks would merely transfer hidden expenses to future generations. Ethan invited students from the local college to help analyze the results under professional supervision, turning the work into a practical **partnership**. The programme also offered younger farmers a way to understand decisions rather than inherit them unquestioningly. Such education could keep the agreement meaningful long after its original authors retired."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "Stewardship is a habit, not a document signed once, Ethan said."
+                  }
+                ],
+                "translation_ar": "بحلول منتصف الصيف أظهرت السجلات انخفاض الهدر بعد إصلاح القناة وتطوير الجداول. لكن مريم شددت على أن التوفير القصير لا يثبت قدرة الطبيعة على الصمود، فموسم جيد قد يخفي استنزاف المياه الجوفية. اقترحت تدقيقًا سنويًا وتقييم التربة ونشر إجمالي السحب. رأت السيدة نور أن تجاهل المخاطر يحمّل الأجيال القادمة تكاليف خفية. دعا إيثان طلابًا للمشاركة في تحليل البيانات بإشراف مختصين، لتصبح الشراكة وسيلة تعليم. قال إن الرعاية عادة لا مجرد توقيع."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "The next harvest brought a modest improvement rather than the dramatic success some newspapers had predicted. Several orchards produced better fruit, others continued to struggle, and a few families needed additional financial support. Mariam resisted reducing the outcome to a simple **headline**, insisting that the distribution of benefits mattered as much as the overall totals. The committee published an **evaluation** identifying successful measures, unresolved difficulties, and proposals requiring further evidence. Ethan, who once demanded a quick verdict, now defended a slower process that permitted disagreement without collapsing into hostility. Ms. Noor proposed making the review meetings a permanent part of the cooperative's **governance**, so future leaders would inherit both data and an expectation of accountability. No one claimed that scarcity had disappeared, but the community had become better equipped to respond together."
+                  },
+                  {
+                    "speaker": "FEMALE",
+                    "text": "Progress can be meaningful without being miraculous, Mariam said."
+                  }
+                ],
+                "translation_ar": "جاء الحصاد بتحسن معتدل لا نجاح خارق. نجحت بعض البساتين واستمرت صعوبات أخرى واحتاجت أسر دعمًا ماليًا. رفضت مريم اختزال النتائج في عنوان صحفي، وأصرت على دراسة توزيع الفوائد. نشرت اللجنة تقييمًا للنجاحات والمشكلات وما يحتاج أدلة إضافية. تحول إيثان من المطالبة بحكم سريع إلى الدفاع عن نقاش بطيء ومحترم. اقترحت السيدة نور جعل المراجعة جزءًا دائمًا من إدارة التعاونية. قالت مريم إن التقدم لا يحتاج إلى معجزة ليكون مهمًا."
+              },
+              {
+                "segments": [
+                  {
+                    "speaker": "NARRATOR",
+                    "text": "Years later, a newcomer asked Ethan why the valley used such a complicated water-sharing system. He described the damaged canal, the tense meetings, and the uncomfortable moment when he had voluntarily accepted less water for his own trees. The arrangement had survived because people regarded it as a living **compact**, open to revision as circumstances changed. Mariam, now advising other regions, emphasized that technical **efficiency** alone could not settle questions of rights, risk, and belonging. Ms. Noor still chaired occasional discussions, reminding participants that fairness depended on listening as well as measuring. Their greatest achievement was not the machinery or the schedules but a culture of shared **deliberation**. In a valley where water could never be taken for granted, learning how to disagree responsibly had become an essential resource of its own."
+                  },
+                  {
+                    "speaker": "MALE",
+                    "text": "We did not end the problem; we learned how to face it together, Ethan explained."
+                  }
+                ],
+                "translation_ar": "بعد أعوام سأل مزارع جديد إيثان عن تعقيد النظام. روى قصة القناة والاجتماعات ولحظة قبوله طوعًا تقليل حصته. ظل الاتفاق حيًا لأنه قابل للمراجعة. كانت مريم تنصح مناطق أخرى بأن الكفاءة التقنية وحدها لا تحسم الحقوق والمخاطر، وكانت السيدة نور تذكر الناس بأن الإنصاف يحتاج الإصغاء والقياس معًا. لم يكن إنجازهم الأكبر الأجهزة بل ثقافة المداولة المشتركة. قال إيثان إنهم لم يلغوا المشكلة، بل تعلموا مواجهتها معًا."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "vocabulary": [
+      {
+        "word": "allocation",
+        "meaning_ar": "تخصيص حصص",
+        "example": "The orchards around Marlow Valley had survived countless dry summers, but the latest season exposed a troubling imbalance. Several growers relied on an aging canal, while newer farms had installed private pumps that operated beyond the village's traditional allocation system. Mariam, a young agricultural planner, was invited to investigate after two neighbors accused each other of taking more water than they deserved. She quickly realized that an argument about fairness concealed a deeper discrepancy between recorded usage and actual demand. Ethan, whose family had cultivated pears for three generations, worried that changing the rules would threaten his livelihood. Mariam refused to offer an immediate verdict, requesting meter readings and historical agreements instead. She needed to know which obligations were legal and which were merely customary practices before suggesting anything that might divide the community further."
+      },
+      {
+        "word": "discrepancy",
+        "meaning_ar": "تفاوت",
+        "example": "The orchards around Marlow Valley had survived countless dry summers, but the latest season exposed a troubling imbalance. Several growers relied on an aging canal, while newer farms had installed private pumps that operated beyond the village's traditional allocation system. Mariam, a young agricultural planner, was invited to investigate after two neighbors accused each other of taking more water than they deserved. She quickly realized that an argument about fairness concealed a deeper discrepancy between recorded usage and actual demand. Ethan, whose family had cultivated pears for three generations, worried that changing the rules would threaten his livelihood. Mariam refused to offer an immediate verdict, requesting meter readings and historical agreements instead. She needed to know which obligations were legal and which were merely customary practices before suggesting anything that might divide the community further."
+      },
+      {
+        "word": "customary",
+        "meaning_ar": "عرفي",
+        "example": "The orchards around Marlow Valley had survived countless dry summers, but the latest season exposed a troubling imbalance. Several growers relied on an aging canal, while newer farms had installed private pumps that operated beyond the village's traditional allocation system. Mariam, a young agricultural planner, was invited to investigate after two neighbors accused each other of taking more water than they deserved. She quickly realized that an argument about fairness concealed a deeper discrepancy between recorded usage and actual demand. Ethan, whose family had cultivated pears for three generations, worried that changing the rules would threaten his livelihood. Mariam refused to offer an immediate verdict, requesting meter readings and historical agreements instead. She needed to know which obligations were legal and which were merely customary practices before suggesting anything that might divide the community further."
+      },
+      {
+        "word": "entitlement",
+        "meaning_ar": "حق مستحق",
+        "example": "At the first cooperative meeting, emotions threatened to overwhelm the discussion. One farmer insisted that senior families possessed an unquestionable entitlement, while younger growers demanded rules based solely on current acreage. Ms. Noor, who chaired the meeting, asked everyone to distinguish a legitimate claim from a convenient assumption. Mariam presented a preliminary inventory of water sources, pointing out that the canal lost a significant amount before reaching the lower farms. Ethan was surprised to learn that some of the apparent overuse might actually reflect leakage rather than deliberate dishonesty. The group agreed to commission a technical inspection before accusing individuals, and Ms. Noor proposed a temporary schedule that no one regarded as ideal but everyone could accept. The compromise kept the community working together while the facts were established."
+      },
+      {
+        "word": "inventory",
+        "meaning_ar": "جرد",
+        "example": "At the first cooperative meeting, emotions threatened to overwhelm the discussion. One farmer insisted that senior families possessed an unquestionable entitlement, while younger growers demanded rules based solely on current acreage. Ms. Noor, who chaired the meeting, asked everyone to distinguish a legitimate claim from a convenient assumption. Mariam presented a preliminary inventory of water sources, pointing out that the canal lost a significant amount before reaching the lower farms. Ethan was surprised to learn that some of the apparent overuse might actually reflect leakage rather than deliberate dishonesty. The group agreed to commission a technical inspection before accusing individuals, and Ms. Noor proposed a temporary schedule that no one regarded as ideal but everyone could accept. The compromise kept the community working together while the facts were established."
+      },
+      {
+        "word": "leakage",
+        "meaning_ar": "تسرّب",
+        "example": "At the first cooperative meeting, emotions threatened to overwhelm the discussion. One farmer insisted that senior families possessed an unquestionable entitlement, while younger growers demanded rules based solely on current acreage. Ms. Noor, who chaired the meeting, asked everyone to distinguish a legitimate claim from a convenient assumption. Mariam presented a preliminary inventory of water sources, pointing out that the canal lost a significant amount before reaching the lower farms. Ethan was surprised to learn that some of the apparent overuse might actually reflect leakage rather than deliberate dishonesty. The group agreed to commission a technical inspection before accusing individuals, and Ms. Noor proposed a temporary schedule that no one regarded as ideal but everyone could accept. The compromise kept the community working together while the facts were established."
+      },
+      {
+        "word": "monitoring",
+        "meaning_ar": "مراقبة",
+        "example": "The engineers confirmed several damaged joints, but their report introduced another complication: repairing the canal would not solve the valley's declining rainfall. Mariam recommended a shared monitoring programme that measured both supply and soil moisture, enabling decisions to reflect actual conditions. Ethan objected that complicated equipment might favor wealthier growers who could afford professional advice. His concern highlighted a serious issue of equity: a technically efficient policy could still exclude people who lacked money or training. Ms. Noor suggested practical workshops and a cooperative fund to maintain the instruments. The farmers eventually agreed that readings should be publicly accessible and explained in ordinary language. That transparency would make the figures more difficult to manipulate while preventing expertise from becoming another form of power. Mariam also insisted that independent checks be scheduled before every planting season."
+      },
+      {
+        "word": "equity",
+        "meaning_ar": "إنصاف",
+        "example": "The engineers confirmed several damaged joints, but their report introduced another complication: repairing the canal would not solve the valley's declining rainfall. Mariam recommended a shared monitoring programme that measured both supply and soil moisture, enabling decisions to reflect actual conditions. Ethan objected that complicated equipment might favor wealthier growers who could afford professional advice. His concern highlighted a serious issue of equity: a technically efficient policy could still exclude people who lacked money or training. Ms. Noor suggested practical workshops and a cooperative fund to maintain the instruments. The farmers eventually agreed that readings should be publicly accessible and explained in ordinary language. That transparency would make the figures more difficult to manipulate while preventing expertise from becoming another form of power. Mariam also insisted that independent checks be scheduled before every planting season."
+      },
+      {
+        "word": "transparency",
+        "meaning_ar": "شفافية",
+        "example": "The engineers confirmed several damaged joints, but their report introduced another complication: repairing the canal would not solve the valley's declining rainfall. Mariam recommended a shared monitoring programme that measured both supply and soil moisture, enabling decisions to reflect actual conditions. Ethan objected that complicated equipment might favor wealthier growers who could afford professional advice. His concern highlighted a serious issue of equity: a technically efficient policy could still exclude people who lacked money or training. Ms. Noor suggested practical workshops and a cooperative fund to maintain the instruments. The farmers eventually agreed that readings should be publicly accessible and explained in ordinary language. That transparency would make the figures more difficult to manipulate while preventing expertise from becoming another form of power. Mariam also insisted that independent checks be scheduled before every planting season."
+      },
+      {
+        "word": "dependency",
+        "meaning_ar": "اعتماد متبادل",
+        "example": "As the project advanced, Mariam interviewed seasonal workers who had rarely attended cooperative meetings. They explained that sudden changes in irrigation times affected harvesting schedules and sometimes reduced paid working hours. Their testimony revealed an overlooked dependency between water decisions and household income. Ethan, initially impatient with what he called unnecessary delays, began to recognize that the existing plan treated labor as invisible. Ms. Noor agreed to reserve seats for worker representatives, although some landowners resisted expanding the committee's mandate. Mariam argued that a sustainable arrangement required hearing from everyone who carried its costs, not merely those who owned property. The revised consultations were slower, but their legitimacy increased as previously excluded groups gained a genuine opportunity to influence proposals. Ethan found himself defending a process he had once dismissed as impractical."
+      },
+      {
+        "word": "mandate",
+        "meaning_ar": "صلاحية",
+        "example": "As the project advanced, Mariam interviewed seasonal workers who had rarely attended cooperative meetings. They explained that sudden changes in irrigation times affected harvesting schedules and sometimes reduced paid working hours. Their testimony revealed an overlooked dependency between water decisions and household income. Ethan, initially impatient with what he called unnecessary delays, began to recognize that the existing plan treated labor as invisible. Ms. Noor agreed to reserve seats for worker representatives, although some landowners resisted expanding the committee's mandate. Mariam argued that a sustainable arrangement required hearing from everyone who carried its costs, not merely those who owned property. The revised consultations were slower, but their legitimacy increased as previously excluded groups gained a genuine opportunity to influence proposals. Ethan found himself defending a process he had once dismissed as impractical."
+      },
+      {
+        "word": "legitimacy",
+        "meaning_ar": "شرعية",
+        "example": "As the project advanced, Mariam interviewed seasonal workers who had rarely attended cooperative meetings. They explained that sudden changes in irrigation times affected harvesting schedules and sometimes reduced paid working hours. Their testimony revealed an overlooked dependency between water decisions and household income. Ethan, initially impatient with what he called unnecessary delays, began to recognize that the existing plan treated labor as invisible. Ms. Noor agreed to reserve seats for worker representatives, although some landowners resisted expanding the committee's mandate. Mariam argued that a sustainable arrangement required hearing from everyone who carried its costs, not merely those who owned property. The revised consultations were slower, but their legitimacy increased as previously excluded groups gained a genuine opportunity to influence proposals. Ethan found himself defending a process he had once dismissed as impractical."
+      },
+      {
+        "word": "trial",
+        "meaning_ar": "تجربة",
+        "example": "The cooperative experimented with drip irrigation on two neighboring plots, measuring the effect on fruit quality and total water consumption. Early results were encouraging, but Mariam cautioned against turning a brief trial into an unconditional recommendation. Different soils, tree ages, and maintenance routines could alter the outcome substantially. Ethan proposed documenting the limitations alongside the savings, so other farmers would know what the experiment had not established. The group also calculated the financial incentives needed to help small growers purchase equipment without taking on unreasonable debt. Rather than requiring everyone to adopt one method, they drafted several options suited to different conditions. Ms. Noor praised the approach because it recognized that flexibility could be more valuable than simple uniformity. Their findings would be reviewed after the following harvest rather than celebrated immediately."
+      },
+      {
+        "word": "limitations",
+        "meaning_ar": "حدود",
+        "example": "The cooperative experimented with drip irrigation on two neighboring plots, measuring the effect on fruit quality and total water consumption. Early results were encouraging, but Mariam cautioned against turning a brief trial into an unconditional recommendation. Different soils, tree ages, and maintenance routines could alter the outcome substantially. Ethan proposed documenting the limitations alongside the savings, so other farmers would know what the experiment had not established. The group also calculated the financial incentives needed to help small growers purchase equipment without taking on unreasonable debt. Rather than requiring everyone to adopt one method, they drafted several options suited to different conditions. Ms. Noor praised the approach because it recognized that flexibility could be more valuable than simple uniformity. Their findings would be reviewed after the following harvest rather than celebrated immediately."
+      },
+      {
+        "word": "incentives",
+        "meaning_ar": "حوافز",
+        "example": "The cooperative experimented with drip irrigation on two neighboring plots, measuring the effect on fruit quality and total water consumption. Early results were encouraging, but Mariam cautioned against turning a brief trial into an unconditional recommendation. Different soils, tree ages, and maintenance routines could alter the outcome substantially. Ethan proposed documenting the limitations alongside the savings, so other farmers would know what the experiment had not established. The group also calculated the financial incentives needed to help small growers purchase equipment without taking on unreasonable debt. Rather than requiring everyone to adopt one method, they drafted several options suited to different conditions. Ms. Noor praised the approach because it recognized that flexibility could be more valuable than simple uniformity. Their findings would be reviewed after the following harvest rather than celebrated immediately."
+      },
+      {
+        "word": "regulations",
+        "meaning_ar": "لوائح",
+        "example": "When the autumn rains finally arrived, the committee presented a draft agreement combining emergency reserves, measured withdrawals, and an appeal process for unexpected losses. A few growers feared that the new regulations would punish them for circumstances beyond their control. Mariam acknowledged those risks and proposed independent arbitration for disputes that could not be resolved locally. Ethan insisted that the agreement protect younger orchards during their most vulnerable years, while worker representatives requested advance notice of schedule changes. The resulting document was more complex than the original village rules, but it was also more accountable: each decision had an identified authority, an explanation, and a way to challenge it. Ms. Noor refused to call the agreement perfect, describing it instead as a framework that could improve through experience and public review."
+      },
+      {
+        "word": "arbitration",
+        "meaning_ar": "تحكيم",
+        "example": "When the autumn rains finally arrived, the committee presented a draft agreement combining emergency reserves, measured withdrawals, and an appeal process for unexpected losses. A few growers feared that the new regulations would punish them for circumstances beyond their control. Mariam acknowledged those risks and proposed independent arbitration for disputes that could not be resolved locally. Ethan insisted that the agreement protect younger orchards during their most vulnerable years, while worker representatives requested advance notice of schedule changes. The resulting document was more complex than the original village rules, but it was also more accountable: each decision had an identified authority, an explanation, and a way to challenge it. Ms. Noor refused to call the agreement perfect, describing it instead as a framework that could improve through experience and public review."
+      },
+      {
+        "word": "accountable",
+        "meaning_ar": "خاضع للمساءلة",
+        "example": "When the autumn rains finally arrived, the committee presented a draft agreement combining emergency reserves, measured withdrawals, and an appeal process for unexpected losses. A few growers feared that the new regulations would punish them for circumstances beyond their control. Mariam acknowledged those risks and proposed independent arbitration for disputes that could not be resolved locally. Ethan insisted that the agreement protect younger orchards during their most vulnerable years, while worker representatives requested advance notice of schedule changes. The resulting document was more complex than the original village rules, but it was also more accountable: each decision had an identified authority, an explanation, and a way to challenge it. Ms. Noor refused to call the agreement perfect, describing it instead as a framework that could improve through experience and public review."
+      },
+      {
+        "word": "contingency",
+        "meaning_ar": "طوارئ",
+        "example": "The first difficult test came in spring, when unexpected heat increased demand just as one pump failed. Older tensions resurfaced, and a group of farmers accused the committee of favoring particular orchards. Instead of responding defensively, Ms. Noor activated the agreed contingency procedure and invited independent observers to review the figures. Mariam published a clear comparison between estimated and actual consumption, identifying an error in the previous week's calculations. The admission briefly damaged confidence, but openly correcting the mistake helped restore the committee's credibility. Ethan supported an emergency redistribution that temporarily reduced his own allocation, acknowledging the reciprocity built into the agreement. The decision was costly, yet it prevented more severe losses across the valley. They had discovered that a cooperative arrangement mattered most when circumstances made cooperation uncomfortable."
+      },
+      {
+        "word": "credibility",
+        "meaning_ar": "مصداقية",
+        "example": "The first difficult test came in spring, when unexpected heat increased demand just as one pump failed. Older tensions resurfaced, and a group of farmers accused the committee of favoring particular orchards. Instead of responding defensively, Ms. Noor activated the agreed contingency procedure and invited independent observers to review the figures. Mariam published a clear comparison between estimated and actual consumption, identifying an error in the previous week's calculations. The admission briefly damaged confidence, but openly correcting the mistake helped restore the committee's credibility. Ethan supported an emergency redistribution that temporarily reduced his own allocation, acknowledging the reciprocity built into the agreement. The decision was costly, yet it prevented more severe losses across the valley. They had discovered that a cooperative arrangement mattered most when circumstances made cooperation uncomfortable."
+      },
+      {
+        "word": "reciprocity",
+        "meaning_ar": "معاملة بالمثل",
+        "example": "The first difficult test came in spring, when unexpected heat increased demand just as one pump failed. Older tensions resurfaced, and a group of farmers accused the committee of favoring particular orchards. Instead of responding defensively, Ms. Noor activated the agreed contingency procedure and invited independent observers to review the figures. Mariam published a clear comparison between estimated and actual consumption, identifying an error in the previous week's calculations. The admission briefly damaged confidence, but openly correcting the mistake helped restore the committee's credibility. Ethan supported an emergency redistribution that temporarily reduced his own allocation, acknowledging the reciprocity built into the agreement. The decision was costly, yet it prevented more severe losses across the valley. They had discovered that a cooperative arrangement mattered most when circumstances made cooperation uncomfortable."
+      },
+      {
+        "word": "resilience",
+        "meaning_ar": "قدرة على الصمود",
+        "example": "By midsummer, the cooperative's records suggested that the repaired canal and improved schedules had reduced waste. Nevertheless, Mariam challenged the group to distinguish short-term savings from genuine ecological resilience. A single favorable season could disguise continued pressure on underground water reserves. She proposed independent annual audits, soil-health assessments, and public reporting of cumulative withdrawals. Some participants complained about the cost, but Ms. Noor argued that refusing to measure risks would merely transfer hidden expenses to future generations. Ethan invited students from the local college to help analyze the results under professional supervision, turning the work into a practical partnership. The programme also offered younger farmers a way to understand decisions rather than inherit them unquestioningly. Such education could keep the agreement meaningful long after its original authors retired."
+      },
+      {
+        "word": "audits",
+        "meaning_ar": "عمليات تدقيق",
+        "example": "By midsummer, the cooperative's records suggested that the repaired canal and improved schedules had reduced waste. Nevertheless, Mariam challenged the group to distinguish short-term savings from genuine ecological resilience. A single favorable season could disguise continued pressure on underground water reserves. She proposed independent annual audits, soil-health assessments, and public reporting of cumulative withdrawals. Some participants complained about the cost, but Ms. Noor argued that refusing to measure risks would merely transfer hidden expenses to future generations. Ethan invited students from the local college to help analyze the results under professional supervision, turning the work into a practical partnership. The programme also offered younger farmers a way to understand decisions rather than inherit them unquestioningly. Such education could keep the agreement meaningful long after its original authors retired."
+      },
+      {
+        "word": "partnership",
+        "meaning_ar": "شراكة",
+        "example": "By midsummer, the cooperative's records suggested that the repaired canal and improved schedules had reduced waste. Nevertheless, Mariam challenged the group to distinguish short-term savings from genuine ecological resilience. A single favorable season could disguise continued pressure on underground water reserves. She proposed independent annual audits, soil-health assessments, and public reporting of cumulative withdrawals. Some participants complained about the cost, but Ms. Noor argued that refusing to measure risks would merely transfer hidden expenses to future generations. Ethan invited students from the local college to help analyze the results under professional supervision, turning the work into a practical partnership. The programme also offered younger farmers a way to understand decisions rather than inherit them unquestioningly. Such education could keep the agreement meaningful long after its original authors retired."
+      },
+      {
+        "word": "headline",
+        "meaning_ar": "عنوان صحفي",
+        "example": "The next harvest brought a modest improvement rather than the dramatic success some newspapers had predicted. Several orchards produced better fruit, others continued to struggle, and a few families needed additional financial support. Mariam resisted reducing the outcome to a simple headline, insisting that the distribution of benefits mattered as much as the overall totals. The committee published an evaluation identifying successful measures, unresolved difficulties, and proposals requiring further evidence. Ethan, who once demanded a quick verdict, now defended a slower process that permitted disagreement without collapsing into hostility. Ms. Noor proposed making the review meetings a permanent part of the cooperative's governance, so future leaders would inherit both data and an expectation of accountability. No one claimed that scarcity had disappeared, but the community had become better equipped to respond together."
+      },
+      {
+        "word": "evaluation",
+        "meaning_ar": "تقييم",
+        "example": "The next harvest brought a modest improvement rather than the dramatic success some newspapers had predicted. Several orchards produced better fruit, others continued to struggle, and a few families needed additional financial support. Mariam resisted reducing the outcome to a simple headline, insisting that the distribution of benefits mattered as much as the overall totals. The committee published an evaluation identifying successful measures, unresolved difficulties, and proposals requiring further evidence. Ethan, who once demanded a quick verdict, now defended a slower process that permitted disagreement without collapsing into hostility. Ms. Noor proposed making the review meetings a permanent part of the cooperative's governance, so future leaders would inherit both data and an expectation of accountability. No one claimed that scarcity had disappeared, but the community had become better equipped to respond together."
+      },
+      {
+        "word": "governance",
+        "meaning_ar": "حوكمة",
+        "example": "The next harvest brought a modest improvement rather than the dramatic success some newspapers had predicted. Several orchards produced better fruit, others continued to struggle, and a few families needed additional financial support. Mariam resisted reducing the outcome to a simple headline, insisting that the distribution of benefits mattered as much as the overall totals. The committee published an evaluation identifying successful measures, unresolved difficulties, and proposals requiring further evidence. Ethan, who once demanded a quick verdict, now defended a slower process that permitted disagreement without collapsing into hostility. Ms. Noor proposed making the review meetings a permanent part of the cooperative's governance, so future leaders would inherit both data and an expectation of accountability. No one claimed that scarcity had disappeared, but the community had become better equipped to respond together."
+      },
+      {
+        "word": "compact",
+        "meaning_ar": "ميثاق",
+        "example": "Years later, a newcomer asked Ethan why the valley used such a complicated water-sharing system. He described the damaged canal, the tense meetings, and the uncomfortable moment when he had voluntarily accepted less water for his own trees. The arrangement had survived because people regarded it as a living compact, open to revision as circumstances changed. Mariam, now advising other regions, emphasized that technical efficiency alone could not settle questions of rights, risk, and belonging. Ms. Noor still chaired occasional discussions, reminding participants that fairness depended on listening as well as measuring. Their greatest achievement was not the machinery or the schedules but a culture of shared deliberation. In a valley where water could never be taken for granted, learning how to disagree responsibly had become an essential resource of its own."
+      },
+      {
+        "word": "efficiency",
+        "meaning_ar": "كفاءة",
+        "example": "Years later, a newcomer asked Ethan why the valley used such a complicated water-sharing system. He described the damaged canal, the tense meetings, and the uncomfortable moment when he had voluntarily accepted less water for his own trees. The arrangement had survived because people regarded it as a living compact, open to revision as circumstances changed. Mariam, now advising other regions, emphasized that technical efficiency alone could not settle questions of rights, risk, and belonging. Ms. Noor still chaired occasional discussions, reminding participants that fairness depended on listening as well as measuring. Their greatest achievement was not the machinery or the schedules but a culture of shared deliberation. In a valley where water could never be taken for granted, learning how to disagree responsibly had become an essential resource of its own."
+      },
+      {
+        "word": "deliberation",
+        "meaning_ar": "مداولة",
+        "example": "Years later, a newcomer asked Ethan why the valley used such a complicated water-sharing system. He described the damaged canal, the tense meetings, and the uncomfortable moment when he had voluntarily accepted less water for his own trees. The arrangement had survived because people regarded it as a living compact, open to revision as circumstances changed. Mariam, now advising other regions, emphasized that technical efficiency alone could not settle questions of rights, risk, and belonging. Ms. Noor still chaired occasional discussions, reminding participants that fairness depended on listening as well as measuring. Their greatest achievement was not the machinery or the schedules but a culture of shared deliberation. In a valley where water could never be taken for granted, learning how to disagree responsibly had become an essential resource of its own."
+      }
+    ],
+    "questions": [
+      {
+        "q": "What first brought Mariam to the valley?",
+        "options": [
+          "A local festival",
+          "A disagreement over water sharing",
+          "A request to build a restaurant",
+          "A new railway"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What complicated accusations of overuse?",
+        "options": [
+          "Broken fruit crates",
+          "Untrained staff",
+          "Leakage in the old canal",
+          "An unknown storm"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "Why did Ethan worry about monitoring equipment?",
+        "options": [
+          "It was too colorful",
+          "It would be hidden",
+          "It made the water warmer",
+          "Wealthier growers might gain an advantage"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "Whose experiences had been overlooked?",
+        "options": [
+          "Seasonal workers",
+          "Only tourists",
+          "Artists",
+          "Ferry passengers"
+        ],
+        "answer": 0
+      },
+      {
+        "q": "Why did Mariam resist generalizing the drip-irrigation test?",
+        "options": [
+          "The fruit was not ripe",
+          "Different conditions could change outcomes",
+          "There was no water",
+          "The equipment was stolen"
+        ],
+        "answer": 1
+      },
+      {
+        "q": "What did the agreement provide for disputes?",
+        "options": [
+          "A fixed penalty",
+          "A social media vote",
+          "Independent arbitration",
+          "A private restaurant"
+        ],
+        "answer": 2
+      },
+      {
+        "q": "What helped restore credibility after an error?",
+        "options": [
+          "Hiding figures",
+          "Replacing the committee",
+          "Canceling all meetings",
+          "Publishing and correcting the mistake"
+        ],
+        "answer": 3
+      },
+      {
+        "q": "What was the deeper achievement?",
+        "options": [
+          "A culture of shared deliberation",
+          "Water scarcity disappearing",
+          "Every orchard becoming identical",
+          "No further disagreements"
+        ],
+        "answer": 0
+      }
+    ]
+  }
+}
