@@ -953,8 +953,12 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 5),
                   child: Text(
-                    ar ? 'تمييز الجملة أثناء الاستماع · اضغط عليها لإعادتها'
-                        : 'Follow the highlighted sentence · Tap to replay',
+                    episode.isPlayable
+                        ? (ar ? 'يُبرز السطر عند سماعه · اضغط عليه لإعادته'
+                            : 'Follow the highlighted line · Tap to replay')
+                        : (ar
+                            ? 'اقرأ النص مع تشغيل التسجيل الأصلي. مزامنة السطور قيد التحقق.'
+                            : 'Read along with the authentic recording. Line timing is under review.'),
                     style: TextStyle(color: scheme.onSurfaceVariant,
                       fontSize: 11)),
                 ),
