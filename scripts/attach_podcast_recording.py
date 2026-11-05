@@ -60,6 +60,8 @@ def checked_episode(episode: dict, cues: list, length: int, url: str) -> dict:
     if cues[0]["start_ms"] > 5000 or length - previous_end > 10000:
         raise ValueError("Cue sheet does not cover the recorded conversation")
     episode["status"] = "published"
+    episode["recording_kind"] = "human"
+    episode["voice_rights_verified"] = True
     episode["duration_ms"] = length
     episode["audio_url"] = url
     return episode
