@@ -116,11 +116,14 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
                               : episodes[i].title,
                           style: const TextStyle(fontWeight: FontWeight.w700)),
                         subtitle: Text(
-                          episodes[i].hasTranscript
-                              ? (ar ? 'النص جاهز · الصوت قيد التسجيل'
-                                  : 'Transcript ready · Audio in production')
-                              : (ar ? 'مخططة · لم تُسجل بعد'
-                                  : 'Planned · Not yet recorded'),
+                          episodes[i].status == 'published'
+                              ? (ar ? 'استمع واقرأ النص مع الصوت'
+                                  : 'Listen and read with the audio')
+                              : episodes[i].hasTranscript
+                                  ? (ar ? 'النص جاهز · الصوت قيد التسجيل'
+                                      : 'Transcript ready · Audio in production')
+                                  : (ar ? 'مخططة · لم تُسجل بعد'
+                                      : 'Planned · Not yet recorded'),
                           style: TextStyle(
                               fontSize: 12, color: scheme.onSurfaceVariant),
                         ),
