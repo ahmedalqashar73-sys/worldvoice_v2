@@ -16,7 +16,8 @@
       "title": "The Saturday Garden",
       "title_ar": "حديقة يوم السبت",
       "format": "textbook",
-      "asset": "assets/stories/en/A1/en-a1-001.json"
+      "asset": "assets/stories/en/A1/en-a1-001.json",
+      "cover_image": "assets/stories/en/A1/illustrations/textbook_01.svg"
     },
     {
       "id": "en-a1-002",
@@ -25,7 +26,8 @@
       "title": "The Red Bicycle",
       "title_ar": "الدراجة الحمراء",
       "format": "textbook",
-      "asset": "assets/stories/en/A1/en-a1-002.json"
+      "asset": "assets/stories/en/A1/en-a1-002.json",
+      "cover_image": "assets/stories/en/A1/illustrations/en-a1-002_scene_01.svg"
     },
     {
       "id": "en-a1-003",
@@ -34,7 +36,8 @@
       "title": "The Rainy Picnic",
       "title_ar": "النزهة الممطرة",
       "format": "textbook",
-      "asset": "assets/stories/en/A1/en-a1-003.json"
+      "asset": "assets/stories/en/A1/en-a1-003.json",
+      "cover_image": "assets/stories/en/A1/illustrations/en-a1-003_scene_01.svg"
     },
     {
       "id": "en-a1-004",
@@ -43,7 +46,8 @@
       "title": "The Market List",
       "title_ar": "قائمة السوق",
       "format": "textbook",
-      "asset": "assets/stories/en/A1/en-a1-004.json"
+      "asset": "assets/stories/en/A1/en-a1-004.json",
+      "cover_image": "assets/stories/en/A1/illustrations/en-a1-004_scene_01.svg"
     },
     {
       "id": "en-a1-005",
@@ -52,7 +56,8 @@
       "title": "The Little Music Show",
       "title_ar": "الحفل الموسيقي الصغير",
       "format": "textbook",
-      "asset": "assets/stories/en/A1/en-a1-005.json"
+      "asset": "assets/stories/en/A1/en-a1-005.json",
+      "cover_image": "assets/stories/en/A1/illustrations/en-a1-005_scene_01.svg"
     }
   ]
 }
