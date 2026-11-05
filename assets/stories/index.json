@@ -258,6 +258,56 @@
       "format": "textbook",
       "asset": "assets/stories/en/C1/en-c1-005.json",
       "cover_image": "assets/stories/en/C1/illustrations/en-c1-005_scene_01.svg"
+    },
+    {
+      "id": "en-c2-001",
+      "language": "en",
+      "level": "C2",
+      "title": "The Code That Remembered Too Much",
+      "title_ar": "الشفرة التي تذكرت أكثر مما ينبغي",
+      "format": "textbook",
+      "asset": "assets/stories/en/C2/en-c2-001.json",
+      "cover_image": "assets/stories/en/C2/illustrations/en-c2-001_scene_01.svg"
+    },
+    {
+      "id": "en-c2-002",
+      "language": "en",
+      "level": "C2",
+      "title": "The Hill That Moved Overnight",
+      "title_ar": "التل الذي تحرك ليلًا",
+      "format": "textbook",
+      "asset": "assets/stories/en/C2/en-c2-002.json",
+      "cover_image": "assets/stories/en/C2/illustrations/en-c2-002_scene_01.svg"
+    },
+    {
+      "id": "en-c2-003",
+      "language": "en",
+      "level": "C2",
+      "title": "The Translator Who Chose to Ask",
+      "title_ar": "المترجمة التي اختارت أن تسأل",
+      "format": "textbook",
+      "asset": "assets/stories/en/C2/en-c2-003.json",
+      "cover_image": "assets/stories/en/C2/illustrations/en-c2-003_scene_01.svg"
+    },
+    {
+      "id": "en-c2-004",
+      "language": "en",
+      "level": "C2",
+      "title": "The Signal After Midnight",
+      "title_ar": "الإشارة بعد منتصف الليل",
+      "format": "textbook",
+      "asset": "assets/stories/en/C2/en-c2-004.json",
+      "cover_image": "assets/stories/en/C2/illustrations/en-c2-004_scene_01.svg"
+    },
+    {
+      "id": "en-c2-005",
+      "language": "en",
+      "level": "C2",
+      "title": "The Concert That Changed Its Shape",
+      "title_ar": "الحفل الذي غيّر شكله",
+      "format": "textbook",
+      "asset": "assets/stories/en/C2/en-c2-005.json",
+      "cover_image": "assets/stories/en/C2/illustrations/en-c2-005_scene_01.svg"
     }
   ]
 }
