@@ -1,0 +1,227 @@
+{
+  "schema": 1,
+  "id": "en-a1-voa-004",
+  "language": "en",
+  "level": "A1",
+  "title": "What Is It?",
+  "title_ar": "ما هذا؟",
+  "hosts": [
+    "Anna",
+    "Pete"
+  ],
+  "other_speakers": [
+    "Marsha"
+  ],
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "source": "VOA Learning English",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-4/3168920.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 4. Official human conversation audio and matching dialogue. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2016/02/26/af0324f6-67c5-4c0c-ab42-abb0cd33817c_hq.mp3?download=1",
+  "duration_ms": 89000,
+  "sync_status": "unverified",
+  "dialogue": [
+    {
+      "speaker": "Anna",
+      "text": "Pete, hi! Hi, we are here!",
+      "translation_ar": "بيت، مرحبًا! نحن هنا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Hi, Anna! Hi, Marsha!",
+      "translation_ar": "أهلًا يا آنا! أهلًا يا مارشا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Hi!",
+      "translation_ar": "مرحبًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "How are you two?",
+      "translation_ar": "كيف حالكما؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "I am great!",
+      "translation_ar": "أنا بخير جدًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "You know, Pete, I am new to D.C. The city is big.",
+      "translation_ar": "تعرف يا بيت، أنا جديدة في واشنطن. المدينة كبيرة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Yeah. But you learn a little more every day. How's the new apartment?",
+      "translation_ar": "نعم، لكنك تتعلمين المزيد كل يوم. كيف حال الشقة الجديدة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "The new apartment is great! Let's get coffee!",
+      "translation_ar": "الشقة الجديدة رائعة! لنتناول القهوة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "Anna, do you have a pen?",
+      "translation_ar": "آنا، هل لديك قلم؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Yes. I have a pen in my bag.",
+      "translation_ar": "نعم، لدي قلم في حقيبتي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I have a …",
+      "translation_ar": "لدي...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "It is not a pen. It is a book. It is a big book.",
+      "translation_ar": "هذا ليس قلمًا، بل كتاب كبير.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Yes. Yes it is, Pete. I know I have a pen, though…",
+      "translation_ar": "نعم يا بيت، أعرف ذلك. لكنني أعلم أن لدي قلمًا...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I have a ....",
+      "translation_ar": "لدي...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "It is not a pen, Anna ... a toy?",
+      "translation_ar": "هذا ليس قلمًا يا آنا... أهي لعبة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I have a ....",
+      "translation_ar": "لدي...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "And it is a pillow!",
+      "translation_ar": "إنها وسادة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Pete, Marsha, I know I have a pen.",
+      "translation_ar": "يا بيت ومارشا، أعلم أن لدي قلمًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "Anna, it is a map.",
+      "translation_ar": "يا آنا، إنها خريطة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Why do you have a map of the world?",
+      "translation_ar": "لماذا تحملين خريطة للعالم؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Pete, Marsha. Now I know I have a pen.",
+      "translation_ar": "يا بيت ومارشا، الآن أعرف أن لدي قلمًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "And now you have a lamp.",
+      "translation_ar": "والآن لديك مصباح أيضًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Marsha",
+      "text": "Anna.",
+      "translation_ar": "آنا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I have a pen! Let’s get coffee!",
+      "translation_ar": "وجدت قلمًا! هيا نشرب القهوة!",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "pen",
+      "meaning_ar": "قلم"
+    },
+    {
+      "word": "book",
+      "meaning_ar": "كتاب"
+    },
+    {
+      "word": "map",
+      "meaning_ar": "خريطة"
+    },
+    {
+      "word": "pillow",
+      "meaning_ar": "وسادة"
+    },
+    {
+      "word": "lamp",
+      "meaning_ar": "مصباح"
+    }
+  ],
+  "questions": [
+    {
+      "question": "What is Anna looking for?",
+      "options": [
+        "A pen",
+        "A lamp",
+        "A map"
+      ],
+      "answer": 0
+    }
+  ]
+}
