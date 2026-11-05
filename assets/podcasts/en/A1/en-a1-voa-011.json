@@ -3,19 +3,21 @@
   "id": "en-a1-voa-011",
   "language": "en",
   "level": "A1",
-  "title": "This Is My Neighborhood",
-  "title_ar": "هذا حيي",
+  "title": "This Is My Neighborhood — VOA Lesson 11",
+  "title_ar": "هذا حيي — درس VOA 11",
   "hosts": [
     "Anna",
     "Marsha"
   ],
-  "other_speakers": [],
+  "other_speakers": [
+    "Marsha and Anna"
+  ],
   "status": "published_audio",
   "recording_kind": "human",
   "voice_rights_verified": true,
   "source": "VOA Learning English",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-11-this-is-my-neighborhood/3293986.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 11. Official human conversation audio and corresponding dialogue. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 11. Original VOA conversation audio and dialogue. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2016/04/20/de238e35-97b9-4c21-81e3-e3c26fbeccaa_hq.mp3?download=1",
   "duration_ms": 110000,
   "sync_status": "unverified",
@@ -23,14 +25,14 @@
     {
       "speaker": "Anna",
       "text": "Hello! DC is a city for walking. In our neighborhood, I can do all my errands. Marsha, before we get ice cream, I need to return three books to the library. Where is the library?",
-      "translation_ar": "مرحبًا! واشنطن مدينة مناسبة للمشي. أستطيع إنجاز مهامي في حينا. مارشا، قبل أن نتناول المثلجات أحتاج إلى إعادة ثلاثة كتب إلى المكتبة. أين المكتبة؟",
+      "translation_ar": "مرحبًا! واشنطن مدينة مناسبة للمشي. يمكنني إنجاز كل مشاويري في حيّنا. مارشا، قبل أن نشتري المثلجات يجب أن أعيد ثلاثة كتب للمكتبة. أين هي؟",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Marsha",
       "text": "It is on this street on the corner.",
-      "translation_ar": "إنها في زاوية هذا الشارع.",
+      "translation_ar": "تقع في هذا الشارع عند الزاوية.",
       "start_ms": null,
       "end_ms": null
     },
@@ -58,14 +60,14 @@
     {
       "speaker": "Marsha",
       "text": "Anna, what are those in the books?",
-      "translation_ar": "آنا، ما تلك الأشياء في الكتب؟",
+      "translation_ar": "آنا، ما هذه الأشياء داخل الكتب؟",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Marsha, these are letters to my family and friends back home … four letters! Is there a post office near here?",
-      "translation_ar": "مارشا، هذه رسائل إلى عائلتي وأصدقائي في بلدي... أربع رسائل! هل يوجد مكتب بريد قريب؟",
+      "translation_ar": "مارشا، هذه رسائل إلى عائلتي وأصدقائي في بلدتي... أربع رسائل! هل يوجد مكتب بريد قريب؟",
       "start_ms": null,
       "end_ms": null
     },
@@ -79,7 +81,7 @@
     {
       "speaker": "Anna",
       "text": "Awesome! Let’s go!",
-      "translation_ar": "رائع، هيا بنا!",
+      "translation_ar": "رائع! لنذهب!",
       "start_ms": null,
       "end_ms": null
     },
@@ -107,21 +109,21 @@
     {
       "speaker": "Marsha",
       "text": "There is a bank behind you.",
-      "translation_ar": "هناك بنك خلفك.",
+      "translation_ar": "يوجد بنك خلفك.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Thanks, Marsha. You know our neighborhood so well.",
-      "translation_ar": "شكرًا يا مارشا. أنت تعرفين حينا جيدًا.",
+      "translation_ar": "شكرًا يا مارشا. أنت تعرفين حيّنا جيدًا.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Now I have cash. I can buy stamps.",
-      "translation_ar": "الآن معي نقود. أستطيع شراء الطوابع.",
+      "translation_ar": "الآن معي نقود ويمكنني شراء الطوابع.",
       "start_ms": null,
       "end_ms": null
     },
@@ -142,28 +144,28 @@
     {
       "speaker": "Anna",
       "text": "I have stamps.",
-      "translation_ar": "لدي طوابع.",
+      "translation_ar": "معي الطوابع.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Marsha",
       "text": "Wow, you’re fast.",
-      "translation_ar": "واو، أنت سريعة.",
+      "translation_ar": "واو، أنت سريعة!",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Thank you, thank you letters, for sending my words… my love … to my family and friends -",
-      "translation_ar": "شكرًا أيتها الرسائل لنقلك كلماتي ومحبتي إلى عائلتي وأصدقائي...",
+      "translation_ar": "شكرًا لك أيتها الرسائل، لأنك تحملين كلماتي... وحبي... إلى عائلتي وأصدقائي...",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Marsha",
       "text": "Do you have more cash?",
-      "translation_ar": "هل معك مزيد من النقود؟",
+      "translation_ar": "هل بقي معك مال؟",
       "start_ms": null,
       "end_ms": null
     },
@@ -175,16 +177,9 @@
       "end_ms": null
     },
     {
-      "speaker": "Anna",
+      "speaker": "Marsha and Anna",
       "text": "Ice cream!!",
-      "translation_ar": "المثلجات!!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Marsha",
-      "text": "Ice cream!!",
-      "translation_ar": "المثلجات!!",
+      "translation_ar": "مثلجات!!",
       "start_ms": null,
       "end_ms": null
     },
@@ -198,7 +193,7 @@
     {
       "speaker": "Anna",
       "text": "Until next time!",
-      "translation_ar": "إلى اللقاء في المرة القادمة!",
+      "translation_ar": "إلى اللقاء!",
       "start_ms": null,
       "end_ms": null
     }
@@ -218,22 +213,8 @@
     },
     {
       "word": "stamps",
-      "meaning_ar": "طوابع بريدية"
-    },
-    {
-      "word": "cash",
-      "meaning_ar": "نقود"
+      "meaning_ar": "طوابع"
     }
   ],
-  "questions": [
-    {
-      "question": "What does Anna return to the library?",
-      "options": [
-        "Three books",
-        "Four letters",
-        "Two maps"
-      ],
-      "answer": 0
-    }
-  ]
+  "questions": []
 }
