@@ -142,6 +142,30 @@ void main() {
         findsOneWidget);
   });
 
+  testWidgets('English A2 displays Arabic under original dialogue by default',
+      (tester) async {
+    const entry = AcademyPodcastEntry(
+      id: 'en-a2-static-review', level: 'A2',
+      title: 'VOA bilingual reader', status: 'script_ready',
+      asset: 'assets/podcasts/en/A2/en-a2-voa-001.json',
+    );
+    await tester.pumpWidget(const MaterialApp(
+      home: PodcastReaderScreen(
+        entry: entry, repository: _StaticA2TranscriptRepository(),
+      ),
+    ));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 200));
+    expect(find.text('Everyone has a skill. You need to find yours.'),
+        findsOneWidget);
+    expect(find.text('كل شخص لديه مهارة، وعليك أن تكتشف مهارتك.'),
+        findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('podcast-translation-toggle')));
+    await tester.pump();
+    expect(find.text('كل شخص لديه مهارة، وعليك أن تكتشف مهارتك.'),
+        findsNothing);
+  });
+
   testWidgets('dark-mode conversation text stays readable on its surface',
       (tester) async {
     const entry = AcademyPodcastEntry(
@@ -201,6 +225,26 @@ class _StaticTranscriptRepository extends AcademyPodcastRepository {
       const AcademyPodcastEpisode(
         id: 'en-a1-static-review', level: 'A1',
         title: 'Reader contrast test', titleAr: 'اختبار قراءة النص',
+        status: 'script_ready',
+        dialogue: [
+          PodcastDialogueLine(
+            speaker: 'Anna',
+            text: 'Everyone has a skill. You need to find yours.',
+            translationAr: 'كل شخص لديه مهارة، وعليك أن تكتشف مهارتك.',
+          ),
+        ],
+        vocabulary: [], questions: [],
+      );
+}
+
+class _StaticA2TranscriptRepository extends AcademyPodcastRepository {
+  const _StaticA2TranscriptRepository();
+
+  @override
+  Future<AcademyPodcastEpisode> load(AcademyPodcastEntry entry) async =>
+      const AcademyPodcastEpisode(
+        id: 'en-a2-static-review', level: 'A2',
+        title: 'VOA bilingual reader', titleAr: 'قارئ ثنائي اللغة',
         status: 'script_ready',
         dialogue: [
           PodcastDialogueLine(

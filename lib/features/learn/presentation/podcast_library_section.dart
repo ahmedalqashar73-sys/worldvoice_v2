@@ -647,6 +647,10 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
       if (!mounted) return;
       setState(() {
         _episode = loaded;
+        // A2 VOA originals are bilingual: show the matching Arabic text
+        // immediately, while preserving the reader's manual toggle.
+        // Never infer audio cue timings when sync_status is unverified.
+        _showArabic = loaded.language == 'en' && loaded.level == 'A2';
         _anchors = List<GlobalKey>.generate(
             loaded.dialogue.length, (_) => GlobalKey());
       });
