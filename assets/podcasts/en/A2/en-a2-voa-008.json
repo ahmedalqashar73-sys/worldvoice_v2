@@ -21,7 +21,14 @@
     "Kelly"
   ],
   "other_speakers": [
-    "Professor Bot"
+    "Professor Bot",
+    "Chef 1",
+    "Chef 2",
+    "Person 1",
+    "Person 2",
+    "Person 3",
+    "Person 4",
+    "Person 5"
   ],
   "dialogue": [
     {
@@ -68,22 +75,29 @@
     },
     {
       "speaker": "Anna",
-      "text": "Today, a Barbecue Battle is being held in Washington, D.C. This festival, which is known as one of the biggest food festivals in the United States, brings together barbecue lovers from all over the country! Barbecue is meat that is cooked over an open fire or on a grill. Chicken, pork and beef are all common meats to grill on a barbecue! No matter which meat you like to barbecue, the sauce is very important. Sauces are taken very seriously by chefs. Most ingredients are kept secret! So, can you tell us what is in your barbecue sauce? Chef 1: No, I can’t tell you.",
-      "translation_ar": "اليوم، معركة (باربيكو) في (واشنطن) العاصمة هذا المهرجان، الذي يعرف بأكبر مهرجانات غذائية في الولايات المتحدة، يجمع بين عشاق الشواء من جميع أنحاء البلاد! الشواء هو اللحم الذي يطهو على النار المفتوحة أو على الشواء. الدجاج، لحم الخنزير و لحم البقر كلّهم لحوم شائعة لشرب الشواء مهما كانت اللحوم التي تحب شواء الصلصة مهمة جداً الصلصة تأخذ على محمل الجد من قبل الطهاة. معظم المكونات سرية لذا، هل يمكنك أن تخبرنا ما هو في صلصة الشواء الخاصة بك؟ Chef 1: No, I can’t tell you.",
+      "text": "Today, a Barbecue Battle is being held in Washington, D.C. This festival, which is known as one of the biggest food festivals in the United States, brings together barbecue lovers from all over the country! Barbecue is meat that is cooked over an open fire or on a grill. Chicken, pork and beef are all common meats to grill on a barbecue! No matter which meat you like to barbecue, the sauce is very important. Sauces are taken very seriously by chefs. Most ingredients are kept secret! So, can you tell us what is in your barbecue sauce?",
+      "translation_ar": "اليوم، معركة \"باربيكو\" في \"واشنطن\" العاصمة هذا المهرجان، الذي يعرف بأكبر مهرجانات غذائية في الولايات المتحدة، يجمع بين عشاق الشواء من جميع أنحاء البلاد! الشواء هو اللحم الذي يطهو على النار المفتوحة أو على الشواء. الدجاج، لحم الخنزير و لحم البقر كلّهم لحوم شائعة لشرب الشواء مهما كانت اللحوم التي تحب شواء الصلصة مهمة جداً الصلصة تأخذ على محمل الجد من قبل الطهاة. معظم المكونات سرية إذاً، هل يمكنك أن تخبرنا ماذا يوجد في صلصة الشواء؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Chef 1",
+      "text": "No, I can’t tell you.",
+      "translation_ar": "لا، لا أستطيع إخبارك.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
-      "text": "So, tell us, what is the secret ingredient in your barbecue sauce? Chef 2:",
-      "translation_ar": "إذاً، أخبرنا، ما المكون السري في صلصة الشواء؟ Chef 2:",
+      "text": "So, tell us, what is the secret ingredient in your barbecue sauce?",
+      "translation_ar": "إذاً، أخبرنا، ما المكون السري في صلصة الشواء؟",
       "start_ms": null,
       "end_ms": null
     },
     {
-      "speaker": "Anna",
-      "text": "Sauces are made by the barbecue chefs themselves. Most sauces are made with a tomato sauce, vinegar, and spices.",
-      "translation_ar": "يصنع الطهاة صلصاتهم بأنفسهم، ومعظمها يتكون من الطماطم والخل والتوابل.",
+      "speaker": "Chef 2",
+      "text": "Anna: Sauces are made by the barbecue chefs themselves. Most sauces are made with a tomato sauce, vinegar, and spices.",
+      "translation_ar": "الصلصة مصنوعة من قبل طهاة الشواء أنفسهم معظم الصلصات مصنوعة بصلصة الطماطم و النمر والتوابل",
       "start_ms": null,
       "end_ms": null
     },
@@ -96,8 +110,99 @@
     },
     {
       "speaker": "Anna",
-      "text": "There are some areas of the U.S. that are known for their tasty barbecue. The states of Texas, North and South Carolina and the cities of Memphis and Kansas City are known as the Barbecue Belt. People who are loyal to barbecue are really loyal to their favorite barbecue. That is why this festival is called a battle! Let’s ask a couple of people which barbecue is best. Person 1: Texas, of course! Person 2: Carolina barbecue is the very best. Person 3: Kansas City! Person 4: Memphis style! Person 3: Kansas City! Person 5: Texas! Person 3: Kansas! Person 5: Texas! Person 3: Kansas! Person 5: Texas! Person 3: I say Kansas. Person 5: Texas! Person 3: She keeps saying Texas, I say Kansas.",
-      "translation_ar": "هناك بعض المناطق في الولايات المتحدة معروفة بحفل شواء لذيذ The states of Texas, North and South Carolina and the cities of Memphis and Kansas City are known as the Barbecue Belt. الناس المخلصون للشواء مخلصون جداً لحفلهم المفضل لهذا السبب هذا المهرجان يسمى معركة دعونا نسأل اثنين من الأشخاص الذين يفضلون الشواء. الشخص 1: تكساس، بالطبع! شواء (كارولينا) هو الأفضل (كانساس سيتي)، (كانساس)، (تكساس) \"الشخص الثالث، أقول \"كانساس (الشخص الثالث) تقول (تكساس) وأنا أقول (كانساس)",
+      "text": "There are some areas of the U.S. that are known for their tasty barbecue. The states of Texas, North and South Carolina and the cities of Memphis and Kansas City are known as the Barbecue Belt. People who are loyal to barbecue are really loyal to their favorite barbecue. That is why this festival is called a battle! Let’s ask a couple of people which barbecue is best.",
+      "translation_ar": "هناك بعض المناطق في الولايات المتحدة معروفة بحفل شواء لذيذ The states of Texas, North and South Carolina and the cities of Memphis and Kansas City are known as the Barbecue Belt. الناس المخلصون للشواء مخلصون جداً لحفل شواءهم المفضل لهذا السبب هذا المهرجان يسمى معركة دعونا نسأل اثنين من الأشخاص الذين يفضلون الشواء.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Person 1",
+      "text": "Texas, of course!",
+      "translation_ar": "(تكساس) بالطبع",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Person 2",
+      "text": "Carolina barbecue is the very best.",
+      "translation_ar": "شواء (كارولينا) هو الأفضل",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Person 3",
+      "text": "Kansas City!",
+      "translation_ar": "مدينة كانساس!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Person 4",
+      "text": "Memphis style!",
+      "translation_ar": "أسلوب ممفيس!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Person 3",
+      "text": "Kansas City!",
+      "translation_ar": "مدينة كانساس!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Person 5",
+      "text": "Texas!",
+      "translation_ar": "(تكساس)!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Person 3",
+      "text": "Kansas!",
+      "translation_ar": "(كانساس)!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Person 5",
+      "text": "Texas!",
+      "translation_ar": "(تكساس)!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Person 3",
+      "text": "Kansas!",
+      "translation_ar": "(كانساس)!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Person 5",
+      "text": "Texas!",
+      "translation_ar": "(تكساس)!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Person 3",
+      "text": "I say Kansas.",
+      "translation_ar": "أنا أقول كانساس.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Person 5",
+      "text": "Texas!",
+      "translation_ar": "(تكساس)!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Person 3",
+      "text": "She keeps saying Texas, I say Kansas.",
+      "translation_ar": "إنها تستمر بقول \"تكساس\" أنا أقول \"كانساس\"",
       "start_ms": null,
       "end_ms": null
     },
@@ -142,5 +247,6 @@
   ],
   "questions": [],
   "translation_status": "machine_draft",
-  "translation_engine": "argos-en-ar"
+  "translation_engine": "argos-en-ar",
+  "source_parser_revision": 2
 }

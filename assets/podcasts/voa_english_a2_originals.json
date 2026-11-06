@@ -124,7 +124,8 @@
       "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-008",
       "recording_format": "original_video_mp4",
-      "translation_status": "machine_draft"
+      "translation_status": "machine_draft",
+      "source_parser_revision": 2
     },
     {
       "id": "en-a2-voa-009",
@@ -295,7 +296,8 @@
       "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-019",
       "recording_format": "original_mp3",
-      "translation_status": "machine_draft"
+      "translation_status": "machine_draft",
+      "source_parser_revision": 2
     },
     {
       "id": "en-a2-voa-020",
@@ -312,7 +314,8 @@
       "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-020",
       "recording_format": "original_mp3",
-      "translation_status": "machine_draft"
+      "translation_status": "machine_draft",
+      "source_parser_revision": 2
     },
     {
       "id": "en-a2-voa-021",
@@ -329,7 +332,8 @@
       "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-021",
       "recording_format": "original_mp3",
-      "translation_status": "machine_draft"
+      "translation_status": "machine_draft",
+      "source_parser_revision": 2
     },
     {
       "id": "en-a2-voa-022",
@@ -346,7 +350,8 @@
       "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-022",
       "recording_format": "original_mp3",
-      "translation_status": "machine_draft"
+      "translation_status": "machine_draft",
+      "source_parser_revision": 2
     },
     {
       "id": "en-a2-voa-023",
@@ -363,7 +368,8 @@
       "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-023",
       "recording_format": "original_mp3",
-      "translation_status": "machine_draft"
+      "translation_status": "machine_draft",
+      "source_parser_revision": 2
     },
     {
       "id": "en-a2-voa-024",
@@ -380,7 +386,8 @@
       "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-024",
       "recording_format": "original_mp3",
-      "translation_status": "machine_draft"
+      "translation_status": "machine_draft",
+      "source_parser_revision": 2
     },
     {
       "id": "en-a2-voa-025",
@@ -397,7 +404,8 @@
       "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-025",
       "recording_format": "original_mp3",
-      "translation_status": "machine_draft"
+      "translation_status": "machine_draft",
+      "source_parser_revision": 2
     },
     {
       "id": "en-a2-voa-026",
@@ -414,7 +422,8 @@
       "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-026",
       "recording_format": "original_mp3",
-      "translation_status": "machine_draft"
+      "translation_status": "machine_draft",
+      "source_parser_revision": 2
     },
     {
       "id": "en-a2-voa-027",
@@ -431,7 +440,8 @@
       "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-027",
       "recording_format": "original_mp3",
-      "translation_status": "machine_draft"
+      "translation_status": "machine_draft",
+      "source_parser_revision": 2
     },
     {
       "id": "en-a2-voa-028",
@@ -448,7 +458,8 @@
       "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-028",
       "recording_format": "original_mp3",
-      "translation_status": "machine_draft"
+      "translation_status": "machine_draft",
+      "source_parser_revision": 2
     },
     {
       "id": "en-a2-voa-029",
@@ -465,7 +476,8 @@
       "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-029",
       "recording_format": "original_mp3",
-      "translation_status": "machine_draft"
+      "translation_status": "machine_draft",
+      "source_parser_revision": 2
     },
     {
       "id": "en-a2-voa-030",
@@ -482,7 +494,8 @@
       "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-030",
       "recording_format": "original_mp3",
-      "translation_status": "machine_draft"
+      "translation_status": "machine_draft",
+      "source_parser_revision": 2
     }
   ]
 }

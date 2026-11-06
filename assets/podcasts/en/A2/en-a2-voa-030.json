@@ -137,8 +137,15 @@
     },
     {
       "speaker": "Anna",
-      "text": "Whew. Thank goodness ! For a minute, my whole life passed before my eyes . There are so many things I haven't done yet. Nurse Well, life is short. It’s important to do something you love every day.",
-      "translation_ar": "يا للعجب الحمد لله! لمدة دقيقة، حياتي كلها مرت أمام عيني. هناك الكثير من الأشياء التي لم أفعلها بعد أيتها الممرضة حسناً الحياة قصيرة ومن المهم أن تفعل شيئا تحبه كل يوم.",
+      "text": "Whew. Thank goodness ! For a minute, my whole life passed before my eyes . There are so many things I haven't done yet.",
+      "translation_ar": "يا للعجب الحمد لله! لمدة دقيقة، حياتي كلها مرت أمام عيني. هناك الكثير من الأشياء التي لم أفعلها بعد",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Nurse",
+      "text": "Well, life is short. It’s important to do something you love every day.",
+      "translation_ar": "الحياة قصيرة ومن المهم أن تفعل شيئا تحبه كل يوم.",
       "start_ms": null,
       "end_ms": null
     },
@@ -270,8 +277,15 @@
     },
     {
       "speaker": "Anna",
-      "text": "Pete -- not that kind of dream. I mean your hopes for the future. Pete Oh. I plan on selling my book to Hollywood and becoming rich and famous.",
-      "translation_ar": "بيت ليس هذا النوع من الحلم أعني آمالك في المستقبل بيت أوه. أخطط لبيع كتابي إلى (هوليوود) وأصبح غنياً و مشهوراً",
+      "text": "Pete -- not that kind of dream. I mean your hopes for the future.",
+      "translation_ar": "بيت ليس هذا النوع من الحلم أعني آمالك في المستقبل",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Oh. I plan on selling my book to Hollywood and becoming rich and famous.",
+      "translation_ar": "أوه. أخطط لبيع كتابي إلى هوليوود و أن أصبح غنياً و مشهوراً",
       "start_ms": null,
       "end_ms": null
     },
@@ -372,5 +386,6 @@
   ],
   "questions": [],
   "translation_status": "machine_draft",
-  "translation_engine": "argos-en-ar"
+  "translation_engine": "argos-en-ar",
+  "source_parser_revision": 2
 }
