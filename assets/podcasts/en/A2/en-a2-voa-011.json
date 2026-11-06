@@ -3,31 +3,29 @@
   "id": "en-a2-voa-011",
   "language": "en",
   "level": "A2",
-  "title": "The Big Snow",
-  "title_ar": "الثلوج الكثيفة",
-  "voa_lesson_number": 11,
-  "status": "published_audio",
-  "recording_kind": "human",
-  "voice_rights_verified": true,
-  "sync_status": "unverified",
-  "transcript_scope": "full",
-  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-11-the-big-snow/4102755.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 2 Lesson 11. Full original public-domain human dialogue and WorldVoice Arabic translation. Audio is real; exact sentence timing is unverified. WorldVoice is not affiliated with VOA.",
-  "audio_url": "https://voa-audio.voanews.eu/vle/2017/11/21/0117495a-4165-48c3-8972-61491413ad7a_hq.mp3?download=1",
-  "duration_ms": 267000,
+  "title": "The Big Snow — VOA Level 2 Lesson 11",
+  "title_ar": "الثلوج الكثيفة — درس VOA 11",
   "hosts": [
     "Kelly",
     "Anna"
   ],
-  "other_speakers": [
-    "Professor Bot",
-    "Pete"
-  ],
+  "other_speakers": [],
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "source": "VOA Learning English",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-11-the-big-snow/4102755.html",
+  "source_credit": "Original VOA Learning English Level 2 Lesson 11. WorldVoice presents selected excerpts with Arabic learning translations, not the complete original transcript. Full conversation appears on the linked VOA lesson page; WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2017/11/21/0117495a-4165-48c3-8972-61491413ad7a_hq.mp3?download=1",
+  "backup_audio_url": "https://voa-audio.voanews.eu/vle/2017/11/21/0117495a-4165-48c3-8972-61491413ad7a.mp3?download=1",
+  "duration_ms": 267000,
+  "sync_status": "unverified",
+  "transcript_scope": "excerpt",
   "dialogue": [
     {
       "speaker": "Kelly",
       "text": "Hi, Anna. Why do you have all this weather stuff?",
-      "translation_ar": "مرحبًا يا آنا، لماذا لديك كل هذه المعدات المتعلقة بالطقس؟",
+      "translation_ar": "مرحبًا يا آنا. لماذا تحملين كل هذه الأدوات المتعلقة بالطقس؟",
       "start_ms": null,
       "end_ms": null
     },
@@ -44,342 +42,6 @@
       "translation_ar": "وأنا أيضًا! الطقس مهم جدًا.",
       "start_ms": null,
       "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "It is. It affects people’s lives!",
-      "translation_ar": "نعم، فهو يؤثر في حياة الناس!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Kelly",
-      "text": "Have you ever reported on a big weather event?",
-      "translation_ar": "هل سبق أن أعددت تقريرًا عن حدث جوي كبير؟",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "I have. I’ve reported on a blizzard.",
-      "translation_ar": "نعم. أعددت تقريرًا عن عاصفة ثلجية.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Kelly",
-      "text": "Do mean the one last weekend?",
-      "translation_ar": "هل تقصدين عاصفة نهاية الأسبوع الماضي؟",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "Yes! I had been waiting for that blizzard for years. When it came, I was ready.",
-      "translation_ar": "نعم! كنت أنتظر تلك العاصفة منذ سنوات، وعندما جاءت كنت مستعدة!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Professor Bot",
-      "text": "Welcome to our most perfect lesson! Why is it perfect? Today we are reviewing the present perfect and past perfect verb tenses. These show that an action is completed. Kelly uses the present perfect when she says,",
-      "translation_ar": "أهلًا بكم في أكثر دروسنا كمالًا! لماذا؟ لأننا نراجع اليوم زمني المضارع التام والماضي التام، وهما يدلان على اكتمال حدث. تستعمل كيلي المضارع التام عندما تقول:",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Kelly",
-      "text": "Have you ever reported on a big weather event?",
-      "translation_ar": "هل سبق أن أعددت تقريرًا عن حدث جوي كبير؟",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Professor Bot",
-      "text": "Anna uses the past perfect when she says,",
-      "translation_ar": "وتستعمل آنا الماضي التام عندما تقول:",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "I had been waiting for that blizzard for years.",
-      "translation_ar": "كنت أنتظر تلك العاصفة الثلجية منذ سنوات.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Professor Bot",
-      "text": "Listen for \"have\" or \"had\" and the past participle to find more sentences with the perfect tense. I'll color those words to help you.",
-      "translation_ar": "استمع إلى كلمتي «have» و«had» مع التصريف الثالث للفعل لتتعرف إلى مزيد من جمل الزمن التام. سألوّن هذه الكلمات لمساعدتك.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "I have wanted to report on a big weather event my whole life.",
-      "translation_ar": "طوال حياتي وأنا أريد إعداد تقرير عن حدث جوي كبير.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Kelly",
-      "text": "Who hasn’t? Did you report all weekend ... by yourself?",
-      "translation_ar": "ومن لا يريد ذلك؟ هل عملت على التقرير طوال نهاية الأسبوع... وحدك؟",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "No, no. I volunteered Pete to help me.",
-      "translation_ar": "لا، لا. تطوعت باسم بيت ليساعدني!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Pete",
-      "text": "Why am I here on a Saturday? Why are you carrying things? Why? Why?",
-      "translation_ar": "لماذا أنا هنا يوم السبت؟ ولماذا تحملين كل هذه الأشياء؟ لماذا؟",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "Pete, these are my supplies – food, a blanket; warm clothing. Where are your supplies?",
-      "translation_ar": "بيت، هذه مؤونتي: طعام وبطانية وملابس دافئة. أين مؤونتك؟",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "Pete, Pete, Pete. This could be the “blizzard of the century.”",
-      "translation_ar": "بيت، بيت! قد تكون هذه «عاصفة القرن الثلجية»!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Pete",
-      "text": "It’ll be fine.",
-      "translation_ar": "ستكون الأمور بخير.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Kelly",
-      "text": "How else had you prepared?",
-      "translation_ar": "وكيف استعددت أيضًا؟",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "Well, I had just bought the latest weather forecasting software. So, I brought it!",
-      "translation_ar": "كنت قد اشتريت للتو أحدث برنامج لتوقعات الطقس، فأحضرته معي!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Kelly",
-      "text": "Do you mean The Weather Genie Pro?",
-      "translation_ar": "هل تقصدين برنامج «ويذر جيني برو»؟",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "You know it. Pete thought it was pretty great too.",
-      "translation_ar": "أنت تعرفينه! وقد اعتقد بيت أنه رائع أيضًا.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Pete",
-      "text": "Do you have any games on that thing?",
-      "translation_ar": "هل توجد ألعاب على هذا الجهاز؟",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "Yes! I have the best weather survival game. Boom!",
-      "translation_ar": "نعم! لدي أفضل لعبة للنجاة من ظروف الطقس. بوم!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Pete",
-      "text": "Sounds fun.",
-      "translation_ar": "تبدو ممتعة.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "It is. But right now, Pete, this computer is a work tool. It will give us the temperature, wind speed, wind direction and amount of snowfall … in real time! Boom, boom!",
-      "translation_ar": "إنها ممتعة، لكن هذا الكمبيوتر الآن أداة للعمل. سيعطينا درجة الحرارة وسرعة الرياح واتجاهها وكمية تساقط الثلوج في الوقت الفعلي!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Pete",
-      "text": "I can’t wait.",
-      "translation_ar": "لا أطيق الانتظار.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "Pete, we need a name for this blizzard.",
-      "translation_ar": "بيت، نحتاج إلى اسم لهذه العاصفة الثلجية.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Pete",
-      "text": "No, we don’t.",
-      "translation_ar": "لا، لا نحتاج.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "All the great storms have names.",
-      "translation_ar": "كل العواصف الكبيرة لها أسماء.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Pete",
-      "text": "No, they don’t.",
-      "translation_ar": "لا، ليست كذلك.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "I know -- “The Big Snow!”",
-      "translation_ar": "عرفت! «الثلوج الكثيفة»!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Pete",
-      "text": "I am not saying “The Big Snow.”",
-      "translation_ar": "لن أقول «الثلوج الكثيفة».",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Pete",
-      "text": "Welcome to “The Big Snow.”",
-      "translation_ar": "مرحبًا بكم في «الثلوج الكثيفة».",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Kelly",
-      "text": "The Big Snow broke all kinds of records, didn’t it?",
-      "translation_ar": "حطمت «الثلوج الكثيفة» أرقامًا قياسية كثيرة، أليس كذلك؟",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "Yes it did. And every time a record was broken, we celebrated!",
-      "translation_ar": "نعم! وكلما تحطم رقم قياسي احتفلنا!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "So far, in Washington, D.C. 29 inches of snow has fallen. That, my dear listeners, is a record!",
-      "translation_ar": "حتى الآن تساقطت في واشنطن 29 بوصة من الثلوج، وهذا يا أعزائي المستمعين رقم قياسي!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "We just broke the wind speed record!",
-      "translation_ar": "لقد حطمنا للتو الرقم القياسي لسرعة الرياح!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "Snow has been falling for 30 hours straight! That’s another record!",
-      "translation_ar": "تساقط الثلج طوال ثلاثين ساعة متواصلة! رقم قياسي آخر!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Kelly",
-      "text": "By Saturday night, stores and restaurants had closed. Did you bring enough food?",
-      "translation_ar": "بحلول مساء السبت، كانت المتاجر والمطاعم قد أغلقت. هل أحضرت طعامًا كافيًا؟",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "I thought I had brought enough food. But I ran out.",
-      "translation_ar": "ظننت أنني أحضرت ما يكفي، لكن الطعام نفد.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "Hey, Pete, where is my bag of popcorn?",
-      "translation_ar": "بيت، أين كيس الفشار الخاص بي؟",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Pete",
-      "text": "Maybe you ate it already.",
-      "translation_ar": "ربما أكلته بالفعل.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "No, I didn’t.",
-      "translation_ar": "لا، لم أفعل.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Pete",
-      "text": "I haven't seen it.",
-      "translation_ar": "لم أره.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "We had reported together for 48 hours straight!",
-      "translation_ar": "أعددنا التقارير معًا طوال 48 ساعة متواصلة!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Kelly",
-      "text": "Wow. That must have been a great team-building exercise for you and Pete.",
-      "translation_ar": "واو! لا بد أنها كانت تجربة رائعة لتعزيز روح الفريق بينك وبين بيت.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "Yeah. You - you could say that.",
-      "translation_ar": "نعم... يمكنك قول ذلك!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Professor Bot",
-      "text": "I hope you found all the sentences with perfect tenses. Learn more on our website!",
-      "translation_ar": "آمل أنك وجدت جميع جمل الأزمنة التامة. تعلم المزيد على موقعنا!",
-      "start_ms": null,
-      "end_ms": null
     }
   ],
   "vocabulary": [
@@ -388,37 +50,17 @@
       "meaning_ar": "عاصفة ثلجية"
     },
     {
-      "word": "weather",
-      "meaning_ar": "طقس"
+      "word": "forecast",
+      "meaning_ar": "توقعات الطقس"
     },
     {
       "word": "report",
-      "meaning_ar": "يعد تقريرًا"
+      "meaning_ar": "تقرير"
     },
     {
-      "word": "important",
-      "meaning_ar": "مهم"
+      "word": "present perfect",
+      "meaning_ar": "المضارع التام"
     }
   ],
-  "questions": [
-    {
-      "question": "What does \"blizzard\" mean in Arabic?",
-      "options": [
-        "عاصفة ثلجية",
-        "طقس",
-        "يعد تقريرًا"
-      ],
-      "answer": 0
-    },
-    {
-      "question": "Which VOA character speaks first in this excerpt?",
-      "options": [
-        "Kelly",
-        "Anna",
-        "Nobody"
-      ],
-      "answer": 0
-    }
-  ],
-  "backup_audio_url": "https://voa-audio.voanews.eu/vle/2017/11/21/0117495a-4165-48c3-8972-61491413ad7a.mp3?download=1"
+  "questions": []
 }

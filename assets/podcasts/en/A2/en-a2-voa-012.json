@@ -3,303 +3,57 @@
   "id": "en-a2-voa-012",
   "language": "en",
   "level": "A2",
-  "title": "Run! Bees!",
-  "title_ar": "اركضوا! نحل!",
-  "voa_lesson_number": 12,
-  "status": "published_audio",
-  "recording_kind": "human",
-  "voice_rights_verified": true,
-  "sync_status": "unverified",
-  "transcript_scope": "full",
-  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-12-run-bees/4139015.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 2 Lesson 12. Full original public-domain human dialogue and WorldVoice Arabic translation. Audio is real; exact sentence timing is unverified. WorldVoice is not affiliated with VOA.",
-  "audio_url": "https://voa-audio.voanews.eu/vle/2017/11/28/260c25bd-1773-42d0-8b8a-54924d27427c_hq.mp3?download=1",
-  "duration_ms": 258000,
+  "title": "Run! Bees! — VOA Level 2 Lesson 12",
+  "title_ar": "اركض! النحل! — درس VOA 12",
   "hosts": [
     "Anna",
     "Kaveh"
   ],
-  "other_speakers": [
-    "Professor Bot",
-    "Caroline"
-  ],
+  "other_speakers": [],
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "source": "VOA Learning English",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-12-run-bees/4139015.html",
+  "source_credit": "Original VOA Learning English Level 2 Lesson 12. WorldVoice presents selected excerpts with Arabic learning translations, not the complete original transcript. Full conversation appears on the linked VOA lesson page; WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2017/11/28/260c25bd-1773-42d0-8b8a-54924d27427c_hq.mp3?download=1",
+  "backup_audio_url": "https://voa-audio.voanews.eu/vle/2017/11/28/260c25bd-1773-42d0-8b8a-54924d27427c.mp3?download=1",
+  "duration_ms": 258000,
+  "sync_status": "unverified",
+  "transcript_scope": "excerpt",
   "dialogue": [
     {
       "speaker": "Anna",
       "text": "Wow. Did you know that bees are dying?",
-      "translation_ar": "واو، هل تعلم أن النحل يتناقص ويموت؟",
+      "translation_ar": "واو. هل تعلم أن النحل يتناقص؟",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Kaveh",
-      "text": "That is bad news. If all the bees died, there would be no food. Bees are very important.",
-      "translation_ar": "هذا خبر سيئ. لو مات كل النحل فلن يكون هناك طعام. النحل مهم جدًا.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "Yes, they are. Speaking of bees, one of our little friends is here now.",
-      "translation_ar": "نعم، إنه كذلك. وبمناسبة الحديث عن النحل، ها هو أحد أصدقائنا الصغار!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Kaveh",
-      "text": "You know, Anna, if you ignore it, it will fly away. But if you swat it, it might sting you.",
-      "translation_ar": "آنا، إذا تجاهلتِ النحلة فستطير بعيدًا، لكن إذا حاولتِ ضربها فقد تلسعك.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "I’ll ignore it. I can ignore it. See, I’m ignoring it.",
-      "translation_ar": "سأتجاهلها. أستطيع تجاهلها. انظر، أنا أتجاهلها!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Kaveh",
-      "text": "Anna, are you afraid of bees?",
-      "translation_ar": "آنا، هل تخافين من النحل؟",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "What makes you say that?",
-      "translation_ar": "لماذا تقول ذلك؟",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Kaveh",
-      "text": "Anna, you should call my friend, Caroline. She is a beekeeper and a bee educator. If you talk to her, she’ll probably help you get over your fear of bees.",
-      "translation_ar": "عليك الاتصال بصديقتي كارولين. إنها مربّية نحل وتعلّم الناس عنه. إذا تحدثتِ إليها فغالبًا ستساعدك على تجاوز خوفك من النحل.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "I am not afraid of bees.",
-      "translation_ar": "أنا لا أخاف من النحل.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Kaveh",
-      "text": "Here’s her card.",
-      "translation_ar": "هذه بطاقتها.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "Ahhh!",
-      "translation_ar": "آآآه!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Professor Bot",
-      "text": "In this lesson, you can learn about conditionals. They have \"if\" and \"will\" or \"would.\" There are two kinds of conditional sentences in this lesson. Type 1 conditionals have a real event, and a result that probably will happen. Chances are good. Here is the pattern: If +present tense verb ... will + future tense verb. Kaveh uses this when he says: \"If you ignore it, it will fly away.\" Type 2 conditionals have a possible event and a result that may or may not happen. We don't know. Here is the pattern: If + past tense verb ...would + infinitive verb. Kaveh uses this pattern when he says, \"If all the bees died, there would be no food.\" Look for the \"if\" in a sentence to find more conditionals in today's lesson. I'll color them, too!",
-      "translation_ar": "سنتعلم في هذا الدرس الجمل الشرطية التي تحتوي على «if» مع «will» أو «would». النوع الأول يصف حدثًا واقعيًا ونتيجة مرجّحة، مثل «إذا تجاهلت النحلة فستطير بعيدًا». والنوع الثاني يصف أمرًا افتراضيًا ونتيجة غير مؤكدة، مثل «لو مات كل النحل فلن يكون هناك طعام». ابحث عن «if» لتجد المزيد من الجمل الشرطية!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "I think I'm at the wrong address. This does not look like a place where bees are kept.",
-      "translation_ar": "أعتقد أنني في العنوان الخطأ. لا يبدو هذا مكانًا لتربية النحل.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "Oh, sorry to bother you. I’m looking for beekeeper Caroline. I’m here to take her “Learn to Love Bees!” class.",
-      "translation_ar": "آسفة لإزعاجك. أبحث عن مربّية النحل كارولين. جئت لحضور درسها «تعلّم أن تحب النحل»!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Caroline",
-      "text": "You’re in the right place! I’m Caroline!",
-      "translation_ar": "أنت في المكان الصحيح! أنا كارولين!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "Oh, nice to meet you! Um, Caroline, I thought this class used real bees and real hives.",
-      "translation_ar": "سعيدة بلقائك! ظننت أننا سنستخدم في الدرس نحلًا حقيقيًا وخلايا حقيقية.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Caroline",
-      "text": "It does! If you look in my backyard, you will see my bees! I’m a home beekeeper!",
-      "translation_ar": "بالفعل! إذا نظرتِ إلى فناء منزلي الخلفي فسترين نحلي. أنا أربي النحل في المنزل!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "What? You live with bees? That is really amazing! And at the same time really scary.",
-      "translation_ar": "ماذا؟ تعيشين مع النحل؟ هذا مذهل حقًا، ومخيف في الوقت نفسه!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Caroline",
-      "text": "It’s not scary. If you come, I’ll show you.",
-      "translation_ar": "ليس مخيفًا. إذا أتيتِ معي فسأريك.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "Caroline, how many bees are in that hive?",
-      "translation_ar": "كارولين، كم نحلة في تلك الخلية؟",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Caroline",
-      "text": "About thirty thousand (30,000) in each.",
-      "translation_ar": "نحو ثلاثين ألف نحلة في كل خلية.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "What? That's amazing! But, aren’t you afraid that they are gonna come out and kill you?",
-      "translation_ar": "ماذا؟ هذا مذهل! لكن ألا تخافين أن تخرج وتقتلك؟",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Caroline",
-      "text": "No, not at all, Anna. Even my children help me. Tell me, why are you afraid of bees?",
-      "translation_ar": "لا، إطلاقًا يا آنا. حتى أطفالي يساعدونني. أخبريني، لماذا تخافين من النحل؟",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "I don't know. Well, when I was a little girl my mom ran out of honey. And I really wanted honey for my pancakes. So, I climbed high into a tree and hit a beehive with a stick … several times. Then I reached inside with my bare hands to pull the honey out. That’s when I got stung … a lot.",
-      "translation_ar": "لا أدري. عندما كنت صغيرة نفد العسل لدى أمي، وكنت أريد عسلًا لفطائري. فتسلقت شجرة وضربت خلية نحل بعصا مرارًا، ثم مددت يدي داخلها لأخرج العسل. عندها لسعني النحل... مرات كثيرة!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "Caroline, if you hit a beehive with a stick and reach inside, you might get stung.",
-      "translation_ar": "كارولين، إذا ضربت خلية نحل بعصا ومددت يدك فيها فقد تتعرض للسع.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Caroline",
-      "text": "No, Anna. If you do those things, you will get stung.",
-      "translation_ar": "لا يا آنا، إذا فعلت هذه الأشياء فستتعرض للسع بالتأكيد!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "Yes. I did.",
-      "translation_ar": "نعم، هذا ما حدث لي.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Caroline",
-      "text": "And you know that it was your fault you got stung, don’t you?",
-      "translation_ar": "وتعلمين أن تعرضك للسع كان بسبب تصرفك، أليس كذلك؟",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "Yes. I did.",
-      "translation_ar": "نعم، أعلم.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Caroline",
-      "text": "Bees know your feelings. And if you stay calm, the bees will be calm. If you're nervous, the bees will be nervous. And if bees are nervous, they may sting. So, please be calm.",
-      "translation_ar": "النحل يستشعر مشاعرك. إذا بقيت هادئًا فسيبقى هادئًا، وإذا توترت فسيتوتر. وعندما يتوتر النحل قد يلسع، لذا ابقي هادئة من فضلك.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "I will be calm. I am calm. Okay, I'm ready. I'm ready",
-      "translation_ar": "سأهدأ. أنا هادئة. حسنًا، أنا مستعدة!",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Caroline",
-      "text": "Great. Let’s get our equipment on.",
-      "translation_ar": "رائع، لنرتدِ معداتنا.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "Wait! Wait! I’m not ready! I'm nervous! Give me a minute to be calm.",
-      "translation_ar": "انتظري! لست مستعدة! أنا متوترة! امنحيني دقيقة لأهدأ.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Professor Bot",
-      "text": "Are you ready for one more conditional sentence? If you are not afraid, you will join us next time to learn more about bees!",
-      "translation_ar": "هل أنت مستعد لجملة شرطية أخرى؟ إذا لم تكن خائفًا فستنضم إلينا المرة القادمة لتتعلم المزيد عن النحل!",
+      "text": "That is bad news.",
+      "translation_ar": "هذا خبر سيئ.",
       "start_ms": null,
       "end_ms": null
     }
   ],
   "vocabulary": [
     {
-      "word": "bee",
-      "meaning_ar": "نحلة"
+      "word": "bees",
+      "meaning_ar": "النحل"
     },
     {
-      "word": "fear",
-      "meaning_ar": "خوف"
+      "word": "sting",
+      "meaning_ar": "يلسع"
+    },
+    {
+      "word": "conditional",
+      "meaning_ar": "جملة شرطية"
     },
     {
       "word": "ignore",
       "meaning_ar": "يتجاهل"
-    },
-    {
-      "word": "sting",
-      "meaning_ar": "يلدغ"
     }
   ],
-  "questions": [
-    {
-      "question": "What does \"bee\" mean in Arabic?",
-      "options": [
-        "نحلة",
-        "خوف",
-        "يتجاهل"
-      ],
-      "answer": 0
-    },
-    {
-      "question": "Which VOA character speaks first in this excerpt?",
-      "options": [
-        "Anna",
-        "Kaveh",
-        "Nobody"
-      ],
-      "answer": 0
-    }
-  ],
-  "backup_audio_url": "https://voa-audio.voanews.eu/vle/2017/11/28/260c25bd-1773-42d0-8b8a-54924d27427c.mp3?download=1"
+  "questions": []
 }
