@@ -58,12 +58,18 @@ void main() {
 
   testWidgets('VOA originals section presents native audio list',
       (tester) async {
+    // Asset-bundle I/O is real asynchronous work; warm it outside the
+    // fake-async frame pump before checking the FutureBuilder list.
+    final loaded = await tester.runAsync(() =>
+        const VoaOriginalCatalog().load());
+    expect(loaded, hasLength(15));
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(body: SingleChildScrollView(
         child: VoaOriginalsSection(onOpen: (_) {}))),
     ));
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 350));
+    await tester.pumpAndSettle();
+    expect(find.text('VOA index unavailable.'), findsNothing);
     expect(find.byKey(const ValueKey('podcast-original-en-a1-voa-001')),
         findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-original-en-a1-voa-020')),
