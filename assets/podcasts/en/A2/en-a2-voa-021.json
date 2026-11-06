@@ -1,0 +1,257 @@
+{
+  "schema": 1,
+  "id": "en-a2-voa-021",
+  "language": "en",
+  "level": "A2",
+  "title": "Trash to Treasure, Part 1",
+  "title_ar": "من القمامة إلى كنز — الأول",
+  "voa_lesson_number": 21,
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "recording_format": "original_mp3",
+  "sync_status": "unverified",
+  "transcript_scope": "excerpt",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-21/4273059.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 21. Original VOA MP3 with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2018/03/06/fabffd67-3af1-480c-925c-0b87e11fe82b_hq.mp3?download=1",
+  "duration_ms": 246000,
+  "hosts": [
+    "Anna",
+    "Ashley"
+  ],
+  "other_speakers": [
+    "Professor Bot",
+    "Sue"
+  ],
+  "dialogue": [
+    {
+      "speaker": "Anna",
+      "text": "Got it. Pete, I promise. I won’t tell anyone. Bye. He is so strange.",
+      "translation_ar": "فهمت يا بيت، أعدك ألا أخبر أحدًا. وداعًا. إنه غريب جدًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "Hey, Anna!",
+      "translation_ar": "أهلًا يا آنا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Hi, Ashley!",
+      "translation_ar": "مرحبًا يا آشلي!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "Are you talking to yourself again?",
+      "translation_ar": "هل تتحدثين إلى نفسك مجددًا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No, not this time. I was talking to Pete.",
+      "translation_ar": "ليس هذه المرة، كنت أتحدث إلى بيت.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "How’s he doing?",
+      "translation_ar": "كيف حاله؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Good. He has a birthday coming up! But he told me not to tell anyone.",
+      "translation_ar": "بخير. عيد ميلاده يقترب، لكنه طلب مني ألا أخبر أحدًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "Why?",
+      "translation_ar": "لماذا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Well, from the way he was speaking, I don’t think he likes cake or presents or fun.",
+      "translation_ar": "من طريقة كلامه، لا أظنه يحب الكعك أو الهدايا أو المرح.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "That sounds like Pete.",
+      "translation_ar": "هذا يشبه بيت تمامًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Well, I don’t care. I’m getting him a present. Do you know where I can buy something unique?",
+      "translation_ar": "لا يهمني؛ سأشتري له هدية. هل تعرفين مكانًا يبيع أشياء فريدة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "I do -- Tanglewood Works. You will definitely find something unique there.",
+      "translation_ar": "نعم، متجر تانغلوود ووركس. ستجدين شيئًا فريدًا هناك بالتأكيد.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Great. I’ll go this weekend. Now, speaking of Pete’s birthday, what else should I do? I know. I’ll rent him a clown!",
+      "translation_ar": "رائع، سأذهب في نهاية الأسبوع. وبمناسبة عيد ميلاده ماذا أفعل أيضًا؟ أعرف! سأستأجر له مهرجًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "Yeah, he’ll never speak to you again.",
+      "translation_ar": "عندها لن يكلمك أبدًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Did you hear Ashley and Anna using the words talk and speak?",
+      "translation_ar": "هل سمعت استخدام آشلي وآنا لكلمتي talk وspeak؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Sue",
+      "text": "Hey there. Welcome to Tanglewood Works! I’m Sue. How can I help you today?",
+      "translation_ar": "أهلًا بك في تانغلوود ووركس! أنا سو. كيف يمكنني مساعدتك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Hi Sue, I’m Anna. A friend told me about your store. She said, “Anna, this place is really unique!”",
+      "translation_ar": "مرحبًا يا سو، أنا آنا. أخبرتني صديقة عن متجرك وقالت إنه فريد حقًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Sue",
+      "text": "We are! Here at Tanglewood Works, we focus on things that are handmade, reclaimed and recycled.",
+      "translation_ar": "نعم! نركز هنا على الأشياء المصنوعة يدويًا والمعاد استخدامها أو تدويرها.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Wow! That is really good for the environment.",
+      "translation_ar": "واو! هذا جيد جدًا للبيئة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Sue",
+      "text": "It’s good for you too. Local artists made all of these one-of-a-kind pieces. And I paint most of the furniture.",
+      "translation_ar": "وهو مفيد لك أيضًا. صنع فنانون محليون هذه القطع الفريدة، وأنا ألوّن معظم الأثاث.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Can I look around?",
+      "translation_ar": "هل يمكنني التجول؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Sue",
+      "text": "Oh, please do.",
+      "translation_ar": "بالتأكيد، تفضلي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Sue, this piece is very interesting!",
+      "translation_ar": "سو، هذه القطعة مثيرة للاهتمام!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Sue",
+      "text": "When I found these pieces, they were broken and in a dumpster. But they spoke to me.",
+      "translation_ar": "عندما وجدت هذه القطع كانت مكسورة وملقاة في حاوية قمامة، لكنها تحدثت إليّ!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Sue, what do you mean they “spoke” to you?",
+      "translation_ar": "ماذا تقصدين بأنها «تحدثت» إليك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Sue",
+      "text": "When I see something special that someone has thrown away, I can almost hear it talk.",
+      "translation_ar": "عندما أرى شيئًا خاصًا تخلص منه شخص ما، أكاد أسمعه يتحدث.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "It’s not saying anything!",
+      "translation_ar": "إنه لا يقول شيئًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Sue",
+      "text": "Anna, it’s not easy to see the treasure in trash.",
+      "translation_ar": "آنا، ليس من السهل رؤية الكنز في القمامة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Or hear it talk.",
+      "translation_ar": "أو سماعه يتحدث.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Sue",
+      "text": "But you can learn. In fact, I teach private classes. And one is called Turning Trash to Treasure.",
+      "translation_ar": "يمكنك التعلم؛ أنا أقدم دروسًا خاصة، منها درس اسمه «تحويل القمامة إلى كنز».",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Got it! I’ll see you next week!",
+      "translation_ar": "فهمت! أراك الأسبوع القادم!",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "recycle",
+      "meaning_ar": "يعيد التدوير"
+    },
+    {
+      "word": "treasure",
+      "meaning_ar": "كنز"
+    }
+  ],
+  "questions": []
+}

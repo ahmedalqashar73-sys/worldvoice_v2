@@ -1,0 +1,135 @@
+{
+  "schema": 1,
+  "id": "en-a2-voa-026",
+  "language": "en",
+  "level": "A2",
+  "title": "Look-alikes",
+  "title_ar": "أشخاص متشابهون",
+  "voa_lesson_number": 26,
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "recording_format": "original_mp3",
+  "sync_status": "unverified",
+  "transcript_scope": "excerpt",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-26/4350607.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 26. Original VOA MP3 with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2018/04/25/3b556bb7-8c37-4c22-a390-d79b9f34fd24_hq.mp3?download=1",
+  "duration_ms": 300000,
+  "hosts": [
+    "Anna",
+    "Pete"
+  ],
+  "other_speakers": [],
+  "dialogue": [
+    {
+      "speaker": "Anna",
+      "text": "This article is so interesting. Pete, listen to this: “Somewhere in the world there is someone who looks just like you.”",
+      "translation_ar": "هذا المقال ممتع جدًا يا بيت، اسمع: «في مكان ما في العالم يوجد شخص يشبهك تمامًا».",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "No one is this handsome.",
+      "translation_ar": "لا أحد بهذا القدر من الوسامة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh Pete, there’s something between your teeth.",
+      "translation_ar": "يا بيت، هناك شيء بين أسنانك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "It is gone?",
+      "translation_ar": "هل زال؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No. No. It’s still there. There. You got it. But think of it: There could be two of us in the world!",
+      "translation_ar": "لا، ما زال هناك. ها قد أزلته! تخيل، قد يكون هناك نسختان منا في العالم!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Two Annas?",
+      "translation_ar": "آنتان؟!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Actually, Anna, maybe your silly article is right. Yesterday at work, I met a woman who looks just like you.",
+      "translation_ar": "في الحقيقة ربما يكون مقالك صحيحًا، فقد قابلت في العمل أمس امرأة تشبهك تمامًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Really? Wait, are you making fun of me?",
+      "translation_ar": "حقًا؟ انتظر، هل تسخر مني؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Not this time.",
+      "translation_ar": "ليس هذه المرة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "She’s tall and has curly hair. But even her face looks like yours. I think she’s a career consultant.",
+      "translation_ar": "إنها طويلة وشعرها مجعد، وحتى وجهها يشبه وجهك. أظن أنها مستشارة مهنية.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I bet she has a lot of great advice. I can’t wait to meet her.",
+      "translation_ar": "أراهن أن لديها نصائح رائعة. أتوق إلى مقابلتها.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Yes, you can. I met her and she is very difficult.",
+      "translation_ar": "بل يمكنك الانتظار. لقد التقيتها، وهي صعبة التعامل.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Pete, she’s just new. We have to give her a chance. What’s her name?",
+      "translation_ar": "بيت، إنها جديدة فقط. علينا منحها فرصة. ما اسمها؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Evelyna or something like that. You can’t miss her. She always wears a hat.",
+      "translation_ar": "إيفيلينا أو شيء من هذا القبيل. من السهل التعرف عليها؛ فهي ترتدي قبعة دائمًا.",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "look-alike",
+      "meaning_ar": "شبيه"
+    },
+    {
+      "word": "consultant",
+      "meaning_ar": "مستشار"
+    }
+  ],
+  "questions": []
+}

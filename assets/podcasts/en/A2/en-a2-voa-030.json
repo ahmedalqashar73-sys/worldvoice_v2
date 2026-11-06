@@ -1,0 +1,165 @@
+{
+  "schema": 1,
+  "id": "en-a2-voa-030",
+  "language": "en",
+  "level": "A2",
+  "title": "Dream a Little Dream",
+  "title_ar": "احلم حلمًا صغيرًا",
+  "voa_lesson_number": 30,
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "recording_format": "original_mp3",
+  "sync_status": "unverified",
+  "transcript_scope": "excerpt",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-30/4465315.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 30. Original VOA MP3 with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2018/07/06/931150ac-ddf3-42db-9247-b3ac4aec6180_hq.mp3?download=1",
+  "duration_ms": 292000,
+  "hosts": [
+    "Ashley",
+    "Anna"
+  ],
+  "other_speakers": [
+    "Nurse"
+  ],
+  "dialogue": [
+    {
+      "speaker": "Ashley",
+      "text": "Anna, where are you going in such a hurry?",
+      "translation_ar": "آنا، إلى أين أنت ذاهبة بهذه العجلة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Hi, Ashley. The nurse’s office. Today I get the results from my blood test.",
+      "translation_ar": "مرحبًا يا آشلي، إلى عيادة الممرضة. اليوم سأعرف نتائج فحص الدم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "I’m sure you’re fine. Don’t worry.",
+      "translation_ar": "أنا متأكدة أنك بخير. لا تقلقي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "You know, I used to dream of being a nurse. It is such an honorable career. Is there something you’ve dreamed of doing?",
+      "translation_ar": "كنت أحلم بأن أصبح ممرضة. إنها مهنة نبيلة. هل هناك شيء حلمتِ بالقيام به؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "Sure! I would love to be a dog trainer. Actually, I’ve taught my dog, Dublin, lots of tricks!",
+      "translation_ar": "بالتأكيد! أحب أن أكون مدربة كلاب. لقد علمت كلبي دبلن بالفعل حيلًا كثيرة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Well, I’m off to the nurse. Bye, Ashley.",
+      "translation_ar": "حسنًا، سأذهب إلى الممرضة. وداعًا يا آشلي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "Bye, Anna.",
+      "translation_ar": "إلى اللقاء يا آنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Bye, Dublin.",
+      "translation_ar": "وداعًا يا دبلن.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Nurse",
+      "text": "I’m looking at her test results and they’re not good. In fact, I’m afraid she’s not going to make it.",
+      "translation_ar": "أنظر إلى نتائج اختبارها وهي ليست جيدة. أخشى أنها لن تنجح.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "What?! I'm not going to make it? I'm dying??",
+      "translation_ar": "ماذا؟! لن أنجو؟ هل سأموت؟!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Nurse",
+      "text": "Anna, come in. How are you?",
+      "translation_ar": "آنا، تفضلي بالدخول. كيف حالك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I guess..not so good. I’m dying!?",
+      "translation_ar": "أظن أنني لست بخير. هل أنا أموت؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Nurse",
+      "text": "What are you talking about?",
+      "translation_ar": "عم تتحدثين؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I just heard you on the phone. Just tell me: How much longer do I have?",
+      "translation_ar": "سمعتك على الهاتف. أخبريني فقط: كم بقي لي من الوقت؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Nurse",
+      "text": "I wasn't talking about you. A student of mine didn’t do well on her science test. So, she won’t be able to make it ... to graduation.",
+      "translation_ar": "لم أكن أتحدث عنك. إحدى طالباتي لم تؤد اختبار العلوم جيدًا، ولهذا قد لا تنجح في التخرج.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Whew. Thank goodness! For a minute, my whole life passed before my eyes. There are so many things I haven't done yet.",
+      "translation_ar": "يا للراحة! الحمد لله! للحظة مرت حياتي أمام عيني. ما أكثر الأشياء التي لم أفعلها بعد.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Nurse",
+      "text": "Well, life is short. It’s important to do something you love every day.",
+      "translation_ar": "الحياة قصيرة، ومن المهم أن تفعل شيئًا تحبه كل يوم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I couldn’t agree more.",
+      "translation_ar": "أوافقك تمامًا.",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "dream",
+      "meaning_ar": "حلم"
+    },
+    {
+      "word": "career",
+      "meaning_ar": "مهنة"
+    }
+  ],
+  "questions": []
+}

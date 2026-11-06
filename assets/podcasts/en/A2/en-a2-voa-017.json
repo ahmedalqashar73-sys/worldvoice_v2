@@ -1,0 +1,166 @@
+{
+  "schema": 1,
+  "id": "en-a2-voa-017",
+  "language": "en",
+  "level": "A2",
+  "title": "Flour Baby, Part 1",
+  "title_ar": "طفل من الدقيق — الجزء الأول",
+  "voa_lesson_number": 17,
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "recording_format": "original_mp3",
+  "sync_status": "unverified",
+  "transcript_scope": "excerpt",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-17/4220576.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 17. Original VOA MP3 with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2018/01/24/4f5af081-e654-4912-9f5d-24cd3fa5170a_hq.mp3?download=1",
+  "duration_ms": 238000,
+  "hosts": [
+    "Ms. Weaver",
+    "Anna"
+  ],
+  "other_speakers": [
+    "Pete",
+    "Professor Bot"
+  ],
+  "dialogue": [
+    {
+      "speaker": "Ms. Weaver",
+      "text": "Anna, Pete, I have a new assignment for you -- a show on single parents! What is it like for a mother or a father to raise a child by herself or himself?",
+      "translation_ar": "آنا وبيت، لدي مهمة جديدة لكما: برنامج عن الآباء والأمهات المنفردين! كيف يربي أحد الوالدين طفلًا بمفرده؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "We can interview single parents. They can share their experiences themselves.",
+      "translation_ar": "يمكننا مقابلة أولياء الأمور المنفردين ليشاركوا تجاربهم بأنفسهم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "Yes, but you need to experience parenthood yourselves.",
+      "translation_ar": "نعم، لكن عليكما تجربة الأبوة والأمومة بنفسيكما.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Ourselves?",
+      "translation_ar": "بنفسينا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Yeah, how do we do that? We’re not parents.",
+      "translation_ar": "نعم، كيف سنفعل ذلك؟ نحن لسنا أبوين.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "I asked myself the same question. I said, \"Caty, how are they gonna do that?\" Then an idea came to me. I will give you the babies!",
+      "translation_ar": "طرحت على نفسي السؤال نفسه، ثم خطرت لي فكرة: سأعطيكما طفلين!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "You may be asking yourself the same thing that I’m asking myself: what is Ms. Weaver talking about!? I am sure we will find out shortly.",
+      "translation_ar": "ربما تتساءل مثلي عما تتحدث عنه السيدة ويفر! سنعرف قريبًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "Here are your babies!",
+      "translation_ar": "ها هما طفلاكُما!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Those are bags of flour.",
+      "translation_ar": "إنهما كيسا دقيق!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "No, Pete, for the next six days, this is your baby. Here are your instructions. Do not leave your babies alone. A baby cannot take care of itself. And you two must do everything by yourselves.",
+      "translation_ar": "لا يا بيت. طوال الأيام الستة القادمة سيكون هذا طفلك. لا تترك طفلك وحده، ولا يستطيع الطفل الاعتناء بنفسه؛ عليكما فعل كل شيء بنفسيكما.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Pete, look, my baby is organic and whole grain. Your baby is ordinary.",
+      "translation_ar": "بيت، انظر! طفلي من دقيق عضوي كامل الحبة، وطفلك عادي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Monster! This is a great idea, Ms. Weaver!",
+      "translation_ar": "يا لك من وحش! إنها فكرة رائعة يا سيدة ويفر!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "This is a terrible idea.",
+      "translation_ar": "إنها فكرة سيئة جدًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Speak for yourself, Pete! We need to throw ourselves into the research! I’m starting right now!",
+      "translation_ar": "تحدث عن نفسك يا بيت! علينا الانخراط في البحث بكل جدية، وسأبدأ الآن!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Hey Anna, you forgot your baby!",
+      "translation_ar": "آنا، نسيتِ طفلتك!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Come to mama!",
+      "translation_ar": "تعالي إلى أمك!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Good girl! Good girl!",
+      "translation_ar": "فتاة مطيعة! أحسنتِ!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "This is hard! I hope Pete is not doing well. I really need that vacation day!",
+      "translation_ar": "هذا صعب! أتمنى ألا يسير بيت جيدًا، فأنا أحتاج حقًا إلى يوم الإجازة!",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "parenthood",
+      "meaning_ar": "الأبوة والأمومة"
+    },
+    {
+      "word": "reflexive",
+      "meaning_ar": "انعكاسي"
+    }
+  ],
+  "questions": []
+}

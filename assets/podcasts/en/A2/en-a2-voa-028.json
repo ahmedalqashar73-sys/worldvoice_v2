@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "id": "en-a2-voa-028",
+  "language": "en",
+  "level": "A2",
+  "title": "For the Birds",
+  "title_ar": "من أجل الطيور",
+  "voa_lesson_number": 28,
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "recording_format": "original_mp3",
+  "sync_status": "unverified",
+  "transcript_scope": "excerpt",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-28/4396849.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 28. Original VOA MP3 with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2018/05/17/48003699-cb0b-4cb7-8002-27bb38944ebf_hq.mp3?download=1",
+  "duration_ms": 294000,
+  "hosts": [
+    "Kelly",
+    "Anna"
+  ],
+  "other_speakers": [],
+  "dialogue": [
+    {
+      "speaker": "Kelly",
+      "text": "Oh, Anna, there you are! I am so glad we joined the Great City Bird Count! Aren't you?",
+      "translation_ar": "آنا، ها أنت! أنا سعيدة بانضمامنا إلى حملة إحصاء طيور المدينة الكبرى! أليس كذلك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No. Today has been a bust … a flop … a bummer!",
+      "translation_ar": "لا. كان اليوم فشلًا ذريعًا ومخيبًا للآمال!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kelly",
+      "text": "I’m sensing a little disappointment.",
+      "translation_ar": "أشعر ببعض الإحباط في صوتك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "A little?",
+      "translation_ar": "بعضه فقط؟!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kelly",
+      "text": "My official bird-watching form is almost full!",
+      "translation_ar": "استمارة مراقبة الطيور الرسمية لدي تكاد تمتلئ.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I've only seen pigeons ... lots and lots of pigeons! But I did write down some other valuable information.",
+      "translation_ar": "لم أر إلا الحمام، الكثير والكثير من الحمام! لكنني سجلت معلومات أخرى قيّمة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kelly",
+      "text": "Did you find a bird's nest?!",
+      "translation_ar": "هل عثرت على عش طيور؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No.",
+      "translation_ar": "لا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I found 10 ice cream trucks in this five-block area. Their music seems to follow me everywhere.",
+      "translation_ar": "وجدت عشر شاحنات آيس كريم في نطاق خمسة شوارع، ويبدو أن موسيقاها تلاحقني في كل مكان!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kelly",
+      "text": "We're supposed to be counting birds, not ice cream trucks. This is important scientific work!",
+      "translation_ar": "يفترض بنا إحصاء الطيور لا شاحنات المثلجات. هذا عمل علمي مهم!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Well, when you want ice cream, my data will be pretty important.",
+      "translation_ar": "حسنًا، عندما تريدين الآيس كريم ستكون معلوماتي مهمة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kelly",
+      "text": "Anna, birds are everywhere! I’m sure you’ll find something. Use your imagination!",
+      "translation_ar": "آنا، الطيور في كل مكان! أنا متأكدة أنك ستجدين شيئًا. استخدمي خيالك!",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "birdwatching",
+      "meaning_ar": "مراقبة الطيور"
+    },
+    {
+      "word": "disappointment",
+      "meaning_ar": "خيبة أمل"
+    }
+  ],
+  "questions": []
+}

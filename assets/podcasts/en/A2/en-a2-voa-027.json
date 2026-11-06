@@ -1,0 +1,124 @@
+{
+  "schema": 1,
+  "id": "en-a2-voa-027",
+  "language": "en",
+  "level": "A2",
+  "title": "Fish out of Water",
+  "title_ar": "كسمكة خارج الماء",
+  "voa_lesson_number": 27,
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "recording_format": "original_mp3",
+  "sync_status": "unverified",
+  "transcript_scope": "excerpt",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-27/4374632.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 27. Original VOA MP3 with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2018/05/03/198277fc-1de6-487a-8196-dc808623e1b6_hq.mp3?download=1",
+  "duration_ms": 265000,
+  "hosts": [
+    "Anna",
+    "Ms. Weaver"
+  ],
+  "other_speakers": [
+    "Professor Bot",
+    "Fanny"
+  ],
+  "dialogue": [
+    {
+      "speaker": "Anna",
+      "text": "Hello, Ms. Weaver!",
+      "translation_ar": "مرحبًا يا سيدة ويفر!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "Oh, Anna. I’ve invited some people to dinner Saturday. We’re going to that new seafood restaurant -- Fish on a Dish.",
+      "translation_ar": "آنا، دعوت بعض الأشخاص للعشاء يوم السبت. سنذهب إلى مطعم المأكولات البحرية الجديد «فيش أون أديش».",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "Why don’t you join us? My treat.",
+      "translation_ar": "لماذا لا تنضمين إلينا؟ العشاء على حسابي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Thanks, Ms. Weaver. But I already have plans. My friend has invited me to her houseboat.",
+      "translation_ar": "شكرًا يا سيدة ويفر، لكن لدي خطط بالفعل. دعتني صديقتي إلى منزلها العائم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "Houseboat, really? That’s unique.",
+      "translation_ar": "منزل عائم؟ حقًا؟ هذا مميز.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Yes, it is. In fact, I’m thinking of living on a houseboat.",
+      "translation_ar": "بالفعل، حتى أنني أفكر في العيش على منزل عائم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "Aren’t you too tall and klutzy to live on a houseboat?",
+      "translation_ar": "ألا تعتقدين أنك طويلة وخرقاء أكثر من اللازم للعيش على منزل عائم؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I am not too tall!",
+      "translation_ar": "لست طويلة أكثر من اللازم!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Is Anna really ready for a houseboat?",
+      "translation_ar": "هل آنا مستعدة حقًا للعيش على منزل عائم؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Ms. Weaver invited Anna to dinner. When we make friendly, informal invitations, we use phrases like “Why don’t…?”",
+      "translation_ar": "دعت السيدة ويفر آنا إلى العشاء، ونستخدم عبارات مثل «لماذا لا...؟» في الدعوات الودية غير الرسمية.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Fanny",
+      "text": "Anna, I’m so glad you could come!",
+      "translation_ar": "آنا، أنا سعيدة جدًا بمجيئك!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Hi, Fanny!",
+      "translation_ar": "مرحبًا يا فاني!",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "houseboat",
+      "meaning_ar": "منزل عائم"
+    },
+    {
+      "word": "invitation",
+      "meaning_ar": "دعوة"
+    }
+  ],
+  "questions": []
+}

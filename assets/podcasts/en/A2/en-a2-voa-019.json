@@ -1,0 +1,214 @@
+{
+  "schema": 1,
+  "id": "en-a2-voa-019",
+  "language": "en",
+  "level": "A2",
+  "title": "Movie Night",
+  "title_ar": "ليلة السينما",
+  "voa_lesson_number": 19,
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "recording_format": "original_mp3",
+  "sync_status": "unverified",
+  "transcript_scope": "excerpt",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-19/4242927.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 19. Original VOA MP3 with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2018/02/08/aa7b1559-adea-4534-8d4f-649785319a21_hq.mp3?download=1",
+  "duration_ms": 287000,
+  "hosts": [
+    "Anna",
+    "Pete"
+  ],
+  "other_speakers": [
+    "Audience Member"
+  ],
+  "dialogue": [
+    {
+      "speaker": "Anna",
+      "text": "Hi, can you tell me how to get to your movie theater?",
+      "translation_ar": "مرحبًا، هل يمكنك إخباري كيف أصل إلى دار السينما؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh, that’s easy. OK, thank you. Bye.",
+      "translation_ar": "أوه، الأمر سهل. شكرًا لك، وداعًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Hi, Pete! Thanks for the movie invitation.",
+      "translation_ar": "مرحبًا يا بيت! شكرًا على دعوتك إلى السينما.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Yeah, sure Anna.",
+      "translation_ar": "بالتأكيد يا آنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I love movies. I love the plot! I love the set design! I love the costumes! I love -",
+      "translation_ar": "أحب الأفلام! أحب الحبكة وتصميم الديكور والأزياء! أحب...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Anna, I take movies very seriously. You're not one of those people who talks during a movie, are you?",
+      "translation_ar": "آنا، أنا آخذ الأفلام بجدية شديدة. لست من الأشخاص الذين يتحدثون أثناء الفيلم، صحيح؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No.",
+      "translation_ar": "لا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Good.",
+      "translation_ar": "جيد.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I love the smell of popcorn. I love seats that rock.",
+      "translation_ar": "أحب رائحة الفشار والمقاعد المتحركة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "I love when people are quiet.",
+      "translation_ar": "وأنا أحب عندما يلتزم الناس الصمت.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Ooh look, the previews are starting. I love to see what movies are coming out. Oh, this one looks good!",
+      "translation_ar": "انظر! بدأت إعلانات الأفلام القادمة. أحب معرفة الأفلام الجديدة. هذا يبدو جيدًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Anna, the previews are part of the movie experience. So, would you mind not talking?",
+      "translation_ar": "آنا، الإعلانات جزء من تجربة الفيلم. هل تمانعين عدم الكلام؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh, sure, sure.",
+      "translation_ar": "بالتأكيد.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Anna, I was wondering: are you almost finished with that?",
+      "translation_ar": "آنا، أتساءل هل أوشكتِ على الانتهاء من ذلك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No. There's still a lot of milkshake at the bottom.",
+      "translation_ar": "لا، ما زال في القاع الكثير من مخفوق الحليب.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Anna, do you mind not drinking so loudly?",
+      "translation_ar": "آنا، هل تمانعين ألا تشربي بهذا الصوت العالي؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I'll try. But it's really thick.",
+      "translation_ar": "سأحاول، لكنه كثيف جدًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Anna, what are you doing?!",
+      "translation_ar": "آنا، ماذا تفعلين؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Audience Member",
+      "text": "Shh!",
+      "translation_ar": "شش!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I’m done now.",
+      "translation_ar": "انتهيت الآن.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Anna, would you mind opening that a little bit more quietly?",
+      "translation_ar": "آنا، هل يمكنك فتح ذلك بهدوء أكثر قليلًا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I'll try.",
+      "translation_ar": "سأحاول.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Anna, just give it to me!",
+      "translation_ar": "آنا، أعطيني إياه!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Thanks, Pete.",
+      "translation_ar": "شكرًا يا بيت.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Now, would you mind being more quiet?",
+      "translation_ar": "والآن هل يمكنك أن تكوني أكثر هدوءًا؟",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "preview",
+      "meaning_ar": "إعلان فيلم"
+    },
+    {
+      "word": "indirect",
+      "meaning_ar": "غير مباشر"
+    }
+  ],
+  "questions": []
+}

@@ -1,0 +1,131 @@
+{
+  "schema": 1,
+  "id": "en-a2-voa-008",
+  "language": "en",
+  "level": "A2",
+  "title": "The Best Barbecue",
+  "title_ar": "أفضل شواء",
+  "voa_lesson_number": 8,
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "recording_format": "original_video_mp4",
+  "sync_status": "unverified",
+  "transcript_scope": "excerpt",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-8-best-barbecue/4073994.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 8. Original VOA video with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-video-ns.akamaized.net/pangeavideo/2021/02/6/6a/6a264ff8-5d3a-4460-8d09-b56daf6ebe65_240p.mp4?cb=edc3e79b1&download=1",
+  "duration_ms": 300000,
+  "hosts": [
+    "Anna",
+    "Kelly"
+  ],
+  "other_speakers": [
+    "Professor Bot",
+    "Chef 1"
+  ],
+  "dialogue": [
+    {
+      "speaker": "Anna",
+      "text": "Thanks for meeting me.",
+      "translation_ar": "شكرًا لمقابلتي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kelly",
+      "text": "Sure.",
+      "translation_ar": "بالتأكيد.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I’d like to get your advice on my latest project.",
+      "translation_ar": "أود أن آخذ رأيك في مشروعي الأخير.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kelly",
+      "text": "Of course. I heard you were sent to cover a big food festival that has all kinds of barbecue. So, how did it go?",
+      "translation_ar": "بالتأكيد. سمعت أنك أُرسلت لتغطية مهرجان طعام كبير يضم أنواعًا مختلفة من الشواء. كيف سارت الأمور؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Well, things started out great! But then, well, maybe you should watch it yourself.",
+      "translation_ar": "في البداية كانت الأمور رائعة، لكن ربما ينبغي أن تشاهدي ما حدث بنفسك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Hi English learners! Your lesson today is about my favorite food -- barbecue! Your assignment is to find passive sentences.",
+      "translation_ar": "مرحبًا يا متعلمي الإنجليزية! درس اليوم عن طعامي المفضل: الشواء. مهمتكم العثور على جمل مبنية للمجهول.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Today, a Barbecue Battle is being held in Washington, D.C.",
+      "translation_ar": "اليوم تقام مسابقة شواء في واشنطن العاصمة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "So, can you tell us what is in your barbecue sauce?",
+      "translation_ar": "هل يمكنك أن تخبرنا بمكونات صلصة الشواء الخاصة بك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Chef 1",
+      "text": "No, I can’t tell you.",
+      "translation_ar": "لا، لا أستطيع إخبارك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "So, tell us, what is the secret ingredient in your barbecue sauce?",
+      "translation_ar": "إذًا، ما المكون السري في صلصة الشواء؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Sauces are made by the barbecue chefs themselves. Most sauces are made with a tomato sauce, vinegar, and spices.",
+      "translation_ar": "يصنع الطهاة صلصاتهم بأنفسهم، ومعظمها يتكون من الطماطم والخل والتوابل.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "This is Anna Matteo reporting.",
+      "translation_ar": "كانت معكم آنا ماتيو في هذا التقرير.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kelly",
+      "text": "I am from Kansas City and we have THE best barbecue in the whole country.",
+      "translation_ar": "أنا من كانساس سيتي، ولدينا أفضل شواء في البلاد كلها.",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "barbecue",
+      "meaning_ar": "شواء"
+    },
+    {
+      "word": "sauce",
+      "meaning_ar": "صلصة"
+    }
+  ],
+  "questions": []
+}

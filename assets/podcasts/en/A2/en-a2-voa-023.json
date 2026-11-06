@@ -1,0 +1,117 @@
+{
+  "schema": 1,
+  "id": "en-a2-voa-023",
+  "language": "en",
+  "level": "A2",
+  "title": "Rock Star",
+  "title_ar": "نجمة موسيقية",
+  "voa_lesson_number": 23,
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "recording_format": "original_mp3",
+  "sync_status": "unverified",
+  "transcript_scope": "excerpt",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-23/4287922.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 23. Original VOA MP3 with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2018/03/15/b53a7e2c-2dd1-4623-b4d0-92efba982191_hq.mp3?download=1",
+  "duration_ms": 294000,
+  "hosts": [
+    "Anna",
+    "Ms. Weaver"
+  ],
+  "other_speakers": [
+    "Professor Bot",
+    "Emma G"
+  ],
+  "dialogue": [
+    {
+      "speaker": "Anna",
+      "text": "Hello?",
+      "translation_ar": "مرحبًا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "Anna, this is Ms. Weaver.",
+      "translation_ar": "آنا، معك السيدة ويفر.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Ms. Weaver!",
+      "translation_ar": "السيدة ويفر!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "Tomorrow, you’ll be interviewing musician Emma G.",
+      "translation_ar": "غدًا ستجرين مقابلة مع الموسيقية إيما جي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Emma G?! I will be talking to Emma G?!",
+      "translation_ar": "إيما جي؟! هل سأتحدث إلى إيما جي؟!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "Anna? Anna, are you there?",
+      "translation_ar": "آنا؟ هل ما زلت معي؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Anna and Ms. Weaver used the future continuous verb tense to talk about the interview.",
+      "translation_ar": "استخدمت آنا والسيدة ويفر زمن المستقبل المستمر للحديث عن المقابلة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Hello and welcome to The Music! Today, musician Emma G will be joining us here!",
+      "translation_ar": "أهلًا بكم في برنامج «الموسيقى»! اليوم ستنضم إلينا الموسيقية إيما جي!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "She is a wonderful songwriter and an amazing singer. And I love her! Let’s give a warm welcome to Emma G!",
+      "translation_ar": "إنها مؤلفة أغانٍ رائعة ومغنية مذهلة، وأنا أحبها! فلنرحب بحرارة بإيما جي!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Hi. Thank you for coming on the show, Emma G.",
+      "translation_ar": "مرحبًا، شكرًا لحضورك البرنامج يا إيما جي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Emma G",
+      "text": "Of course. It’s great to be here.",
+      "translation_ar": "بكل سرور، من الرائع أن أكون هنا.",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "musician",
+      "meaning_ar": "موسيقي"
+    },
+    {
+      "word": "interview",
+      "meaning_ar": "مقابلة"
+    }
+  ],
+  "questions": []
+}

@@ -1,0 +1,216 @@
+{
+  "schema": 1,
+  "id": "en-a2-voa-020",
+  "language": "en",
+  "level": "A2",
+  "title": "The Test Drive",
+  "title_ar": "تجربة قيادة السيارة",
+  "voa_lesson_number": 20,
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "recording_format": "original_mp3",
+  "sync_status": "unverified",
+  "transcript_scope": "excerpt",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-20/4254704.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 20. Original VOA MP3 with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2018/02/15/8b42c321-07ea-4eb1-a1f9-e7cc6019606e_hq.mp3?download=1",
+  "duration_ms": 281000,
+  "hosts": [
+    "Anna",
+    "Penelope"
+  ],
+  "other_speakers": [
+    "Professor Bot",
+    "Robot",
+    "Kurt"
+  ],
+  "dialogue": [
+    {
+      "speaker": "Anna",
+      "text": "Rick, I think we should use this as the opening shot.",
+      "translation_ar": "ريك، أرى أن نستخدم هذه اللقطة في بداية التقرير.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Anna, did Ms. Weaver give us instructions for covering the car show?",
+      "translation_ar": "آنا، هل أعطتنا السيدة ويفر تعليمات لتغطية معرض السيارات؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "She did. She said that we need to show lots of cars. She said we need to interview people. And she also said that we should have fun.",
+      "translation_ar": "نعم. قالت إن علينا عرض سيارات كثيرة وإجراء مقابلات مع الناس، وقالت أيضًا أن نستمتع بوقتنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Those were her exact words?",
+      "translation_ar": "هل كانت تلك كلماتها بالحرف؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Yeah. She said, “Have fun, Anna!” And she is the boss.",
+      "translation_ar": "نعم، قالت: «استمتعي يا آنا!» وهي المديرة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Hello, I'm Anna Matteo. Welcome to the Washington Car Show!",
+      "translation_ar": "مرحبًا، أنا آنا ماتيو. أهلًا بكم في معرض سيارات واشنطن!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "People all over town are saying that if you like cars, this is the place to be!",
+      "translation_ar": "الجميع في المدينة يقولون: إذا كنت تحب السيارات فهذا هو المكان المناسب!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "We often need to tell others what someone else said.",
+      "translation_ar": "كثيرًا ما نحتاج إلى نقل كلام شخص آخر.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "This car show has many styles of vehicles. There are utility vehicles, classic cars, trucks, sports cars, and everyday vehicles.",
+      "translation_ar": "يضم المعرض مركبات متعددة، منها سيارات الدفع العملي والكلاسيكية والشاحنات والرياضية والسيارات اليومية.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Okay, I think we got good interviews.",
+      "translation_ar": "أعتقد أننا أجرينا مقابلات جيدة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Me too! People had very different opinions. But they all said they loved cars.",
+      "translation_ar": "وأنا أيضًا! كانت آراؤهم مختلفة لكنهم اتفقوا على حب السيارات.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Anna, look -- a robot!",
+      "translation_ar": "آنا، انظري! روبوت!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "A robot!",
+      "translation_ar": "روبوت!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Rick, we have to use the robot in the show!",
+      "translation_ar": "ريك، علينا تضمين الروبوت في البرنامج!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Robot",
+      "text": "What is your first name?",
+      "translation_ar": "ما اسمك الأول؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Anna! Anna!",
+      "translation_ar": "آنا! آنا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Robot",
+      "text": "Anna, you know, what an effort. What an effort to robot dance. How about a round of applause for Anna! I’ve never seen anyone try so hard.",
+      "translation_ar": "آنا، يا له من مجهود كبير في رقصة الروبوت! تصفيق لآنا! لم أر شخصًا يحاول بهذه الجدية.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Penelope, did you hear that? Hank the Robot said that he has never seen anyone dance like me.",
+      "translation_ar": "بينيلوبي، هل سمعتِ؟ قال هانك الروبوت إنه لم ير أحدًا يرقص مثلي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Uh, I think many people here are saying that, Anna.",
+      "translation_ar": "أظن أن كثيرين هنا يقولون الشيء نفسه يا آنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "That was fun. You know what someone told me? You can test drive a Jaguar at this car show.",
+      "translation_ar": "كان ذلك ممتعًا. أخبرني أحدهم أنه يمكن تجربة قيادة سيارة جاكوار هنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Now, that sounds fun.",
+      "translation_ar": "هذا يبدو ممتعًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Let’s go.",
+      "translation_ar": "هيا بنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kurt",
+      "text": "Are you ready to go on the rollercoaster?",
+      "translation_ar": "هل أنت مستعدة لرحلة مثل الأفعوانية؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I’m ready.",
+      "translation_ar": "أنا مستعدة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kurt",
+      "text": "Here we go!",
+      "translation_ar": "ها نحن ننطلق!",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "vehicle",
+      "meaning_ar": "مركبة"
+    },
+    {
+      "word": "test drive",
+      "meaning_ar": "تجربة قيادة"
+    }
+  ],
+  "questions": []
+}
