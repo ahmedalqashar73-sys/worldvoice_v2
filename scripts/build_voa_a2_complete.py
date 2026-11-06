@@ -23,9 +23,12 @@ CATALOG = BASE / "voa_english_a2_originals.json"
 ALLOWED = {8, *range(17, 31)}
 # Official VOA Lesson 30 has speaker labels without a colon; recheck a
 # machine draft on a subsequent run without altering manually edited lessons.
-RECHECK_MACHINE_DRAFT = {30}
+# Recheck prior machine imports made with a parser that rejected "Person 1".
+# A revision marker prevents repeated changes or clobbering edited scripts.
+RECHECK_MACHINE_DRAFT = {8, *range(19, 31)}
+SOURCE_PARSER_REVISION = 2
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; WorldVoiceVOATranscript/1.0; +https://learningenglish.voanews.com/)"}
-SPEAKER = re.compile(r"^([A-Za-z][A-Za-z.'’\-\s]{0,42}):\s*(.*)$")
+SPEAKER = re.compile(r"^([A-Za-z][A-Za-z0-9.'’\-\s]{0,42}):\s*(.*)$")
 DIRECTIONS = re.compile(r"\([^()]*\)")
 STOP_HEADINGS = ("listening quiz", "free materials", "for teachers", "comments", "related")
 ALIASES = {
@@ -136,8 +139,11 @@ def read_html(url: str) -> str:
 
 def update_one(item: dict, translator, dry_run: bool) -> dict:
     number = int(item["voa_lesson_number"])
-    is_machine_recheck = (number in RECHECK_MACHINE_DRAFT and
-                          item.get("translation_status") == "machine_draft")
+    is_machine_recheck = (
+        number in RECHECK_MACHINE_DRAFT
+        and item.get("translation_status") == "machine_draft"
+        and int(item.get("source_parser_revision", 0)) < SOURCE_PARSER_REVISION
+    )
     if number not in ALLOWED or (item.get("transcript_scope") == "full" and
                                   not is_machine_recheck):
         return {"lesson": number, "skipped": True}
@@ -150,8 +156,12 @@ def update_one(item: dict, translator, dry_run: bool) -> dict:
         raise ValueError(f"Source and recording mismatch: {number}")
     spoken = extract_dialogue(read_html(item["source_url"]))
     total_words = sum(len(line["text"].split()) for line in spoken)
-    if len(spoken) < 15 or total_words < 240 or total_words > 4500:
-        raise ValueError(f"Unreliable complete transcript for {number}: {len(spoken)} turns, {total_words} words")
+    if (len(spoken) < 15 or total_words < 240 or total_words > 4500 or
+            len(spoken) < len(episode["dialogue"])):
+        raise ValueError(
+            f"Unreliable full transcript for {number}: {len(spoken)} turns, "
+            f"{total_words} words (previous {len(episode['dialogue'])} turns)"
+        )
     known_ar = {norm(line["text"]): line["translation_ar"] for line in episode["dialogue"]}
     known_lines = sum(int(norm(line["text"]) in {norm(l["text"]) for l in spoken}) for line in episode["dialogue"])
     if known_lines < 2:
@@ -176,6 +186,7 @@ def update_one(item: dict, translator, dry_run: bool) -> dict:
     episode["hosts"] = voices[:2]
     episode["other_speakers"] = voices[2:]
     episode["transcript_scope"] = "full"
+    episode["source_parser_revision"] = SOURCE_PARSER_REVISION
     episode["translation_status"] = "machine_draft"
     episode["translation_engine"] = "argos-en-ar"
     episode["source_credit"] = (
@@ -189,6 +200,7 @@ def update_one(item: dict, translator, dry_run: bool) -> dict:
         file_path.write_text(json.dumps(episode, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         item["transcript_scope"] = "full"
         item["translation_status"] = "machine_draft"
+        item["source_parser_revision"] = SOURCE_PARSER_REVISION
     return {"lesson": number, "turns": len(new_dialogue), "words": total_words,
             "reused_human_arabic": reused, "machine_arabic": len(new_dialogue)-reused}
 
@@ -201,7 +213,8 @@ def main():
                if x["voa_lesson_number"] in ALLOWED
                and (x.get("transcript_scope") == "excerpt" or
                     (x["voa_lesson_number"] in RECHECK_MACHINE_DRAFT and
-                     x.get("translation_status") == "machine_draft"))]
+                     x.get("translation_status") == "machine_draft" and
+                     int(x.get("source_parser_revision", 0)) < SOURCE_PARSER_REVISION))]
     if not targets:
         print("All eligible VOA Level 2 transcripts are already full.")
         return 0

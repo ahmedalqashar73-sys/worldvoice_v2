@@ -33,6 +33,26 @@ class VoaA2CompleteSourceTests(unittest.TestCase):
         self.assertEqual(lines[1]["text"], "Well, life is short.")
         self.assertEqual(lines[2]["text"], "Oh. I have a dream!")
 
+    def test_numbered_speakers_are_not_folded_into_previous_turn(self):
+        html = """<article><h2>Conversation</h2>
+            <p>Anna: Which barbecue is best?</p>
+            <p>Person 1: Texas, of course!</p>
+            <p>Person 2: Carolina barbecue.</p>
+            <p>Chef 1: No, I cannot tell you.</p>
+            <p>Chef 2: (says nothing.)</p>
+            <p>Anna: The sauce is a secret.</p>
+            <h2>Listening Quiz</h2></article>"""
+        lines = module.extract_dialogue(html)
+        self.assertEqual([x["speaker"] for x in lines],
+                         ["Anna", "Person 1", "Person 2", "Chef 1", "Anna"])
+        self.assertEqual(lines[-1]["text"], "The sauce is a secret.")
+        self.assertNotIn("Chef 2:", " ".join(x["text"] for x in lines))
+
+    def test_parser_revision_targets_drafts_without_touching_authored(self):
+        self.assertIn(8, module.RECHECK_MACHINE_DRAFT)
+        self.assertIn(30, module.RECHECK_MACHINE_DRAFT)
+        self.assertEqual(module.SOURCE_PARSER_REVISION, 2)
+
     def test_only_explicit_source_lessons(self):
         self.assertIn(8, module.ALLOWED)
         self.assertIn(30, module.ALLOWED)
