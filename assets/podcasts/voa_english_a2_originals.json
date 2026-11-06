@@ -217,7 +217,7 @@
       "anna_present": true,
       "pete_present": false,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
+      "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-015"
     },
     {
@@ -232,7 +232,7 @@
       "anna_present": true,
       "pete_present": false,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
+      "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-016"
     }
   ]

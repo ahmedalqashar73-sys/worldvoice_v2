@@ -10,16 +10,19 @@
   "recording_kind": "human",
   "voice_rights_verified": true,
   "sync_status": "unverified",
-  "transcript_scope": "excerpt",
+  "transcript_scope": "full",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-16/4198066.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 16. Human VOA audio; WorldVoice provides only a selected, bilingual transcript excerpt; read the full conversation on the credited official page. No sentence timings have been verified. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 16. Full original public-domain human dialogue with WorldVoice Arabic translation. Sentence-level timing has not been verified. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2018/01/10/95f0ce1f-6cfd-44e4-b83a-e225d7cb0224_hq.mp3?download=1",
   "duration_ms": 281000,
   "hosts": [
     "Anna",
     "Kaveh"
   ],
-  "other_speakers": [],
+  "other_speakers": [
+    "Professor Bot",
+    "Serenity"
+  ],
   "dialogue": [
     {
       "speaker": "Anna",
@@ -31,35 +34,35 @@
     {
       "speaker": "Kaveh",
       "text": "Ooh, I know a great place. When I first started working here, I would go every day!",
-      "translation_ar": "أوه، أعرف مكانًا رائعًا. عندما بدأت العمل هنا كنت أذهب إليه كل يوم!",
+      "translation_ar": "أعرف مكانًا رائعًا! عندما بدأت العمل هنا كنت أذهب إليه كل يوم!",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Great. Oh, no.",
-      "translation_ar": "رائع. أوه، لا!",
+      "translation_ar": "رائع. أوه لا!",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Kaveh",
       "text": "What’s wrong?",
-      "translation_ar": "ما المشكلة؟",
+      "translation_ar": "ما الأمر؟",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "I lost my key! I just had it this morning.",
-      "translation_ar": "لقد فقدت مفتاحي! كان معي هذا الصباح!",
+      "translation_ar": "أضعت مفتاحي! كان معي هذا الصباح!",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Kaveh",
       "text": "You should check the Lost & Found office.",
-      "translation_ar": "عليك مراجعة مكتب المفقودات.",
+      "translation_ar": "عليك تفقد مكتب المفقودات.",
       "start_ms": null,
       "end_ms": null
     },
@@ -73,14 +76,224 @@
     {
       "speaker": "Kaveh",
       "text": "Oh, it used to be across from the cafeteria. But now it’s down in the basement next to the elevators. It’s really hard to find.",
-      "translation_ar": "كان مقابل الكافتيريا، لكنه الآن في القبو بجانب المصاعد. من الصعب العثور عليه!",
+      "translation_ar": "كان سابقًا مقابل الكافتيريا، لكنه الآن في الطابق السفلي بجوار المصاعد. يصعب العثور عليه.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "The Lost & Found is hard to find. That’s funny.",
-      "translation_ar": "من الصعب العثور على مكتب المفقودات! هذا مضحك.",
+      "translation_ar": "من الصعب العثور على مكتب المفقودات! هذا مضحك!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kaveh",
+      "text": "It is.",
+      "translation_ar": "بالفعل!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "I hope Anna can find the Lost & Found office! Used to and would describe something that happened repeatedly in the past. Kaveh uses would when he says, “When I first started working here, I would go every day!” There are two differences between used to and would. Number 1: We use would only when we say the time period first. Number 2: For verbs like be, think, feel, see and understand, we can only use used to. Kaveh says, \"It used to be across from the cafeteria.\" Keep listening for more!",
+      "translation_ar": "آمل أن تجد آنا مكتب المفقودات! تعبّران «used to» و«would» عن أفعال كانت تتكرر في الماضي. يقول كافيه إنه كان يذهب إلى المكان كل يوم في بداية عمله. هناك فرقان: نستخدم would حين نذكر الفترة الزمنية أولًا، ومع أفعال الحالة مثل be وthink وfeel وsee وunderstand نستخدم used to فقط. واصل الاستماع!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Serenity",
+      "text": "Come in! I am Serenity.",
+      "translation_ar": "تفضلي بالدخول، أنا سيرينيتي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Hi, Serenity. I’m Anna!",
+      "translation_ar": "مرحبًا يا سيرينيتي، أنا آنا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Serenity",
+      "text": "Please, sit down. How can I help you?",
+      "translation_ar": "اجلسي من فضلك. كيف أساعدك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I lost something very important.",
+      "translation_ar": "أضعت شيئًا مهمًا جدًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Serenity",
+      "text": "Shh. I already know. You need help.",
+      "translation_ar": "ششش! أعرف ذلك. أنت تحتاجين إلى مساعدة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Yes. I need help finding the key …",
+      "translation_ar": "نعم، أحتاج مساعدة في إيجاد المفتاح...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Serenity",
+      "text": "Shh. You need to find the key – the key that will give you happiness.",
+      "translation_ar": "ششش! تحتاجين إلى إيجاد المفتاح... المفتاح الذي سيمنحك السعادة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Yes. Finding this key will make me very happy.",
+      "translation_ar": "نعم، العثور عليه سيجعلني سعيدة جدًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Serenity",
+      "text": "First, Anna, let me tell you a little bit about myself.",
+      "translation_ar": "أولًا يا آنا، دعيني أخبرك قليلًا عن نفسي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Okay.",
+      "translation_ar": "حسنًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Serenity",
+      "text": "I used to be a very important person with a very important job. I made a lot of money -- I mean a lot.",
+      "translation_ar": "كنت شخصية مهمة جدًا وأشغل وظيفة مهمة جدًا. كنت أكسب مالًا كثيرًا، وأعني كثيرًا حقًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Wow. Good for you!",
+      "translation_ar": "واو! جيد لك!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Serenity",
+      "text": "No! No, it was bad for me. I lost the most important thing – the key! You’ve lost it too, haven’t you, Anna? Haven’t you?",
+      "translation_ar": "لا! كان ذلك سيئًا لي. فقدت أهم شيء: المفتاح! وأنت فقدته أيضًا يا آنا، أليس كذلك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I guess. So, how does this work? Do I have to fill out a form or something?",
+      "translation_ar": "أظن ذلك. كيف تسير الإجراءات؟ هل أحتاج لملء استمارة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Serenity",
+      "text": "No. No forms. Just answer this one question: As a child, what did you use to do to feel happy?",
+      "translation_ar": "لا استمارات. أجيبي عن سؤال واحد: عندما كنت طفلة، ماذا كنت تفعلين لتشعري بالسعادة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "When I was little, I used to sing all the time with my family. Those were good times.",
+      "translation_ar": "عندما كنت صغيرة كنت أغني مع عائلتي طوال الوقت. كانت أيامًا جميلة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Serenity",
+      "text": "Singing is so joyful! I used to sing. But now that I’ve started my business, I’ve just been too busy. Too busy! Anna, why don’t you sing again?",
+      "translation_ar": "الغناء يمنح الفرح! كنت أغني، لكن منذ بدأت عملي أصبحت مشغولة جدًا. لماذا لا تعودين إلى الغناء يا آنا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I sing everywhere! I sing in the office. I sing on the metro. I sing in the elevators. I sing on the escalators. I sing in the bathroom. Serenity! Serenity! I really need to find my key. Yeah!",
+      "translation_ar": "أنا أغني في كل مكان! في المكتب والمترو والمصاعد والسلالم المتحركة والحمام. سيرينيتي، أحتاج حقًا للعثور على مفتاحي!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Serenity",
+      "text": "Yes, we need to find the key … the key to happiness.",
+      "translation_ar": "نعم، يجب أن نجد المفتاح... مفتاح السعادة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No, no. I just need to find the key to my apartment.",
+      "translation_ar": "لا، أريد فقط العثور على مفتاح شقتي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Serenity",
+      "text": "I used to know. But now I don't! Do you, Anna?",
+      "translation_ar": "كنت أعرف في الماضي، لكن لم أعد أعرف الآن! وأنت يا آنا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I don’t know. I think I left it in the ladies’ room. You know, this isn’t the Lost & Found, is it?",
+      "translation_ar": "لا أعرف. أظن أنني تركته في حمام السيدات. هذا ليس مكتب المفقودات، أليس كذلك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Serenity",
+      "text": "It could be the Lost & Found. I’m lost! And I used to find joy for people! I used to find joy!",
+      "translation_ar": "قد يكون مكتب المفقودات. أنا تائهة! كنت أساعد الناس على إيجاد الفرح!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "You know, this is a bad time for you. I’ll find the Lost & Found myself. Bye, thanks.",
+      "translation_ar": "أرى أنك تمرين بوقت صعب. سأبحث عن مكتب المفقودات بنفسي. وداعًا وشكرًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Serenity",
+      "text": "I used to find joy. I used to find joy! I used to find joy!",
+      "translation_ar": "كنت أجد الفرح، كنت أجد الفرح!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Ah, I found my key!",
+      "translation_ar": "آه، وجدت مفتاحي!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Serenity",
+      "text": "I used to find joy!",
+      "translation_ar": "كنت أجد الفرح!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Oh no. Serenity lost her joy. But at least Anna found her key! Check out our website for more!",
+      "translation_ar": "يا إلهي! فقدت سيرينيتي فرحها، لكن آنا وجدت مفتاحها على الأقل! زوروا موقعنا للمزيد!",
       "start_ms": null,
       "end_ms": null
     }
