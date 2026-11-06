@@ -87,10 +87,12 @@ void main() {
     final transcript = B1VoaTranscript.fromJson(fixture);
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
-        body: B1VoaCaptionPanel(
-          transcript: transcript,
-          position: Duration.zero,
-          onSeek: (_) {},
+        body: SingleChildScrollView(
+          child: B1VoaCaptionPanel(
+            transcript: transcript,
+            position: Duration.zero,
+            onSeek: (_) {},
+          ),
         ),
       ),
     ));
