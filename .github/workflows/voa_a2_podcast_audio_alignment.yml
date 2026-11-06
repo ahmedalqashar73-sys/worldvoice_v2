@@ -1,0 +1,52 @@
+name: Propose VOA A2 Podcast Cue Alignment
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'assets/podcasts/en/A2/en-a2-voa-*.json'
+      - 'scripts/voa_a2_align_candidate.py'
+      - 'scripts/tests/test_voa_a2_alignment.py'
+      - '.github/workflows/voa_a2_podcast_audio_alignment.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  propose-voa-a2-cues:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      max-parallel: 3
+      matrix:
+        lesson: ['001', '002', '003', '004', '005', '006', '007',
+                 '009', '010', '011', '012', '013', '014', '015', '016']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate official A2 source restrictions (offline)
+        run: python -m unittest discover -s scripts/tests -p 'test_voa_a2_alignment.py'
+      - name: Prepare source audio alignment
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          python -m pip install --no-cache-dir whisper-timestamped==1.15.9
+      - name: Measure original audio cue candidates
+        env:
+          LESSON: ${{ matrix.lesson }}
+        run: |
+          python scripts/voa_a2_align_candidate.py \
+            --episode "assets/podcasts/en/A2/en-a2-voa-${LESSON}.json" \
+            --model base.en \
+            --output "/tmp/voa_a2_lesson${LESSON}_cues_proposed.json"
+      - name: Save proposals for human listening review only
+        uses: actions/upload-artifact@v4
+        with:
+          name: voa-a2-lesson${{ matrix.lesson }}-cues-review-required
+          path: /tmp/voa_a2_lesson${{ matrix.lesson }}_cues_proposed.json
+          if-no-files-found: error
+          retention-days: 14
