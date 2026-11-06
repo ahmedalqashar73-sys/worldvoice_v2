@@ -45,6 +45,17 @@ void main() {
         throwsFormatException);
   });
 
+  test('B2 and C1 show bilingual text only when their source-linked assets exist',
+      () async {
+    final catalog = await const NasaLongCatalog().load();
+    for (final level in ['B2', 'C1']) {
+      final ids = await const NasaTranscriptRepository().availableIds(level);
+      expect(ids, hasLength(30));
+      final originals = catalog.where((item) => item.level == level);
+      expect(originals.every((item) => ids.contains(item.id)), isTrue);
+    }
+  });
+
   testWidgets('30 B2 originals show as normal podcast rows', (tester) async {
     final all = await tester.runAsync(() => const NasaLongCatalog().load());
     await tester.pumpWidget(MaterialApp(
