@@ -43,6 +43,11 @@ void main() {
     (emptyTranslation['dialogue'] as List<dynamic>)[0]['translation_ar'] = '';
     expect(() => NasaBilingualTranscript.fromJson(emptyTranslation),
         throwsFormatException);
+    final inventedTiming = record();
+    (inventedTiming['dialogue'] as List<dynamic>)[0]['start_ms'] = 1200;
+    (inventedTiming['dialogue'] as List<dynamic>)[0]['end_ms'] = 2500;
+    expect(() => NasaBilingualTranscript.fromJson(inventedTiming),
+        throwsFormatException);
   });
 
   test('all B2 C1 C2 originals expose actual bilingual assets',
