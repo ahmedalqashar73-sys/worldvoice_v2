@@ -33,6 +33,40 @@ void main() {
     expect(list.every((e) => e.existingEpisodeId == e.id), isTrue);
   });
 
+  test('A2 audio and all full bilingual transcripts refer to the same VOA lesson',
+      () async {
+    const repository = AcademyPodcastRepository();
+    final originals = await const VoaOriginalCatalog(level: 'A2').load();
+    for (final item in originals) {
+      final entry = AcademyPodcastEntry(
+        id: item.id, level: 'A2', language: 'en',
+        title: item.title, titleAr: item.titleAr,
+        status: 'published_audio',
+        asset: 'assets/podcasts/en/A2/${item.id}.json',
+      );
+      final episode = await repository.load(entry);
+      expect(episode.canStream, isTrue, reason: item.id);
+      expect(episode.canReadAloud, isFalse, reason: item.id);
+      expect(episode.isPlayable, isFalse,
+          reason: 'No invented word timings: ${item.id}');
+      expect(episode.isExcerpt, isFalse, reason: item.id);
+      expect(episode.sourceUrl, item.sourceUrl, reason: item.id);
+      expect(episode.audioUrl, item.audioUrl, reason: item.id);
+      expect(episode.backupAudioUrl, isNotNull, reason: item.id);
+      expect(episode.durationMs, item.durationSec * 1000, reason: item.id);
+      expect(episode.dialogue.length, greaterThanOrEqualTo(20),
+          reason: item.id);
+      expect(episode.dialogue.every((line) =>
+          line.text.trim().isNotEmpty &&
+          line.translationAr.trim().isNotEmpty &&
+          line.startMs == null &&
+          line.endMs == null), isTrue, reason: item.id);
+      final speakers = {...episode.hosts, ...episode.otherSpeakers};
+      expect(episode.dialogue.every((line) =>
+          speakers.contains(line.speaker)), isTrue, reason: item.id);
+    }
+  });
+
   test('VOA 01–12 have authentic source audio and readable bilingual dialogue',
       () async {
     const repository = AcademyPodcastRepository();
