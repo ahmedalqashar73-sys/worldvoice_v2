@@ -14,7 +14,10 @@
       "status": "published_audio",
       "asset": "assets/podcasts/en/A1/en-a1-voa-020.json",
       "title_ar": "ماذا يمكنك أن تفعل؟",
-      "language": "en"
+      "language": "en",
+      "duration_ms": 300000,
+      "recording_format": "original_full_lesson_video_mp4",
+      "attribution": "VOA Learning English"
     },
     {
       "id": "en-a1-pod-001",
@@ -34,8 +37,9 @@
       "asset": "assets/podcasts/en/A1/en-a1-voa-030.json",
       "language": "en",
       "recording_kind": "human",
-      "duration_ms": 199000,
-      "attribution": "VOA Learning English"
+      "duration_ms": 300000,
+      "attribution": "VOA Learning English",
+      "recording_format": "original_full_lesson_video_mp4"
     },
     {
       "id": "en-a1-voa-047",
@@ -46,8 +50,9 @@
       "asset": "assets/podcasts/en/A1/en-a1-voa-047.json",
       "language": "en",
       "recording_kind": "human",
-      "duration_ms": 191000,
-      "attribution": "VOA Learning English"
+      "duration_ms": 300000,
+      "attribution": "VOA Learning English",
+      "recording_format": "original_full_lesson_video_mp4"
     },
     {
       "id": "en-a1-pod-005",
