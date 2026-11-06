@@ -354,6 +354,37 @@ class _NasaLongPodcastPlayerState extends State<NasaLongPodcastPlayer> {
   Duration _duration = Duration.zero;
   late Future<NasaBilingualTranscript?> _transcript;
   bool _showArabic = true;
+  int _readingParagraph = 0;
+  double _readerFontSize = 15;
+  final ScrollController _readerScroll = ScrollController();
+  final Map<int, GlobalKey> _paragraphKeys = {};
+
+  // NASA source transcripts have no verified timestamps. Navigation below
+  // follows the reader's explicit selection, never a guessed audio offset.
+  void _selectParagraph(int index, int count) {
+    if (index < 0 || index >= count) return;
+    setState(() => _readingParagraph = index);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_readerScroll.hasClients) return;
+      void reveal() {
+        final context = _paragraphKeys[index]?.currentContext;
+        if (mounted && context != null) {
+          Scrollable.ensureVisible(context,
+              alignment: 0.15,
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOut);
+        }
+      }
+      if (_paragraphKeys[index]?.currentContext != null) {
+        reveal();
+      } else {
+        final maxScroll = _readerScroll.position.maxScrollExtent;
+        final fraction = count > 1 ? index / (count - 1) : 0.0;
+        _readerScroll.jumpTo((maxScroll * fraction).clamp(0.0, maxScroll));
+        WidgetsBinding.instance.addPostFrameCallback((_) => reveal());
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -390,7 +421,10 @@ class _NasaLongPodcastPlayerState extends State<NasaLongPodcastPlayer> {
     final generation = ++_generation;
     final episode = widget.episodes[index];
     _transcript = const NasaTranscriptRepository().loadFor(episode);
+    _paragraphKeys.clear();
+    if (_readerScroll.hasClients) _readerScroll.jumpTo(0);
     setState(() {
+      _readingParagraph = 0;
       _index = index;
       _position = Duration.zero;
       _duration = Duration(seconds: episode.durationSeconds);
@@ -445,6 +479,7 @@ class _NasaLongPodcastPlayerState extends State<NasaLongPodcastPlayer> {
     unawaited(_positions?.cancel() ?? Future<void>.value());
     unawaited(_states?.cancel() ?? Future<void>.value());
     unawaited(_player.dispose());
+    _readerScroll.dispose();
     super.dispose();
   }
 
@@ -575,39 +610,86 @@ class _NasaLongPodcastPlayerState extends State<NasaLongPodcastPlayer> {
                           fontSize: 17, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 6),
                     Text(ar
-                        ? 'نص NASA الأصلي مع ترجمة عربية آلية تحتاج مراجعة. لم نعتمد توقيتًا للجمل بعد.'
-                        : 'Original NASA text with machine-draft Arabic translation. No sentence alignment is claimed.',
+                        ? 'نص NASA الأصلي مع ترجمة عربية آلية تحتاج مراجعة. لا توجد مزامنة معتمدة؛ التنقل بين الفقرات يدوي.'
+                        : 'Original NASA text with draft Arabic. Timing is unverified; paragraph navigation is manual.',
                       style: TextStyle(
                           color: scheme.onSurfaceVariant, fontSize: 12)),
+                    Wrap(spacing: 6, crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Row(mainAxisSize: MainAxisSize.min, children: [
+                          Switch(
+                            value: _showArabic,
+                            onChanged: (n) => setState(() => _showArabic = n)),
+                          Text(ar ? 'إظهار العربية' : 'Show Arabic'),
+                        ]),
+                        IconButton(
+                          tooltip: ar ? 'تصغير الخط' : 'Smaller text',
+                          onPressed: _readerFontSize <= 13 ? null : () =>
+                              setState(() => _readerFontSize -= 1),
+                          icon: const Icon(Icons.text_decrease_rounded)),
+                        IconButton(
+                          tooltip: ar ? 'تكبير الخط' : 'Larger text',
+                          onPressed: _readerFontSize >= 21 ? null : () =>
+                              setState(() => _readerFontSize += 1),
+                          icon: const Icon(Icons.text_increase_rounded)),
+                      ]),
                     Row(children: [
-                      Switch(
-                        value: _showArabic,
-                        onChanged: (n) => setState(() => _showArabic = n)),
-                      Text(ar ? 'إظهار العربية' : 'Show Arabic'),
+                      IconButton(
+                        key: const ValueKey('nasa-paragraph-previous'),
+                        tooltip: ar ? 'الفقرة السابقة' : 'Previous paragraph',
+                        onPressed: _readingParagraph == 0 ? null : () =>
+                            _selectParagraph(_readingParagraph - 1,
+                                transcript.paragraphs.length),
+                        icon: const Icon(Icons.chevron_left_rounded)),
+                      Expanded(child: Text(
+                        ar ? 'موضع القراءة اليدوي: ${_readingParagraph + 1} / ${transcript.paragraphs.length}'
+                            : 'Manual reading position: ${_readingParagraph + 1} / ${transcript.paragraphs.length}',
+                        key: const ValueKey('nasa-manual-reading-position'),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 12))),
+                      IconButton(
+                        key: const ValueKey('nasa-paragraph-next'),
+                        tooltip: ar ? 'الفقرة التالية' : 'Next paragraph',
+                        onPressed: _readingParagraph + 1 >= transcript.paragraphs.length
+                            ? null : () => _selectParagraph(_readingParagraph + 1,
+                                transcript.paragraphs.length),
+                        icon: const Icon(Icons.chevron_right_rounded)),
                     ]),
                     SizedBox(height: 440, child: ListView.builder(
                       key: const ValueKey('nasa-bilingual-reader'),
+                      controller: _readerScroll,
                       itemCount: transcript.paragraphs.length,
                       itemBuilder: (context, index) {
                         final line = transcript.paragraphs[index];
+                        final selected = _readingParagraph == index;
                         return Padding(
+                          key: _paragraphKeys.putIfAbsent(index, () => GlobalKey()),
                           padding: const EdgeInsets.only(bottom: 10),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SelectableText(line.english,
-                                textDirection: TextDirection.ltr,
-                                style: const TextStyle(height: 1.5)),
-                              if (_showArabic) ...[
-                                const SizedBox(height: 3),
-                                SelectableText(line.arabic,
-                                  textDirection: TextDirection.rtl,
-                                  style: TextStyle(
-                                      height: 1.5,
-                                      color: scheme.onSurfaceVariant)),
+                          child: InkWell(
+                            key: ValueKey('nasa-paragraph-$index'),
+                            onTap: () => _selectParagraph(index,
+                                transcript.paragraphs.length),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                SelectableText(line.english,
+                                  textDirection: TextDirection.ltr,
+                                  style: TextStyle(fontSize: _readerFontSize,
+                                      height: 1.55)),
+                                if (_showArabic) ...[
+                                  const SizedBox(height: 3),
+                                  SelectableText(line.arabic,
+                                    textDirection: TextDirection.rtl,
+                                    style: TextStyle(
+                                        fontSize: _readerFontSize,
+                                        height: 1.55,
+                                        color: scheme.onSurfaceVariant)),
+                                ],
+                                Divider(thickness: selected ? 2 : 1,
+                                    color: selected ? scheme.primary
+                                        : scheme.outlineVariant),
                               ],
-                              const Divider(),
-                            ],
+                            ),
                           ),
                         );
                       }),
