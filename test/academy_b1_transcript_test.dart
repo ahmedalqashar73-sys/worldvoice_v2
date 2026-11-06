@@ -70,4 +70,41 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('b1-caption-line-0')));
     expect(seeked, Duration.zero);
   });
+  testWidgets('B1 long original captions show every word without ellipsis',
+      (tester) async {
+    final fixture = draftFixture();
+    final dialogue = fixture['dialogue'] as List<dynamic>;
+    const fullEnglish =
+        'This is a complete long listening transcript. '
+        'Every sentence must remain readable while the original audio plays. '
+        'The listener can read the entire English passage without clipping, '
+        'including additional words at the end of the original paragraph.';
+    const fullArabic =
+        'هذه ترجمة عربية طويلة يجب عرضها كاملة دون حذف الكلمات أو إخفاء النهاية '
+        'حتى يستطيع الطالب متابعة كل ما قيل في الحلقة الصوتية الأصلية.';
+    (dialogue[0] as Map<String, dynamic>)['text'] = fullEnglish;
+    (dialogue[0] as Map<String, dynamic>)['translation_ar'] = fullArabic;
+    final transcript = B1VoaTranscript.fromJson(fixture);
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: B1VoaCaptionPanel(
+          transcript: transcript,
+          position: Duration.zero,
+          onSeek: (_) {},
+        ),
+      ),
+    ));
+    final firstRow = find.byKey(const ValueKey('b1-caption-line-0'));
+    final englishText = tester.widget<Text>(
+      find.descendant(of: firstRow, matching: find.text(fullEnglish)),
+    );
+    final arabicText = tester.widget<Text>(
+      find.descendant(of: firstRow, matching: find.text(fullArabic)),
+    );
+    expect(englishText.maxLines, isNull);
+    expect(englishText.overflow, isNull);
+    expect(arabicText.maxLines, isNull);
+    expect(arabicText.overflow, isNull);
+  });
+
 }
