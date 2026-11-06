@@ -214,7 +214,10 @@
       "status": "published_audio",
       "asset": "assets/podcasts/en/A2/en-a2-voa-007.json",
       "title_ar": "قدّم إكرامية لمرشدك السياحي",
-      "language": "en"
+      "language": "en",
+      "duration_ms": 300000,
+      "recording_format": "original_full_lesson_video_mp4",
+      "attribution": "VOA Learning English"
     },
     {
       "id": "en-a2-voa-009",
@@ -232,7 +235,10 @@
       "status": "published_audio",
       "asset": "assets/podcasts/en/A2/en-a2-voa-010.json",
       "title_ar": "زيارة إلى بيرو",
-      "language": "en"
+      "language": "en",
+      "duration_ms": 300000,
+      "recording_format": "original_full_lesson_video_mp4",
+      "attribution": "VOA Learning English"
     },
     {
       "id": "en-a2-voa-011",
@@ -259,7 +265,10 @@
       "status": "published_audio",
       "asset": "assets/podcasts/en/A2/en-a2-voa-013.json",
       "title_ar": "أنقذوا النحل!",
-      "language": "en"
+      "language": "en",
+      "duration_ms": 300000,
+      "recording_format": "original_full_lesson_video_mp4",
+      "attribution": "VOA Learning English"
     },
     {
       "id": "en-a2-voa-014",
