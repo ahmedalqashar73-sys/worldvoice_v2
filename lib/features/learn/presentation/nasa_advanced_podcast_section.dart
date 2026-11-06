@@ -156,6 +156,28 @@ class NasaTranscriptRepository {
   // One large bilingual document per CEFR level. Keep a shared in-memory
   // Future so changing episodes does not decode another 30 long transcripts.
   static final Map<String, Future<Map<String, dynamic>?>> _levelCache = {};
+  static final Map<String, Future<Set<String>>> _readinessCache = {};
+
+  /// Availability is backed by the actual 30-episode bilingual asset,
+  /// never a guess based on the presence of the original audio.
+  Future<Set<String>> availableIds(String level) =>
+      _readinessCache.putIfAbsent(level, () async {
+        final doc = await _levelCache.putIfAbsent(
+            level, () => _loadLevel(level));
+        if (doc == null) return <String>{};
+        return (doc['episodes'] as List<dynamic>)
+            .whereType<Map<String, dynamic>>()
+            .where((row) =>
+                row['level'] == level &&
+                row['translation_status'] ==
+                    'machine_draft_review_required' &&
+                row['content_source'] ==
+                    'NASA_official_podcast_transcript' &&
+                row['approved_for_publication'] == false &&
+                (row['dialogue'] as List<dynamic>?)?.isNotEmpty == true)
+            .map((row) => row['id'] as String)
+            .toSet();
+      });
 
   static Future<Map<String, dynamic>?> _loadLevel(String level) async {
     final path =
@@ -235,7 +257,12 @@ class _NasaLongPodcastSectionState extends State<NasaLongPodcastSection> {
         final selected = snapshot.data!
             .where((e) => e.level == widget.level)
             .toList(growable: false);
-        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        return FutureBuilder<Set<String>>(
+          future: const NasaTranscriptRepository()
+              .availableIds(widget.level),
+          builder: (context, captions) {
+            final available = captions.data ?? <String>{};
+            return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(
             ar ? 'بودكاست الإنجليزية — ${widget.level} · 30 حلقة طويلة'
                 : 'English ${widget.level} · 30 long originals',
@@ -263,9 +290,13 @@ class _NasaLongPodcastSectionState extends State<NasaLongPodcastSection> {
                     style: const TextStyle(
                         fontWeight: FontWeight.w800, fontSize: 14)),
                 subtitle: Text(
-                  ar
-                      ? '${selected[i].durationSeconds ~/ 60} دقيقة · صوت أصلي'
-                      : '${selected[i].durationSeconds ~/ 60} min · original audio',
+                  available.contains(selected[i].id)
+                      ? (ar
+                          ? '${selected[i].durationSeconds ~/ 60} دقيقة · صوت أصلي · نص وترجمة عربية آليان'
+                          : '${selected[i].durationSeconds ~/ 60} min · original audio · English/Arabic machine drafts')
+                      : (ar
+                          ? '${selected[i].durationSeconds ~/ 60} دقيقة · صوت أصلي · النص قيد الإعداد'
+                          : '${selected[i].durationSeconds ~/ 60} min · original audio · text pending'),
                   style: const TextStyle(fontSize: 12)),
                 trailing: const Icon(Icons.play_circle_fill_rounded,
                     color: Color(0xFF20845C)),
@@ -280,6 +311,8 @@ class _NasaLongPodcastSectionState extends State<NasaLongPodcastSection> {
               ),
             ),
         ]);
+          },
+        );
       },
     );
   }
