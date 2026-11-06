@@ -180,7 +180,9 @@ class _A2LongListeningPlayerState extends State<A2LongListeningPlayer> {
 
   Future<void> _open(int next) async {
     if (!mounted || _transitioning ||
-        next < 0 || next >= widget.session.lessons.length) return;
+        next < 0 || next >= widget.session.lessons.length) {
+      return;
+    }
     _transitioning = true;
     final gen = ++_generation;
     final lesson = widget.session.lessons[next];
