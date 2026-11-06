@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Produce *review-only* line timing proposals from approved VOA English MP3s.
+"""Produce *review-only* line timing proposals from original full VOA lessons.
 
 This does not change any podcast episode metadata or falsely publish cues.
 Requires: ffmpeg/ffprobe, whisper-timestamped, Internet access.
@@ -40,12 +40,18 @@ def approved_source(record: dict) -> str:
     if not isinstance(source, str):
         raise ValueError("Missing VOA audio URL")
     url = urlparse(source)
+    official_full_video = (
+        record.get("level") == "A1" and
+        record.get("recording_format") == "original_full_lesson_video_mp4" and
+        record.get("duration_ms", 0) >= 240000 and
+        url.hostname == "voa-video-ns.akamaized.net" and
+        url.path.startswith("/pangeavideo/") and
+        url.path.lower().endswith(("_mobile.mp4", "_240p.mp4"))
+    )
     if (url.scheme != "https" or
-            url.hostname != "voa-audio.voanews.eu" or
             url.username is not None or url.password is not None or
-            not url.path.startswith("/vle/") or
-            not url.path.lower().endswith(".mp3")):
-        raise ValueError("Unapproved VOA audio URL")
+            not official_full_video):
+        raise ValueError("Unapproved original full-lesson VOA video")
     return source
 
 
@@ -81,7 +87,7 @@ def main() -> int:
     if len(record["dialogue"]) < 5:
         raise ValueError("Unexpectedly short VOA transcript")
     expected_duration = int(record["duration_ms"])
-    audio_file = args.audio or Path(f"/tmp/{record['id']}_original.mp3")
+    audio_file = args.audio or Path(f"/tmp/{record['id']}_original.mp4")
     output_file = args.output or Path(f"/tmp/{record['id']}_cues_proposed.json")
 
     if not audio_file.exists():
@@ -91,13 +97,12 @@ def main() -> int:
         })
         with urllib.request.urlopen(request, timeout=80) as resp:
             if resp.status != 200:
-                raise RuntimeError(f"VOA MP3 returned {resp.status}")
+                raise RuntimeError(f"VOA video returned {resp.status}")
             audio_file.write_bytes(resp.read())
-    # A 29-second 64-kbps original conversation can legitimately be
-    # ~230 KB; a single 800 KB cutoff incorrectly rejects lesson 1.
+    # Full five-minute MP4 is much larger than a short conversation MP3.
     expected_min_bytes = max(30000, int(expected_duration / 1000 * 5500))
     if audio_file.stat().st_size < expected_min_bytes:
-        raise ValueError("Downloaded MP3 was suspiciously small")
+        raise ValueError("Downloaded original full-lesson video was suspiciously small")
     duration = read_duration(audio_file)
     if abs(duration - expected_duration) > 12000:
         raise ValueError(f"Unexpected VOA recording duration: {duration}ms")

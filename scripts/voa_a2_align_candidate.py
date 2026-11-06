@@ -21,7 +21,7 @@ import urllib.request
 
 from urllib.parse import urlparse
 
-# All thirty documented VOA Level 2 lessons. Lesson 8 has original MP4 audio.
+# All thirty documented VOA Level 2 lessons. Short conversations use full VOA MP4 audio.
 # Results are review candidates; source identity alone never approves timing.
 APPROVED_EPISODES = frozenset(
     f"en-a2-voa-{number:03d}" for number in range(1, 31)
@@ -42,20 +42,24 @@ def approved_source(record: dict) -> str:
         raise ValueError("Missing VOA audio URL")
     url = urlparse(source)
     official_mp3 = (
-        record["id"] != "en-a2-voa-008" and
+        record["id"] not in {
+            "en-a2-voa-007", "en-a2-voa-008", "en-a2-voa-010",
+            "en-a2-voa-013", "en-a2-voa-017"} and
         url.hostname == "voa-audio.voanews.eu" and
         url.path.startswith("/vle/") and
         url.path.lower().endswith(".mp3")
     )
-    official_lesson8_video = (
-        record["id"] == "en-a2-voa-008" and
+    official_full_video = (
+        record["id"] in {
+            "en-a2-voa-007", "en-a2-voa-008", "en-a2-voa-010",
+            "en-a2-voa-013", "en-a2-voa-017"} and
         url.hostname == "voa-video-ns.akamaized.net" and
         url.path.startswith("/pangeavideo/") and
         url.path.lower().endswith("_240p.mp4")
     )
     if (url.scheme != "https" or
             url.username is not None or url.password is not None or
-            not (official_mp3 or official_lesson8_video)):
+            not (official_mp3 or official_full_video)):
         raise ValueError("Unapproved VOA recording URL")
     return source
 
@@ -92,7 +96,7 @@ def main() -> int:
     if len(record["dialogue"]) < 5:
         raise ValueError("Unexpectedly short VOA transcript")
     expected_duration = int(record["duration_ms"])
-    extension = ".mp4" if record["id"] == "en-a2-voa-008" else ".mp3"
+    extension = ".mp4" if source.split("?")[0].endswith(".mp4") else ".mp3"
     audio_file = args.audio or Path(f"/tmp/{record['id']}_original{extension}")
     output_file = args.output or Path(f"/tmp/{record['id']}_cues_proposed.json")
 
