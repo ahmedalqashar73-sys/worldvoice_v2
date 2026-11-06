@@ -108,7 +108,9 @@ class VoaOriginalCatalog {
         items.map((e) => e.id).toSet().length != expectedCount ||
         items.any((item) => !item.isOfficialSource ||
             item.level != level ||
-            (level == 'A2' && !item.id.startsWith('en-a2-voa-')))) {
+            (level == 'A2' &&
+                (!item.id.startsWith('en-a2-voa-') ||
+                    item.durationSec < 210)))) {
       throw const FormatException('VOA original audio catalog invalid');
     }
     return items;
@@ -152,10 +154,10 @@ class _VoaOriginalsSectionState extends State<VoaOriginalsSection> {
       const SizedBox(height: 5),
       Text(ar
           ? (widget.level == 'A2'
-              ? '30 درسًا من سلسلة VOA Level 2 الأصلية. النصوص الكاملة والمقتطفات موضّحة على كل درس، والترجمات الآلية قيد المراجعة. جميع الأصوات أصلية دون توليد آلي.'
+              ? '30 درسًا من VOA بأصواتها الأصلية، كل تسجيل لا يقل عن 3:30. تظهر مدة كل درس، والنصوص المترجمة والمسودات الآلية مميّزة بوضوح.'
               : 'جميع التسجيلات من VOA. آنا صوت رئيسي متكرر، ويشارك بيت وشخصيات أخرى حسب الحلقة. لا توجد أصوات آلية في هذه القائمة.')
           : (widget.level == 'A2'
-              ? '30 original VOA Level 2 lessons. Each card distinguishes complete transcripts from excerpts and flags Arabic translation drafts. Authentic cast recordings only.'
+              ? '30 authentic VOA Level 2 recordings, each at least 3:30. Durations, bilingual transcript scope, and machine-translation drafts are labeled for every episode.'
               : 'Every recording is from VOA. Anna is a recurring voice; Pete and other characters appear when they are part of the original lesson. No synthetic voices here.'),
           style: TextStyle(fontSize: 12, height: 1.5,
               color: scheme.onSurfaceVariant)),
@@ -203,8 +205,8 @@ class _VoaOriginalsSectionState extends State<VoaOriginalsSection> {
                           : 'VOA human audio · provisional sync')
                       : widget.level == 'A2'
                           ? (ar
-                              ? 'VOA درس ${lesson.number} · ${lesson.number == 8 ? 'صوت الفيديو الأصلي' : 'تسجيل أصلي'} · ${lesson.transcriptScope == 'full' ? 'نص مترجم كامل' : 'مقتطف مترجم'}${lesson.translationStatus == 'machine_draft' ? ' · ترجمة آلية أولية' : ''}'
-                              : 'VOA Lesson ${lesson.number} · ${lesson.number == 8 ? 'original video audio' : 'original audio'} · ${lesson.transcriptScope == 'full' ? 'full bilingual text' : 'translated excerpt'}${lesson.translationStatus == 'machine_draft' ? ' · machine translation draft' : ''}')
+                              ? 'VOA درس ${lesson.number} · ${lesson.durationSec ~/ 60}:${(lesson.durationSec % 60).toString().padLeft(2, '0')} · ${lesson.number == 8 ? 'صوت الفيديو الأصلي' : 'تسجيل أصلي'} · ${lesson.transcriptScope == 'full' ? 'نص مترجم كامل' : 'مقتطف مترجم'}${lesson.translationStatus == 'machine_draft' ? ' · ترجمة آلية أولية' : ''}'
+                              : 'VOA Lesson ${lesson.number} · ${lesson.durationSec ~/ 60}:${(lesson.durationSec % 60).toString().padLeft(2, '0')} · ${lesson.number == 8 ? 'original video audio' : 'original audio'} · ${lesson.transcriptScope == 'full' ? 'full bilingual text' : 'translated excerpt'}${lesson.translationStatus == 'machine_draft' ? ' · machine translation draft' : ''}')
                           : (ar
                               ? 'Anna${lesson.petePresent ? ' + Pete' : ' + ضيوف'} · تسجيل VOA بشري أصلي'
                               : 'Anna${lesson.petePresent ? ' + Pete' : ' + guests'} · original human VOA audio'),

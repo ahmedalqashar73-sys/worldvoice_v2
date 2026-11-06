@@ -33,6 +33,8 @@ void main() {
     // and never pad a recording by duplicating or slowing its audio.
     expect(list.every((e) => e.durationSec >= 210), isTrue,
         reason: 'Every English A2 recording must be at least 3:30');
+    expect(list.map((e) => e.durationSec).reduce((a, b) => a < b ? a : b), 231);
+    expect(list.map((e) => e.durationSec).reduce((a, b) => a > b ? a : b), 301);
     expect(list.every((e) => e.audioUrl.startsWith('https://voa-')), isTrue,
         reason: 'Keep original VOA audio sources, not synthesized replacements');
     final full = list.where((e) => e.transcriptScope == 'full').toList();
@@ -194,6 +196,16 @@ void main() {
         findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-original-en-a2-voa-008')),
         findsOneWidget);
+    // Show the genuine media duration without altering the recording
+    // or changing the sequence of these A2 lessons.
+    expect(find.descendant(
+      of: find.byKey(const ValueKey('podcast-original-en-a2-voa-001')),
+      matching: find.textContaining('4:07'),
+    ), findsOneWidget);
+    expect(find.descendant(
+      of: find.byKey(const ValueKey('podcast-original-en-a2-voa-013')),
+      matching: find.textContaining('3:51'),
+    ), findsOneWidget);
   });
 
 }
