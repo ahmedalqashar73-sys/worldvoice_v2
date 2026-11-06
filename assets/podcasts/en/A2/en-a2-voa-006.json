@@ -10,35 +10,39 @@
   "recording_kind": "human",
   "voice_rights_verified": true,
   "sync_status": "unverified",
-  "transcript_scope": "excerpt",
+  "transcript_scope": "full",
   "source_url": "https://learningenglish.voanews.com/a/lesson-6-will-it-float/4064553.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 6. Human VOA audio; WorldVoice provides only a selected, bilingual transcript excerpt; read the full conversation on the credited official page. No sentence timings have been verified. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2 Lesson 6. Full credited public-domain original audio dialogue, translated into Arabic for WorldVoice. Original speaker audio; exact line timings are not verified. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2017/10/10/4814fa95-feaa-447a-a081-499d11b1d5f3_hq.mp3?download=1",
   "duration_ms": 284000,
   "hosts": [
     "Penelope",
     "Anna"
   ],
-  "other_speakers": [],
+  "other_speakers": [
+    "Professor Bot",
+    "Boy",
+    "Anna & Penelope"
+  ],
   "dialogue": [
     {
       "speaker": "Penelope",
       "text": "Anna, thanks for taking me on a tour of D.C. today.",
-      "translation_ar": "آنا، شكرًا لأنك اصطحبتني في جولة في واشنطن اليوم.",
+      "translation_ar": "آنا، شكرًا لأنك اصطحبتني في جولة بواشنطن اليوم.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Sure thing, Penelope. You are new to town. And a tour is the best way to see more of the city!",
-      "translation_ar": "بكل سرور يا بينيلوبي. أنت جديدة في المدينة، والجولة أفضل طريقة لرؤيتها.",
+      "translation_ar": "بكل سرور يا بينيلوبي. أنت جديدة في المدينة، والجولة أفضل طريقة لرؤية المزيد منها!",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Penelope",
       "text": "So, which tour are we taking – the one that goes through the city on a bus? Or the one that goes along the river in a boat?",
-      "translation_ar": "إذن أي جولة سنأخذ؟ التي تمر في المدينة بالحافلة أم التي تسير بمحاذاة النهر بالقارب؟",
+      "translation_ar": "إذن، أي جولة سنأخذ؟ التي تمر عبر المدينة بالحافلة، أم التي تسير بمحاذاة النهر بالقارب؟",
       "start_ms": null,
       "end_ms": null
     },
@@ -52,7 +56,7 @@
     {
       "speaker": "Penelope",
       "text": "What? Anna, this isn’t going to be one of those trips, is it?",
-      "translation_ar": "ماذا؟ آنا، لن تكون هذه إحدى تلك الرحلات الغريبة، أليس كذلك؟",
+      "translation_ar": "ماذا؟ آنا، لن تكون هذه واحدة من رحلاتك الغريبة، أليس كذلك؟",
       "start_ms": null,
       "end_ms": null
     },
@@ -64,9 +68,16 @@
       "end_ms": null
     },
     {
+      "speaker": "Professor Bot",
+      "text": "In this lesson, you are going to hear lots of prepositions! What’s a preposition, you ask? It’s a word that shows relationships between things. Anna says they are going on a tour through the city and along the river. Through and along are both prepositions. Watch for more!",
+      "translation_ar": "في هذا الدرس ستسمع الكثير من حروف الجر! حرف الجر كلمة توضّح العلاقة بين الأشياء. تقول آنا إنهما ستتجولان عبر المدينة وبمحاذاة النهر. «through» و«along» من حروف الجر. انتبه إلى المزيد!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
       "speaker": "Anna",
       "text": "Well, Penelope, there’s our ride!",
-      "translation_ar": "حسنًا يا بينيلوبي، ها هي وسيلة نقلنا!",
+      "translation_ar": "حسنًا يا بينيلوبي، هذه وسيلة نقلنا!",
       "start_ms": null,
       "end_ms": null
     },
@@ -74,6 +85,202 @@
       "speaker": "Penelope",
       "text": "What is it?",
       "translation_ar": "ما هذه؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "It’s the famous DC Ducks -- the boat with wheels! We will ride on the road and then sail on the water!",
+      "translation_ar": "إنها مركبة «دي سي داكس» الشهيرة، القارب ذو العجلات! سنسير على الطريق ثم نبحر في الماء!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Who thinks of these things?",
+      "translation_ar": "من يبتكر هذه الأشياء؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I don't know. But I’m glad they do! Let’s get aboard, Sailor!",
+      "translation_ar": "لا أعلم، لكنني سعيدة أنهم يفعلون! لنصعد على متنها أيتها البحّارة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "(looking at a brochure about the boat) Hey, did you know that this bus … um, boat was created during World War II to carry people and supplies?",
+      "translation_ar": "هل تعلمين أن هذه الحافلة... أقصد القارب، صُنعت في الحرب العالمية الثانية لنقل الأشخاص والإمدادات؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Wow. You know, a tour is so much more interesting with Fun Facts, like that one.",
+      "translation_ar": "واو! الجولة تصبح أكثر متعة مع معلومات طريفة مثل هذه.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "I agree. I love Fun Facts!",
+      "translation_ar": "أتفق معك، أحب المعلومات الطريفة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Boy",
+      "text": "Did I hear you say you love Fun Facts?",
+      "translation_ar": "هل سمعتكما تقولان إنكما تحبان المعلومات الطريفة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna & Penelope",
+      "text": "Yeah.",
+      "translation_ar": "نعم!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Boy",
+      "text": "Well, I have tons of Fun Facts for this tour!",
+      "translation_ar": "لدي معلومات طريفة كثيرة عن هذه الجولة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna & Penelope",
+      "text": "Great!",
+      "translation_ar": "رائع!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Penelope, where are his parents?",
+      "translation_ar": "بينيلوبي، أين والداه؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Maybe - maybe he’s the Captain’s son and he helps his dad on tours!",
+      "translation_ar": "ربما يكون ابن القبطان ويساعد والده في الجولات!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh yeah! It would be so awesome to ride around the city in a boat all day with your dad!",
+      "translation_ar": "نعم، سيكون رائعًا أن تتجول في المدينة بقارب طوال اليوم مع والدك!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "This is amazing, Anna. There are so many beautiful buildings along this road!",
+      "translation_ar": "هذا مذهل يا آنا، توجد مبانٍ جميلة كثيرة على امتداد هذا الطريق!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Hey, the Washington Monument is on the left!",
+      "translation_ar": "انظري، نصب واشنطن على اليسار!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "I have a Fun Fact too! Did you know that the Washington Monument was damaged in an earthquake? Whoa. Did you feel that?! I heard: \"around the city in a boat,\" \"along this road and \"on the left.\" All of these are prepositions showing place. Let's watch for more places and prepositions!",
+      "translation_ar": "لدي معلومة طريفة أيضًا! هل تعلمان أن نصب واشنطن تضرر بسبب زلزال؟ هل شعرتما بذلك؟ سمعت تعبيرات «حول المدينة بقارب» و«على امتداد الطريق» و«على اليسار». كلها تستخدم حروف جر للمكان. لنبحث عن المزيد!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Look, Anna, we’re across from the White House!",
+      "translation_ar": "انظري يا آنا، نحن مقابل البيت الأبيض!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Penelope, the only thing between us and the President is the street … and a park … and a security gate .... and police officers … with guns.",
+      "translation_ar": "بينيلوبي، الشيء الوحيد بيننا وبين الرئيس هو الشارع... وحديقة... وبوابة أمنية... ورجال شرطة يحملون أسلحة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Boy",
+      "text": "Excuse me, do you want to know a Fun Fact about the White House?",
+      "translation_ar": "عذرًا، هل تودان معرفة معلومة طريفة عن البيت الأبيض؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna & Penelope",
+      "text": "Yes!",
+      "translation_ar": "نعم!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Boy",
+      "text": "Inside the White House there is a swimming pool, a movie theater and 32 bathrooms!",
+      "translation_ar": "داخل البيت الأبيض يوجد مسبح وسينما واثنان وثلاثون حمامًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Thirty-two bathrooms! That’s a lot of bathrooms!",
+      "translation_ar": "اثنان وثلاثون حمامًا! هذا عدد كبير!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Boy",
+      "text": "I’d be happy with two. I live in a house with my mom, four sisters, two aunts and only one bathroom!",
+      "translation_ar": "سأكون سعيدًا بحمامين فقط. أعيش مع أمي وأخواتي الأربع وعمّتيّ، ولدينا حمام واحد فقط!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Oh my! You know, Anna, we should give him a tip!",
+      "translation_ar": "يا إلهي! أتعلمين يا آنا، ينبغي أن نعطيه إكرامية!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Of course! It is polite to tip your tour guide! Luckily, I have lots of dollar bills!",
+      "translation_ar": "بالطبع! من اللائق إعطاء المرشد السياحي إكرامية. لحسن الحظ معي أوراق نقدية كثيرة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "That was a great Fun Fact! Here you go!",
+      "translation_ar": "كانت معلومة رائعة! تفضل!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Boy",
+      "text": "Thank you! I can tell you Fun Facts all day!",
+      "translation_ar": "شكرًا لكما! أستطيع سرد المعلومات الطريفة طوال اليوم!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Did you hear any more prepositions of place? I heard \"between us and the president\" “inside the White House\" and \"in a house.\" And did you hear that the Duck Boat can go on the river? I don't believe it. Join us next time to find out which preposition we will use: The boat went ON the river or The boat went INTO the river?",
+      "translation_ar": "هل سمعت حروف جر أخرى للمكان؟ سمعت «بيننا وبين الرئيس»، و«داخل البيت الأبيض»، و«في منزل». وهل سمعت أن القارب يسير في النهر؟ لا أصدق! انضم إلينا المرة القادمة لتعرف هل نقول «على النهر» أم «إلى داخل النهر»!",
       "start_ms": null,
       "end_ms": null
     }

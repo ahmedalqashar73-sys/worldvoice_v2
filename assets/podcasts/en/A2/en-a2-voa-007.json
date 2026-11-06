@@ -10,63 +10,291 @@
   "recording_kind": "human",
   "voice_rights_verified": true,
   "sync_status": "unverified",
-  "transcript_scope": "excerpt",
+  "transcript_scope": "full",
   "source_url": "https://learningenglish.voanews.com/a/lesson-7-tip-your-tour-guide/4064769.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 7. Human VOA audio; WorldVoice provides only a selected, bilingual transcript excerpt; read the full conversation on the credited official page. No sentence timings have been verified. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2 Lesson 7. Full credited public-domain original audio dialogue, translated into Arabic for WorldVoice. Original speaker audio; exact line timings are not verified. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2017/10/17/45e008c5-648b-4275-ad2d-d3b058d199a6_hq.mp3?download=1",
   "duration_ms": 237000,
   "hosts": [
     "Anna",
     "Boy"
   ],
-  "other_speakers": [],
+  "other_speakers": [
+    "Professor Bot",
+    "Penelope",
+    "Captain"
+  ],
   "dialogue": [
+    {
+      "speaker": "Professor Bot",
+      "text": "Welcome back! Anna and Penelope are taking a tour with DC Ducks. In this lesson, we are looking for prepositions. Listen for in, on, at, under and over - some important prepositions of place.",
+      "translation_ar": "مرحبًا بعودتك! آنا وبينيلوبي في جولة بمركبة دي سي داكس. في هذا الدرس نبحث عن حروف الجر، فاستمع إلى كلمات in وon وat وunder وover.",
+      "start_ms": null,
+      "end_ms": null
+    },
     {
       "speaker": "Anna",
       "text": "Penelope, the Lincoln Memorial is coming up on your left!",
-      "translation_ar": "بينيلوبي، يقترب نصب لنكولن التذكاري على يسارك!",
+      "translation_ar": "بينيلوبي، نصب لنكولن سيظهر على يسارك!",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Boy",
       "text": "You’re going to love my Lincoln Memorial Fun Fact!",
-      "translation_ar": "ستعجبك هذه المعلومة الطريفة عن نصب لنكولن!",
+      "translation_ar": "ستعجبكما معلومتي الطريفة عن نصب لنكولن!",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Oh, please tell us!",
-      "translation_ar": "أوه، أخبرنا من فضلك!",
+      "translation_ar": "أخبرنا من فضلك!",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Boy",
       "text": "On a wall inside the memorial, the word “FUTURE” was carved wrong! They carved “EUTURE”!",
-      "translation_ar": "على أحد الجدران داخل النصب، نُحتت كلمة «المستقبل» خطأً! كتبوا «EUTURE»!",
+      "translation_ar": "على جدار داخل النصب نُقشت كلمة «FUTURE» بشكل خاطئ، فكتبوا «EUTURE»!",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Well, we all make mistakes.",
-      "translation_ar": "حسنًا، كلنا نخطئ.",
+      "translation_ar": "كلنا نرتكب أخطاء.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Boy",
       "text": "Yeah, but this mistake was carved in stone!",
-      "translation_ar": "صحيح، لكن هذا الخطأ نُحت في الحجر!",
+      "translation_ar": "نعم، لكن هذا الخطأ نُقش على الحجر!",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "You’re right. That is pretty bad. Here’s another dollar!",
-      "translation_ar": "أنت محق، هذا خطأ سيئ فعلًا. إليك دولارًا آخر!",
+      "translation_ar": "أنت محق، هذا سيئ حقًا. إليك دولارًا آخر!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "More fun facts, please! (Crossing the river) I love riding over bridges! The water looks so pretty from here!",
+      "translation_ar": "المزيد من المعلومات الطريفة من فضلك! أحب العبور فوق الجسور، فالماء يبدو جميلًا جدًا من هنا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Penelope, this is amazing! A minute ago, we were riding along the river, and now we’re riding in the river! Awesome.",
+      "translation_ar": "بينيلوبي، هذا مذهل! قبل دقيقة كنا نسير بمحاذاة النهر، والآن نحن نسير في النهر! رائع!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Hey, we’re passing by the Pentagon on our right!",
+      "translation_ar": "انظري، نحن نمر بجانب مبنى البنتاغون على يميننا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Penelope, you love riding over the water on a bridge. But I love riding under a bridge in a boat!",
+      "translation_ar": "بينيلوبي، أنت تحبين العبور فوق الماء على جسر، أما أنا فأحب المرور تحت الجسر بقارب!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Anna, look! An airplane is flying right over our heads!",
+      "translation_ar": "آنا، انظري! طائرة تحلق فوق رؤوسنا مباشرة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Wow! This is the closest I’ve ever been to an airplane in flight. Well, I’ve been inside a flying airplane. But not outside of an airplane as it flies over my head!",
+      "translation_ar": "واو! هذه أقرب مسافة بيني وبين طائرة تحلق. بالطبع سبق أن كنت داخل طائرة، لكن لم أكن خارجها وهي تمر فوق رأسي!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "And now we’re driving out of the water. I still can’t believe this thing drives and sails!",
+      "translation_ar": "والآن نخرج من الماء إلى الطريق. ما زلت لا أصدق أن هذه المركبة تسير وتبحر!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I know. It’s amazing.",
+      "translation_ar": "أعرف، إنه أمر مذهل.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Boy",
+      "text": "After we ride along these railroad tracks, you’ll see my favorite part of the tour! The U.S. Treasury where they make money!",
+      "translation_ar": "بعد أن نسير بمحاذاة خطوط السكك الحديدية سترون الجزء المفضل لدي من الجولة: وزارة الخزانة الأمريكية، حيث يصنعون النقود!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "That young man is making a lot of money, too. Did you hear these prepositions? On your left, on our right, in the river, over bridges, over our heads, over my head, on a bridge. As you watch more, look for 'inside' and 'outside.'",
+      "translation_ar": "هذا الشاب يجني مالًا كثيرًا أيضًا! هل سمعت حروف الجر؟ على يسارك، على يميننا، في النهر، فوق الجسور، فوق رؤوسنا. وفي بقية الدرس ابحث عن «inside» و«outside».",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Look, the U.S. Capitol is coming up!",
+      "translation_ar": "انظروا، مبنى الكابيتول يقترب!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Boy",
+      "text": "I have a great Fun Fact about the U.S. Capitol.",
+      "translation_ar": "لدي معلومة طريفة عن مبنى الكابيتول!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "What is it?",
+      "translation_ar": "ما هي؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Boy",
+      "text": "There are tunnels under the Capitol. They connect the Capitol and office buildings of lawmakers.",
+      "translation_ar": "توجد أنفاق تحت مبنى الكابيتول تربطه بمكاتب المشرّعين.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I bet they built them years ago for secret reasons!",
+      "translation_ar": "أراهن أنهم بنوها منذ سنوات لأسباب سرية!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Boy",
+      "text": "No. The lawmakers did not want to walk around outside in bad weather.",
+      "translation_ar": "لا، أراد المشرّعون تجنب المشي في الخارج أثناء الطقس السيئ.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh.",
+      "translation_ar": "أوه.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "We’re back at Union Station!",
+      "translation_ar": "لقد عدنا إلى محطة يونيون!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Boy",
+      "text": "Do you want to know a creepy Fun Fact about Union Station? (he points to Union Station)",
+      "translation_ar": "هل تريدان سماع معلومة مخيفة عن محطة يونيون؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "The creepier the better!",
+      "translation_ar": "كلما كانت أكثر إخافة كان ذلك أفضل!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Boy",
+      "text": "Many years ago, inside Union Station, there was a funeral home!",
+      "translation_ar": "منذ سنوات كثيرة كان داخل محطة يونيون مكتب لتجهيز الجنازات!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "A funeral home?! You mean, for dead people?!",
+      "translation_ar": "مكتب جنازات؟ أتقصد للموتى؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Boy",
+      "text": "Do you know another kind of funeral home?",
+      "translation_ar": "هل تعرفين نوعًا آخر من مكاتب الجنازات؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No!",
+      "translation_ar": "لا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Boy",
+      "text": "Well, I’ve gotta run!",
+      "translation_ar": "حسنًا، يجب أن أذهب!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Thanks for giving us the great tour!",
+      "translation_ar": "شكرًا لك على هذه الجولة الرائعة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Captain, that was awesome! And your son is a great tour guide!",
+      "translation_ar": "أيها القبطان، كانت الجولة رائعة! وابنك مرشد سياحي ممتاز!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Captain",
+      "text": "What son?",
+      "translation_ar": "أي ابن؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Him.",
+      "translation_ar": "هو.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Captain",
+      "text": "I’ve never seen that boy in my life! See ya, ladies!",
+      "translation_ar": "لم أرَ ذلك الصبي في حياتي! إلى اللقاء يا سيدتين!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "I learned many new Fun Facts in this lesson. Did you learn about prepositions? Here’s a list of all the prepositions used in this lesson. Wow! That’s a lot! I know, let’s not read them. Let’s sing them! Hit it, boys! Take it away singers!",
+      "translation_ar": "تعلمت الكثير من المعلومات الطريفة في هذا الدرس. وهل تعلمت حروف الجر؟ هذه قائمة بالحروف المستخدمة. يا لها من قائمة طويلة! لن نقرأها، بل سنغنيها! هيا أيها المغنون!",
       "start_ms": null,
       "end_ms": null
     }
