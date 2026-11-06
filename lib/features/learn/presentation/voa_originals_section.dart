@@ -57,11 +57,21 @@ class VoaOriginalLesson {
   bool get isOfficialSource {
     final audio = Uri.tryParse(audioUrl);
     final transcript = Uri.tryParse(sourceUrl);
-    return audio != null && transcript != null &&
+    final officialAudio = audio != null &&
         audio.scheme == 'https' &&
         audio.host == 'voa-audio.voanews.eu' &&
         audio.path.startsWith('/vle/') &&
-        audio.path.endsWith('.mp3') &&
+        audio.path.endsWith('.mp3');
+    // VOA Level 2 Lesson 8 publishes an official video with the authentic
+    // performers, but the page does not provide a standalone MP3.
+    final originalLesson8Video = audio != null &&
+        level == 'A2' && number == 8 &&
+        audio.scheme == 'https' &&
+        audio.host == 'voa-video-ns.akamaized.net' &&
+        audio.path.startsWith('/pangeavideo/') &&
+        audio.path.endsWith('_240p.mp4');
+    return transcript != null &&
+        (officialAudio || originalLesson8Video) &&
         transcript.scheme == 'https' &&
         transcript.host == 'learningenglish.voanews.com' &&
         durationSec > 0 &&
@@ -90,8 +100,9 @@ class VoaOriginalCatalog {
         .map((item) => VoaOriginalLesson.fromJson(
             item as Map<String, dynamic>))
         .toList(growable: false);
-    if (items.length != 15 ||
-        items.map((e) => e.id).toSet().length != 15 ||
+    final expectedCount = level == 'A2' ? 30 : 15;
+    if (items.length != expectedCount ||
+        items.map((e) => e.id).toSet().length != expectedCount ||
         items.any((item) => !item.isOfficialSource ||
             item.level != level ||
             (level == 'A2' && !item.id.startsWith('en-a2-voa-')))) {
@@ -132,24 +143,24 @@ class _VoaOriginalsSectionState extends State<VoaOriginalsSection> {
     final scheme = Theme.of(context).colorScheme;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(ar
-          ? 'تسجيلات VOA الأصلية — ${widget.level} — 15 حلقة'
-          : 'Original VOA audio — ${widget.level} — 15 episodes',
+          ? 'تسجيلات VOA الأصلية — ${widget.level} — ${widget.level == 'A2' ? 30 : 15} حلقة'
+          : 'Original VOA audio — ${widget.level} — ${widget.level == 'A2' ? 30 : 15} episodes',
           style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
       const SizedBox(height: 5),
       Text(ar
           ? (widget.level == 'A2'
-              ? '15 تسجيلًا بشريًا من VOA Level 2، مع نص الحوار كاملًا بالإنجليزية والعربية داخل التطبيق. لم تُعتمد مزامنة الجمل آليًا بعد.'
+              ? '30 درسًا من سلسلة VOA Level 2 الأصلية. 15 حوارًا مترجمًا كاملًا و15 درسًا آخر معه مقتطف مترجم؛ تسجيلات الشخصيات الأصلية دون أصوات آلية. لم يُعتمد تزامن الجمل بعد.'
               : 'جميع التسجيلات من VOA. آنا صوت رئيسي متكرر، ويشارك بيت وشخصيات أخرى حسب الحلقة. لا توجد أصوات آلية في هذه القائمة.')
           : (widget.level == 'A2'
-              ? '15 original VOA Level 2 recordings with full English and Arabic conversations in the app. Sentence-by-sentence sync is pending.'
+              ? '30 original VOA Level 2 lessons. Fifteen have complete bilingual dialogues and fifteen have credited translated excerpts. Real cast recordings, no synthetic voices; sentence sync is pending.'
               : 'Every recording is from VOA. Anna is a recurring voice; Pete and other characters appear when they are part of the original lesson. No synthetic voices here.'),
           style: TextStyle(fontSize: 12, height: 1.5,
               color: scheme.onSurfaceVariant)),
       if (widget.level == 'A2') ...[
         const SizedBox(height: 7),
         Text(ar
-            ? 'VOA Level 2 منهج متوسط وقد يتجاوز مستوى A2 الأوروبي في بعض الدروس. درس VOA رقم 8 غير موجود بهذه القائمة لعدم التحقق من ملف MP3 مستقل.'
-            : 'VOA Level 2 is an intermediate series, not an exact CEFR A2 match. Original lesson 8 is omitted because its MP3 could not be verified.',
+            ? 'VOA Level 2 منهج متوسط وليس معادلًا رسميًا لـ A2 الأوروبي. الدرس 8 يستعمل صوت فيديو VOA الأصلي لعدم توفر MP3 مستقل؛ قد يحتاج بيانات أكثر.'
+            : 'VOA Level 2 is an intermediate series, not a formal CEFR A2 equivalent. Lesson 8 streams the original VOA video audio because no independent MP3 is published.',
             style: TextStyle(fontSize: 11, height: 1.4,
                 color: scheme.onSurfaceVariant)),
       ],
@@ -189,8 +200,8 @@ class _VoaOriginalsSectionState extends State<VoaOriginalsSection> {
                           : 'VOA human audio · provisional sync')
                       : widget.level == 'A2'
                           ? (ar
-                              ? 'VOA درس ${lesson.number} · صوت أصلي · ${lesson.transcriptScope == 'full' ? 'نص مترجم كامل' : 'مقتطف مترجم'}'
-                              : 'VOA Lesson ${lesson.number} · original audio · ${lesson.transcriptScope == 'full' ? 'full bilingual text' : 'translated excerpt'}')
+                              ? 'VOA درس ${lesson.number} · ${lesson.number == 8 ? 'صوت الفيديو الأصلي' : 'تسجيل أصلي'} · ${lesson.transcriptScope == 'full' ? 'نص مترجم كامل' : 'مقتطف مترجم'}'
+                              : 'VOA Lesson ${lesson.number} · ${lesson.number == 8 ? 'original video audio' : 'original audio'} · ${lesson.transcriptScope == 'full' ? 'full bilingual text' : 'translated excerpt'}')
                           : (ar
                               ? 'Anna${lesson.petePresent ? ' + Pete' : ' + ضيوف'} · تسجيل VOA بشري أصلي'
                               : 'Anna${lesson.petePresent ? ' + Pete' : ' + guests'} · original human VOA audio'),

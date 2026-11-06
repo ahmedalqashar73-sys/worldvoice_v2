@@ -20,20 +20,22 @@ void main() {
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 20, 30, 47]);
   });
 
-  test('VOA Level 2 has fifteen source-verified audio episodes', () async {
+  test('VOA Level 2 catalog includes all 30 original lesson recordings', () async {
     final list = await const VoaOriginalCatalog(level: 'A2').load();
-    expect(list, hasLength(15));
+    expect(list, hasLength(30));
     expect(list.every((e) => e.isOfficialSource && e.level == 'A2'), isTrue);
     expect(list.map((e) => e.number).toList(),
-        [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16]);
+        List<int>.generate(30, (i) => i + 1));
+    expect(list.singleWhere((e) => e.number == 8).audioUrl,
+        contains('voa-video-ns.akamaized.net'));
     expect(list.every((e) => e.syncStatus == 'unverified'), isTrue);
     expect(list.where((e) => e.transcriptScope == 'full').map((e) => e.number),
         [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16]);
-    expect(list.where((e) => e.transcriptScope == 'excerpt'), isEmpty);
+    expect(list.where((e) => e.transcriptScope == 'excerpt'), hasLength(15));
     expect(list.every((e) => e.existingEpisodeId == e.id), isTrue);
   });
 
-  test('A2 audio and all full bilingual transcripts refer to the same VOA lesson',
+  test('A2 authentic audio refers to its translated VOA dialogue',
       () async {
     const repository = AcademyPodcastRepository();
     final originals = await const VoaOriginalCatalog(level: 'A2').load();
@@ -49,12 +51,16 @@ void main() {
       expect(episode.canReadAloud, isFalse, reason: item.id);
       expect(episode.isPlayable, isFalse,
           reason: 'No invented word timings: ${item.id}');
-      expect(episode.isExcerpt, isFalse, reason: item.id);
+      expect(episode.isExcerpt, item.transcriptScope == 'excerpt',
+          reason: item.id);
       expect(episode.sourceUrl, item.sourceUrl, reason: item.id);
       expect(episode.audioUrl, item.audioUrl, reason: item.id);
-      expect(episode.backupAudioUrl, isNotNull, reason: item.id);
+      if (item.transcriptScope == 'full') {
+        expect(episode.backupAudioUrl, isNotNull, reason: item.id);
+      }
       expect(episode.durationMs, item.durationSec * 1000, reason: item.id);
-      expect(episode.dialogue.length, greaterThanOrEqualTo(20),
+      expect(episode.dialogue.length,
+          greaterThanOrEqualTo(item.transcriptScope == 'full' ? 20 : 5),
           reason: item.id);
       expect(episode.dialogue.every((line) =>
           line.text.trim().isNotEmpty &&
@@ -143,7 +149,7 @@ void main() {
       (tester) async {
     final originals = await tester.runAsync(
         () => const VoaOriginalCatalog(level: 'A2').load());
-    expect(originals, hasLength(15));
+    expect(originals, hasLength(30));
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
         body: SingleChildScrollView(
@@ -158,10 +164,12 @@ void main() {
     await tester.pump();
     expect(find.text('VOA index unavailable.'), findsNothing);
     expect(find.textContaining('full bilingual text'), findsNWidgets(15));
-    expect(find.textContaining('translated excerpt'), findsNothing);
+    expect(find.textContaining('translated excerpt'), findsNWidgets(15));
     expect(find.byKey(const ValueKey('podcast-original-en-a2-voa-001')),
         findsOneWidget);
-    expect(find.byKey(const ValueKey('podcast-original-en-a2-voa-016')),
+    expect(find.byKey(const ValueKey('podcast-original-en-a2-voa-030')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('podcast-original-en-a2-voa-008')),
         findsOneWidget);
   });
 

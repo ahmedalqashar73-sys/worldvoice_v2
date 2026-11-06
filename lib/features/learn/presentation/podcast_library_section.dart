@@ -98,7 +98,7 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
             const Icon(Icons.schedule_rounded,
                 color: Color(0xFFF1D98F), size: 16),
             const SizedBox(width: 4),
-            Text(voaPilot ? '15 VOA' : '≈ 05:00',
+            Text(voaPilot ? (_selectedLevel == 'A2' ? '30 VOA' : '15 VOA') : '≈ 05:00',
                 style: TextStyle(color: Color(0xFFF1D98F),
                     fontWeight: FontWeight.w800, fontSize: 13)),
           ]),
@@ -1125,7 +1125,10 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
               ]),
             ),
           ],
-          if (episode.canStream) ...[
+          // The offline helper validates MP3 bytes. Lesson 8 is a video
+          // audio stream and must not be offered an incompatible MP3 save.
+          if (episode.canStream &&
+              Uri.tryParse(episode.audioUrl ?? '')?.path.endsWith('.mp3') == true) ...[
             const SizedBox(height: 8),
             Align(
               alignment: AlignmentDirectional.centerStart,

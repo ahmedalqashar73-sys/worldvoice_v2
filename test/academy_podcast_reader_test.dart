@@ -73,13 +73,13 @@ void main() {
     expect(find.text('مرحبًا! هل هذا المقعد فارغ؟ المقهى مزدحم اليوم.'),
         findsOneWidget);
   });
-  testWidgets('English A2 lists 15 original VOA human-voice lessons',
+  testWidgets('English A2 presents all 30 official VOA source lessons',
       (tester) async {
     // Warm the official A2 catalog before rendering, then pump by a bounded
     // interval: an active FutureBuilder spinner prevents pumpAndSettle.
     final loaded = await tester.runAsync(
         () => const VoaOriginalCatalog(level: 'A2').load());
-    expect(loaded, hasLength(15));
+    expect(loaded, hasLength(30));
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
         body: SingleChildScrollView(child: PodcastLibrarySection(
@@ -95,15 +95,17 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 250));
     // Verify actual A2 tab integration here; the independent VOA section
-    // widget test checks all 15 rendered cards without navigation races.
+    // widget test checks all 30 rendered cards without navigation races.
     expect(tester.widget<ChoiceChip>(a2).selected, isTrue);
     final section = tester.widget<VoaOriginalsSection>(
         find.byType(VoaOriginalsSection));
     expect(section.level, 'A2');
-    expect(section.initialLessons, hasLength(15));
-    expect(section.initialLessons!.any((e) => e.number == 8), isFalse);
-    expect(section.initialLessons!.every((e) =>
-        e.transcriptScope == 'full'), isTrue);
+    expect(section.initialLessons, hasLength(30));
+    expect(section.initialLessons!.any((e) => e.number == 8), isTrue);
+    expect(section.initialLessons!.where((e) =>
+        e.transcriptScope == 'full'), hasLength(15));
+    expect(section.initialLessons!.where((e) =>
+        e.transcriptScope == 'excerpt'), hasLength(15));
   });
 
   testWidgets('Spanish A1 shows its complete bilingual readable pilot',
