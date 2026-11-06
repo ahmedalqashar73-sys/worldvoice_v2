@@ -74,7 +74,10 @@ class VoaOriginalLesson {
         (audio.path.endsWith('_240p.mp4') ||
             audio.path.endsWith('_mobile.mp4')) &&
         durationSec >= 240 && durationSec <= 360 &&
-        transcriptScope == 'excerpt' &&
+        // VOA Level 2 Lesson 8 has a complete conversation transcription
+        // inside its longer original lesson, unlike newer excerpts.
+        (transcriptScope == 'excerpt' ||
+            (level == 'A2' && number == 8 && transcriptScope == 'full')) &&
         (level == 'A1' ||
             (level == 'A2' && const {7, 8, 10, 13, 17}.contains(number)));
     return transcript != null &&
