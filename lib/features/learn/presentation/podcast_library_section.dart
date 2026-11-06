@@ -1161,8 +1161,12 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
           if (episode.isExcerpt) ...[
             const SizedBox(height: 8),
             Text(ar
-                ? 'المحادثة المعروضة مقتطف أصلي مترجم وليست النص الكامل. استمع إلى التسجيل كاملًا، وافتح النص الكامل من VOA أدناه. لم يتم اعتماد توقيت الجمل.'
-                : 'These are selected translated lines, not the full transcript. Listen to the complete official VOA recording and open the full transcript below. No line timings are certified.',
+                ? (Uri.tryParse(episode.audioUrl ?? '')?.path.endsWith('.mp4') == true
+                    ? 'الدرس الأصلي الكامل من VOA مدته نحو 5 دقائق. النص الإنجليزي وترجمته العربية هنا للمحادثة فقط؛ فقرات الشرح الأخرى ليست مترجمة أو متزامنة بعد.'
+                    : 'المحادثة المعروضة مقتطف مترجم وليست النص الكامل. افتح المصدر الأصلي من VOA. لم يتم اعتماد توقيت الجمل.')
+                : (Uri.tryParse(episode.audioUrl ?? '')?.path.endsWith('.mp4') == true
+                    ? 'The complete original VOA lesson is about five minutes. The bilingual text covers the conversation only, not the additional teaching narration. Full-lesson timing is not yet verified.'
+                    : 'These are translated excerpts, not the full transcript. Open the original VOA source. No line timings are certified.'),
                 style: const TextStyle(
                     color: Color(0xFFE0EEE5), fontSize: 11, height: 1.4)),
           ],

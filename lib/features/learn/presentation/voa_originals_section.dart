@@ -65,16 +65,20 @@ class VoaOriginalLesson {
         audio.host == 'voa-audio.voanews.eu' &&
         audio.path.startsWith('/vle/') &&
         audio.path.endsWith('.mp3');
-    // VOA Level 2 Lesson 8 publishes an official video with the authentic
-    // performers, but the page does not provide a standalone MP3.
-    final originalLesson8Video = audio != null &&
-        level == 'A2' && number == 8 &&
+    // Full VOA video has the original human voices and lesson teaching.
+    // Its bilingual conversation excerpt is not complete video subtitles.
+    final originalLessonVideo = audio != null &&
         audio.scheme == 'https' &&
         audio.host == 'voa-video-ns.akamaized.net' &&
         audio.path.startsWith('/pangeavideo/') &&
-        audio.path.endsWith('_240p.mp4');
+        (audio.path.endsWith('_240p.mp4') ||
+            audio.path.endsWith('_mobile.mp4')) &&
+        durationSec >= 240 && durationSec <= 360 &&
+        transcriptScope == 'excerpt' &&
+        (level == 'A1' ||
+            (level == 'A2' && const {7, 8, 10, 13, 17}.contains(number)));
     return transcript != null &&
-        (officialAudio || originalLesson8Video) &&
+        (officialAudio || originalLessonVideo) &&
         transcript.scheme == 'https' &&
         transcript.host == 'learningenglish.voanews.com' &&
         durationSec > 0 &&
@@ -153,10 +157,10 @@ class _VoaOriginalsSectionState extends State<VoaOriginalsSection> {
       Text(ar
           ? (widget.level == 'A2'
               ? '30 درسًا من سلسلة VOA Level 2 الأصلية. النصوص الكاملة والمقتطفات موضّحة على كل درس، والترجمات الآلية قيد المراجعة. جميع الأصوات أصلية دون توليد آلي.'
-              : 'جميع التسجيلات من VOA. آنا صوت رئيسي متكرر، ويشارك بيت وشخصيات أخرى حسب الحلقة. لا توجد أصوات آلية في هذه القائمة.')
+              : '15 درسًا كاملًا من VOA، مدة كل واحد نحو خمس دقائق. النص الإنجليزي وترجمته العربية يخصان المحادثة فقط، وليس كل شرح الدرس.')
           : (widget.level == 'A2'
               ? '30 original VOA Level 2 lessons. Each card distinguishes complete transcripts from excerpts and flags Arabic translation drafts. Authentic cast recordings only.'
-              : 'Every recording is from VOA. Anna is a recurring voice; Pete and other characters appear when they are part of the original lesson. No synthetic voices here.'),
+              : '15 original full VOA lessons of about five minutes. The bilingual text covers their conversations, not all teaching narration.'),
           style: TextStyle(fontSize: 12, height: 1.5,
               color: scheme.onSurfaceVariant)),
       if (widget.level == 'A2') ...[
@@ -206,8 +210,8 @@ class _VoaOriginalsSectionState extends State<VoaOriginalsSection> {
                               ? 'VOA درس ${lesson.number} · ${lesson.number == 8 ? 'صوت الفيديو الأصلي' : 'تسجيل أصلي'} · ${lesson.transcriptScope == 'full' ? 'نص مترجم كامل' : 'مقتطف مترجم'}${lesson.translationStatus == 'machine_draft' ? ' · ترجمة آلية أولية' : ''}'
                               : 'VOA Lesson ${lesson.number} · ${lesson.number == 8 ? 'original video audio' : 'original audio'} · ${lesson.transcriptScope == 'full' ? 'full bilingual text' : 'translated excerpt'}${lesson.translationStatus == 'machine_draft' ? ' · machine translation draft' : ''}')
                           : (ar
-                              ? 'Anna${lesson.petePresent ? ' + Pete' : ' + ضيوف'} · تسجيل VOA بشري أصلي'
-                              : 'Anna${lesson.petePresent ? ' + Pete' : ' + guests'} · original human VOA audio'),
+                              ? 'VOA · درس كامل ~5 دقائق · المحادثة مترجمة'
+                              : 'VOA · full ~5-minute lesson · translated conversation'),
                     style: TextStyle(fontSize: 11,
                         color: scheme.onSurfaceVariant),
                   ),
