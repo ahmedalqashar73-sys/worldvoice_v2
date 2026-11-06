@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:worldvoice/features/learn/data/academy_podcast_repository.dart';
 import 'package:worldvoice/features/learn/presentation/podcast_library_section.dart';
 import 'package:worldvoice/features/learn/presentation/voa_originals_section.dart';
+import 'package:worldvoice/features/learn/presentation/voa_originals_section.dart';
 
 void main() {
   testWidgets('Podcast tab shows CEFR levels and script-ready pilot',
@@ -94,16 +95,16 @@ void main() {
     await tester.tap(a2);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 250));
-
-    expect(find.byKey(const ValueKey('podcast-original-en-a2-voa-001')),
-        findsOneWidget);
-    expect(find.byKey(const ValueKey('podcast-original-en-a2-voa-016')),
-        findsOneWidget);
-    // Lesson 8 has no independently verified MP3. Never invent one.
-    expect(find.byKey(const ValueKey('podcast-original-en-a2-voa-008')),
-        findsNothing);
-    expect(find.textContaining('VOA Lesson'), findsNWidgets(15));
-    expect(find.textContaining('full bilingual text'), findsNWidgets(15));
+    // Verify actual A2 tab integration here; the independent VOA section
+    // widget test checks all 15 rendered cards without navigation races.
+    expect(tester.widget<ChoiceChip>(a2).selected, isTrue);
+    final section = tester.widget<VoaOriginalsSection>(
+        find.byType(VoaOriginalsSection));
+    expect(section.level, 'A2');
+    expect(section.initialLessons, hasLength(15));
+    expect(section.initialLessons!.any((e) => e.number == 8), isFalse);
+    expect(section.initialLessons!.every((e) =>
+        e.transcriptScope == 'full'), isTrue);
   });
 
   testWidgets('Spanish A1 shows its complete bilingual readable pilot',

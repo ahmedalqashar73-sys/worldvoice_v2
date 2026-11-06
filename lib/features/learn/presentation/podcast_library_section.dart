@@ -124,19 +124,20 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
 
   Future<void> _openVoaLesson(VoaOriginalLesson lesson) async {
     if (!mounted) return;
-    // Original VOA episodes 1–12 are deliberately separate from WorldVoice
-    // script-practice slots in the CEFR index. Both audio and bilingual
-    // dialogue are loaded from the *same* VOA lesson, never synthesized.
-    if (lesson.level == 'A1' &&
-        lesson.number >= 1 && lesson.number <= 12) {
+    // VOA A2 lessons have dedicated audio + bilingual transcript assets just
+    // like A1 originals 1–12. Open the full reader, not the legacy audio-only
+    // fallback that sends learners to the website for its English text.
+    if (lesson.level == 'A2' ||
+        (lesson.level == 'A1' &&
+            lesson.number >= 1 && lesson.number <= 12)) {
       final entry = AcademyPodcastEntry(
         id: lesson.id,
-        level: 'A1',
+        level: lesson.level,
         language: 'en',
         title: lesson.title,
         titleAr: lesson.titleAr,
         status: 'published_audio',
-        asset: 'assets/podcasts/en/A1/${lesson.id}.json',
+        asset: 'assets/podcasts/en/${lesson.level}/${lesson.id}.json',
       );
       await Navigator.of(context).push<void>(MaterialPageRoute(
         builder: (_) =>
