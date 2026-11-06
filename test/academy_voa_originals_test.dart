@@ -75,7 +75,10 @@ void main() {
     expect(loaded, hasLength(15));
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(body: SingleChildScrollView(
-        child: VoaOriginalsSection(onOpen: (_) {}))),
+        child: VoaOriginalsSection(
+          initialLessons: loaded!,
+          onOpen: (_) {},
+        ))),
     ));
     await tester.pump();
     await tester.pumpAndSettle();

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show SynchronousFuture;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
@@ -81,8 +82,14 @@ class VoaOriginalCatalog {
 /// The main English A1 audio list is all one PROVIDER (VOA).
 /// Anna is the returning voice; the VOA cast includes other speakers.
 class VoaOriginalsSection extends StatefulWidget {
-  const VoaOriginalsSection({super.key, required this.onOpen});
+  const VoaOriginalsSection({
+    super.key, required this.onOpen, this.initialLessons,
+  });
   final ValueChanged<VoaOriginalLesson> onOpen;
+
+  /// Optional preloaded original catalog for reliable widget testing and
+  /// embedding; production always uses the real VOA JSON asset.
+  final List<VoaOriginalLesson>? initialLessons;
 
   @override
   State<VoaOriginalsSection> createState() => _VoaOriginalsSectionState();
@@ -90,7 +97,10 @@ class VoaOriginalsSection extends StatefulWidget {
 
 class _VoaOriginalsSectionState extends State<VoaOriginalsSection> {
   late final Future<List<VoaOriginalLesson>> _lessons =
-      const VoaOriginalCatalog().load();
+      widget.initialLessons == null
+          ? const VoaOriginalCatalog().load()
+          : SynchronousFuture<List<VoaOriginalLesson>>(
+              widget.initialLessons!);
 
   @override
   Widget build(BuildContext context) {
