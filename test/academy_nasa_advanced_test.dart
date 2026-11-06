@@ -44,8 +44,13 @@ void main() {
     expect(() => NasaBilingualTranscript.fromJson(emptyTranslation),
         throwsFormatException);
     final inventedTiming = record();
-    (inventedTiming['dialogue'] as List<dynamic>)[0]['start_ms'] = 1200;
-    (inventedTiming['dialogue'] as List<dynamic>)[0]['end_ms'] = 2500;
+    final paragraphs = inventedTiming['dialogue'] as List<dynamic>;
+    // Original records have only String fields. Copy into a dynamic map
+    // before injecting numeric fake timing to exercise transcript validation.
+    final firstParagraph = Map<String, dynamic>.from(paragraphs[0] as Map);
+    firstParagraph['start_ms'] = 1200;
+    firstParagraph['end_ms'] = 2500;
+    paragraphs[0] = firstParagraph;
     expect(() => NasaBilingualTranscript.fromJson(inventedTiming),
         throwsFormatException);
   });
