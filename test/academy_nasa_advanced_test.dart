@@ -32,7 +32,7 @@ void main() {
       'sync_status': 'unverified',
       'approved_for_publication': false,
       'dialogue': List.generate(12, (i) =>
-          {'text': 'English $i', 'translation_ar': 'عربي $i'}),
+          <String, dynamic>{'text': 'English $i', 'translation_ar': 'عربي $i'}),
     };
     expect(NasaBilingualTranscript.fromJson(record()).paragraphs, hasLength(12));
     final falseApproval = record();
