@@ -80,9 +80,11 @@ void main() {
     final loaded = await tester.runAsync(
         () => const VoaOriginalCatalog(level: 'A2').load());
     expect(loaded, hasLength(15));
-    await tester.pumpWidget(const MaterialApp(
+    await tester.pumpWidget(MaterialApp(
       home: Scaffold(
-        body: SingleChildScrollView(child: PodcastLibrarySection()),
+        body: SingleChildScrollView(child: PodcastLibrarySection(
+          initialA2Lessons: loaded,
+        )),
       ),
     ));
     await tester.pump();

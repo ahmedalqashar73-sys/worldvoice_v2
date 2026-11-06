@@ -13,7 +13,11 @@ import 'voa_originals_section.dart';
 
 /// Separate CEFR/language paths; never represent unrecorded plans as audio.
 class PodcastLibrarySection extends StatefulWidget {
-  const PodcastLibrarySection({super.key});
+  const PodcastLibrarySection({super.key, this.initialA2Lessons});
+
+  /// Optional preloaded catalog for deterministic widget tests. On devices,
+  /// the actual VOA A2 catalog is loaded from the bundled JSON asset.
+  final List<VoaOriginalLesson>? initialA2Lessons;
 
   @override
   State<PodcastLibrarySection> createState() => _PodcastLibrarySectionState();
@@ -357,7 +361,11 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
       ),
       const SizedBox(height: 20),
       if (voaA2) ...[
-        VoaOriginalsSection(level: 'A2', onOpen: _openVoaLesson),
+        VoaOriginalsSection(
+          level: 'A2',
+          initialLessons: widget.initialA2Lessons,
+          onOpen: _openVoaLesson,
+        ),
       ] else if (voaOnly) ...[
         VoaOriginalsSection(onOpen: _openVoaLesson),
         const SizedBox(height: 12),
