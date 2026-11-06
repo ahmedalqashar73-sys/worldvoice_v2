@@ -119,6 +119,8 @@ class B1VoaLongSection extends StatefulWidget {
 }
 
 class _B1VoaLongSectionState extends State<B1VoaLongSection> {
+  late final Future<Set<String>> _captionIds =
+      const B1VoaTranscriptRepository().availableIds();
   late final Future<List<B1VoaLongEpisode>> _episodes =
       widget.initialEpisodes == null
           ? const B1VoaLongCatalog().load()
@@ -141,7 +143,11 @@ class _B1VoaLongSectionState extends State<B1VoaLongSection> {
           return const Center(child: CircularProgressIndicator());
         }
         final episodes = snapshot.data!;
-        return Column(
+        return FutureBuilder<Set<String>>(
+          future: _captionIds,
+          builder: (context, captionSnapshot) {
+            final availableCaptions = captionSnapshot.data ?? <String>{};
+            return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
@@ -174,8 +180,13 @@ class _B1VoaLongSectionState extends State<B1VoaLongSection> {
                     style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
                   subtitle: Text(
-                    ar ? '≈30 دقيقة · صوت أصلي · الترجمة قيد الإعداد'
-                        : '~30 min · original audio · translation pending',
+                    availableCaptions.contains(episode.id)
+                        ? (ar
+                            ? '≈30 دقيقة · نص وترجمة عربية آليان للمراجعة'
+                            : '~30 min · English and Arabic machine drafts')
+                        : (ar
+                            ? '≈30 دقيقة · تسجيل أصلي · النص قيد الإعداد'
+                            : '~30 min · original audio · captions pending'),
                     style: TextStyle(color: scheme.onSurfaceVariant,
                         fontSize: 12),
                   ),
@@ -192,6 +203,8 @@ class _B1VoaLongSectionState extends State<B1VoaLongSection> {
                 ),
               ),
           ],
+        );
+          },
         );
       },
     );

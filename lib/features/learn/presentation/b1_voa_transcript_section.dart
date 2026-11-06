@@ -108,23 +108,43 @@ class B1VoaTranscriptRepository {
   static const String assetPath =
       'assets/podcasts/voa_english_b1_transcripts.json';
 
+  // One original 30-episode transcript asset is shared by the list and
+  // player. Cache the decoded JSON to avoid repeatedly parsing all 30
+  // half-hour transcripts when a learner changes episode.
+  static Future<Map<String, dynamic>?>? _sharedDocument;
+
+  static Future<Map<String, dynamic>?> _loadDocument() async {
+    try {
+      final raw = await rootBundle.loadString(assetPath);
+      final data = jsonDecode(raw) as Map<String, dynamic>;
+      if (data['schema'] != 1 ||
+          data['language'] != 'en' ||
+          data['level'] != 'B1' ||
+          data['episode_count'] != 30 ||
+          (data['episodes'] as List<dynamic>).length != 30) {
+        throw const FormatException('Unexpected B1 caption catalog');
+      }
+      return data;
+    } on FlutterError {
+      // Original audio remains available even on builds without captions.
+      return null;
+    }
+  }
+
+  Future<Set<String>> availableIds() async {
+    final data = await (_sharedDocument ??= _loadDocument());
+    if (data == null) return <String>{};
+    return (data['episodes'] as List<dynamic>)
+        .map((e) => (e as Map<String, dynamic>)['id'] as String)
+        .toSet();
+  }
+
   Future<B1VoaTranscript?> loadFor({
     required String episodeId,
     required String audioUrl,
   }) async {
-    String raw;
-    try {
-      raw = await rootBundle.loadString(assetPath);
-    } on FlutterError {
-      // Audio works before the verified bilingual candidates are generated.
-      return null;
-    }
-    final data = jsonDecode(raw) as Map<String, dynamic>;
-    if (data['schema'] != 1 ||
-        data['language'] != 'en' ||
-        data['level'] != 'B1') {
-      throw const FormatException('Unexpected B1 caption catalog');
-    }
+    final data = await (_sharedDocument ??= _loadDocument());
+    if (data == null) return null;
     final episodes = data['episodes'] as List<dynamic>;
     for (final candidate in episodes) {
       final value = candidate as Map<String, dynamic>;

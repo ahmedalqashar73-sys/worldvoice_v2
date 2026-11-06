@@ -58,7 +58,10 @@ void main() {
     await tester.pump();
     expect(find.byKey(const ValueKey('b1-voa-long-1')), findsOneWidget);
     expect(find.byKey(const ValueKey('b1-voa-long-30')), findsOneWidget);
-    expect(find.textContaining('translation pending'), findsNWidgets(30));
+    // Loading is asynchronous; the library may initially show a pending
+    // label but must switch to a draft label once the cached asset is read.
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.textContaining('machine drafts'), findsNWidgets(30));
   });
 
   testWidgets('English B1 tab exposes the official long podcast catalog',

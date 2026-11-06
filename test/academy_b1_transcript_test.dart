@@ -25,6 +25,13 @@ Map<String, dynamic> draftFixture() {
 }
 
 void main() {
+  test('all 30 original B1 recordings have cached bilingual assets', () async {
+    final ids = await const B1VoaTranscriptRepository().availableIds();
+    expect(ids, hasLength(30));
+    expect(ids.contains('en-b1-voa-001'), isTrue);
+    expect(ids.contains('en-b1-voa-030'), isTrue);
+  });
+
   test('B1 bilingual draft requires measured audio and nonempty translations',
       () {
     final first = B1VoaTranscript.fromJson(draftFixture());
