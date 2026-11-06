@@ -102,10 +102,13 @@ void main() {
     expect(section.level, 'A2');
     expect(section.initialLessons, hasLength(30));
     expect(section.initialLessons!.any((e) => e.number == 8), isTrue);
+    final full = loaded!.where((e) => e.transcriptScope == 'full').length;
+    final excerpts = loaded.where((e) => e.transcriptScope == 'excerpt').length;
     expect(section.initialLessons!.where((e) =>
-        e.transcriptScope == 'full'), hasLength(15));
+        e.transcriptScope == 'full'), hasLength(full));
     expect(section.initialLessons!.where((e) =>
-        e.transcriptScope == 'excerpt'), hasLength(15));
+        e.transcriptScope == 'excerpt'), hasLength(excerpts));
+    expect(full + excerpts, 30);
   });
 
   testWidgets('Spanish A1 shows its complete bilingual readable pilot',

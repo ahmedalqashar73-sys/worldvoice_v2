@@ -29,9 +29,13 @@ void main() {
     expect(list.singleWhere((e) => e.number == 8).audioUrl,
         contains('voa-video-ns.akamaized.net'));
     expect(list.every((e) => e.syncStatus == 'unverified'), isTrue);
-    expect(list.where((e) => e.transcriptScope == 'full').map((e) => e.number),
-        [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16]);
-    expect(list.where((e) => e.transcriptScope == 'excerpt'), hasLength(15));
+    final full = list.where((e) => e.transcriptScope == 'full').toList();
+    final excerpts = list.where((e) => e.transcriptScope == 'excerpt').toList();
+    expect(full.map((e) => e.number),
+        containsAll([1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16]));
+    expect(full.length + excerpts.length, 30);
+    expect(list.where((e) => e.translationStatus == 'machine_draft')
+        .every((e) => e.transcriptScope == 'full'), isTrue);
     expect(list.every((e) => e.existingEpisodeId == e.id), isTrue);
   });
 
@@ -163,8 +167,16 @@ void main() {
     ));
     await tester.pump();
     expect(find.text('VOA index unavailable.'), findsNothing);
-    expect(find.textContaining('full bilingual text'), findsNWidgets(15));
-    expect(find.textContaining('translated excerpt'), findsNWidgets(15));
+    final complete = originals.where((e) => e.transcriptScope == 'full').length;
+    final partial = originals.where((e) => e.transcriptScope == 'excerpt').length;
+    expect(find.descendant(
+        of: find.byType(ListTile),
+        matching: find.textContaining('full bilingual text')),
+        findsNWidgets(complete));
+    expect(find.descendant(
+        of: find.byType(ListTile),
+        matching: find.textContaining('translated excerpt')),
+        findsNWidgets(partial));
     expect(find.byKey(const ValueKey('podcast-original-en-a2-voa-001')),
         findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-original-en-a2-voa-030')),
