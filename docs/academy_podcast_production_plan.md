@@ -1,3 +1,21 @@
+# 2026-11-06 approved WorldVoice English long-form podcast plan (supersedes old 5-minute plan for B1–C2)
+
+**The sections below this heading are historical 15-episode, five-minute planning notes. They are NOT the current B1/B2/C1/C2 production requirement. Do not replace original source recordings with short audio, synthetic lengthening, or old drafts.**
+
+## Approved delivery
+- English only in this phase; A1, A2, rooms, live, messages and economy are out of scope.
+- **30 independent original-source recordings per level** for **B1, B2, C1 and C2**, **120 total**. Every recording must be at least **10 minutes**. Genuine recordings lasting 20 minutes, 30 minutes, one hour or more are acceptable. Do not pad short audio.
+- Final user experience: native streamable human audio; English transcript from the same original recording/source; Arabic translation beneath the English; source credit and original episode link; play/pause, seek, speed and next/previous.
+- B1 sources: original 30-minute VOA Learning English Podcast series, March 2–31, 2025, listed in `assets/podcasts/voa_english_b1_long_form.json`. **30 official original audio-derived draft transcripts** were produced into `assets/podcasts/voa_english_b1_transcripts.json`; inspect actual availability and editorial status before calling them finished.
+- B2, C1, C2 sources: 90 distinct original long-form NASA Houston We Have a Podcast recordings from NASA's official RSS with separate source pages, selected in `assets/podcasts/nasa_advanced_long_form.json` (30 per level). NASA does NOT CEFR-rate these: the initial selection by topic is provisional and needs pedagogical review.
+- Original NASA pages carry English transcripts; the `nasa_advanced_transcripts.yml` workflow prepares **Arabic machine-draft translations in sequence B2 → C1 → C2** and writes per-level assets only after all 30 match their source recording and page. A missing source or invalid transcript fails closed.
+- Never label machine-draft translation as reviewed. For B1, word-level cue candidates are derived from the genuine audio but need listening review. For B2–C2, **do not show automatic timing or fake highlighting before real audio alignment**; present English and Arabic as a parallel transcript instead.
+- Media and rights: VOA original public-domain content and NASA government media have source credit and exceptions. NASA official RSS media may include copyrighted third-party music or identifiable voices. For commercial promotional or reuse purposes, review applicable rights and do not imply NASA/VOA endorsement. These links are streamed, not bundled.
+- No paid source subscriptions or media purchases were approved.
+- Keep all commits exclusively on repository `ahmedalqashar73-sys/worldvoice_v2`, branch `main`. Test with the Academy Podcast validation workflow. Do not claim a handset `flutter run` was executed unless it actually was.
+
+---
+
 # WorldVoice Academy — Podcast editorial production plan
 
 Status: **production plan only**. No audio is considered published or ready to listen to until a rights-cleared, verified MP3 exists. Do not expose entries in the user-facing Podcast tab as playable episodes before audio QA.
