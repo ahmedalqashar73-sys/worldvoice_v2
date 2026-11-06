@@ -203,7 +203,11 @@ def main():
         json.dumps({"results":results,"failures":failures},ensure_ascii=False,indent=2)+"\n",
         encoding="utf-8")
     if failures:
-        print(f"{len(failures)} lessons need editorial/source fixes", file=sys.stderr)
+        print(f"{len(failures)} lessons still need editorial/source fixes", file=sys.stderr)
+        if results:
+            # Publish verified matches incrementally while retaining excerpt
+            # labels for anything that failed extraction or translation.
+            return 0
         return 1
     return 0
 
