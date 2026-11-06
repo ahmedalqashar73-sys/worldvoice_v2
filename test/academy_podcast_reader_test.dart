@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:worldvoice/features/learn/data/academy_podcast_repository.dart';
 import 'package:worldvoice/features/learn/presentation/podcast_library_section.dart';
+import 'package:worldvoice/features/learn/presentation/voa_originals_section.dart';
 
 void main() {
   testWidgets('Podcast tab shows CEFR levels and script-ready pilot',
@@ -74,12 +75,18 @@ void main() {
   });
   testWidgets('English A2 lists 15 original VOA human-voice lessons',
       (tester) async {
+    // Warm the official A2 catalog before rendering, then pump by a bounded
+    // interval: an active FutureBuilder spinner prevents pumpAndSettle.
+    final loaded = await tester.runAsync(
+        () => const VoaOriginalCatalog(level: 'A2').load());
+    expect(loaded, hasLength(15));
     await tester.pumpWidget(const MaterialApp(
       home: Scaffold(
         body: SingleChildScrollView(child: PodcastLibrarySection()),
       ),
     ));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
     final a2 = find.byKey(const ValueKey('podcast-level-A2'));
     await tester.ensureVisible(a2);
     await tester.tap(a2);
@@ -93,7 +100,8 @@ void main() {
     // Lesson 8 has no independently verified MP3. Never invent one.
     expect(find.byKey(const ValueKey('podcast-original-en-a2-voa-008')),
         findsNothing);
-    expect(find.textContaining('VOA Level 2 · Lesson'), findsNWidgets(15));
+    expect(find.textContaining('VOA Lesson'), findsNWidgets(15));
+    expect(find.textContaining('full bilingual text'), findsNWidgets(15));
   });
 
   testWidgets('Spanish A1 shows its complete bilingual readable pilot',
