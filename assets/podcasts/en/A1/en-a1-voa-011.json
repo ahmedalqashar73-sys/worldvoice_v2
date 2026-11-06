@@ -17,185 +17,185 @@
   "voice_rights_verified": true,
   "source": "VOA Learning English",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-11-this-is-my-neighborhood/3293986.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 11. Original VOA conversation audio and dialogue. WorldVoice is not affiliated with VOA. Sentence cues are machine-aligned from the original VOA audio and are provisional pending listening review.",
-  "audio_url": "https://voa-audio.voanews.eu/vle/2016/04/20/de238e35-97b9-4c21-81e3-e3c26fbeccaa_hq.mp3?download=1",
-  "duration_ms": 110511,
-  "sync_status": "provisional",
+  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 11. The authentic ~5-minute full VOA lesson video is used as audio. English dialogue and WorldVoice Arabic translation cover only the conversation segment, not all teaching/narration in the complete lesson. Full-lesson line cues are unverified. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-video-ns.akamaized.net/pangeavideo/2016/05/9/93/932ae001-a462-4158-8e25-399289a46ec9_mobile.mp4?cb=ecfb9e1b9&download=1",
+  "duration_ms": 299000,
+  "sync_status": "unverified",
   "dialogue": [
     {
       "speaker": "Anna",
       "text": "Hello! DC is a city for walking. In our neighborhood, I can do all my errands. Marsha, before we get ice cream, I need to return three books to the library. Where is the library?",
       "translation_ar": "مرحبًا! واشنطن مدينة مناسبة للمشي. يمكنني إنجاز كل مشاويري في حيّنا. مارشا، قبل أن نشتري المثلجات يجب أن أعيد ثلاثة كتب للمكتبة. أين هي؟",
-      "start_ms": 0,
-      "end_ms": 15440
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Marsha",
       "text": "It is on this street on the corner.",
       "translation_ar": "تقع في هذا الشارع عند الزاوية.",
-      "start_ms": 16440,
-      "end_ms": 19400
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Awesome!",
       "translation_ar": "رائع!",
-      "start_ms": 19400,
-      "end_ms": 20240
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Marsha",
       "text": "Let's go!",
       "translation_ar": "هيا بنا!",
-      "start_ms": 20580,
-      "end_ms": 21040
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Marsha, I can return the books here.",
       "translation_ar": "مارشا، يمكنني إعادة الكتب هنا.",
-      "start_ms": 23960,
-      "end_ms": 26340
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Marsha",
       "text": "Anna, what are those in the books?",
       "translation_ar": "آنا، ما هذه الأشياء داخل الكتب؟",
-      "start_ms": 27340,
-      "end_ms": 32000
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Marsha, these are letters to my family and friends back home … four letters! Is there a post office near here?",
       "translation_ar": "مارشا، هذه رسائل إلى عائلتي وأصدقائي في بلدتي... أربع رسائل! هل يوجد مكتب بريد قريب؟",
-      "start_ms": 33740,
-      "end_ms": 42940
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Marsha",
       "text": "Um, no. The post office is far from here. But there is a mailbox across from the store.",
       "translation_ar": "لا، مكتب البريد بعيد، لكن هناك صندوق بريد مقابل المتجر.",
-      "start_ms": 44080,
-      "end_ms": 50320
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Awesome! Let’s go!",
       "translation_ar": "رائع! لنذهب!",
-      "start_ms": 51060,
-      "end_ms": 52120
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Marsha, now I need to buy stamps.",
       "translation_ar": "مارشا، الآن أحتاج إلى شراء طوابع.",
-      "start_ms": 54200,
-      "end_ms": 56320
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Marsha",
       "text": "Do you have cash?",
       "translation_ar": "هل معك نقود؟",
-      "start_ms": 57020,
-      "end_ms": 57880
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "No. Is there a bank near here?",
       "translation_ar": "لا. هل يوجد بنك قريب؟",
-      "start_ms": 58420,
-      "end_ms": 60960
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Marsha",
       "text": "There is a bank behind you.",
       "translation_ar": "يوجد بنك خلفك.",
-      "start_ms": 61700,
-      "end_ms": 63100
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Thanks, Marsha. You know our neighborhood so well.",
       "translation_ar": "شكرًا يا مارشا. أنت تعرفين حيّنا جيدًا.",
-      "start_ms": 64200,
-      "end_ms": 67260
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Now I have cash. I can buy stamps.",
       "translation_ar": "الآن معي نقود ويمكنني شراء الطوابع.",
-      "start_ms": 68500,
-      "end_ms": 71000
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Marsha",
       "text": "That store sells stamps.",
       "translation_ar": "ذلك المتجر يبيع الطوابع.",
-      "start_ms": 72060,
-      "end_ms": 73880
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Wait here.",
       "translation_ar": "انتظري هنا.",
-      "start_ms": 74380,
-      "end_ms": 75080
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "I have stamps.",
       "translation_ar": "معي الطوابع.",
-      "start_ms": 76960,
-      "end_ms": 78080
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Marsha",
       "text": "Wow, you’re fast.",
       "translation_ar": "واو، أنت سريعة!",
-      "start_ms": 78520,
-      "end_ms": 79800
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Thank you, thank you letters, for sending my words… my love … to my family and friends -",
       "translation_ar": "شكرًا لك أيتها الرسائل، لأنك تحملين كلماتي... وحبي... إلى عائلتي وأصدقائي...",
-      "start_ms": 81340,
-      "end_ms": 88390
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Marsha",
       "text": "Do you have more cash?",
       "translation_ar": "هل بقي معك مال؟",
-      "start_ms": 88390,
-      "end_ms": 91300
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "I do!",
       "translation_ar": "نعم!",
-      "start_ms": 91340,
-      "end_ms": 92640
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Marsha and Anna",
       "text": "Ice cream!!",
       "translation_ar": "مثلجات!!",
-      "start_ms": 94480,
-      "end_ms": 95120
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "I love my new neighborhood! Everything is near our apartment! Even hair salons, and ice cream!",
       "translation_ar": "أحب حيي الجديد! كل شيء قريب من شقتنا، حتى صالونات الشعر والمثلجات!",
-      "start_ms": 98380,
-      "end_ms": 106260
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Until next time!",
       "translation_ar": "إلى اللقاء!",
-      "start_ms": 107480,
-      "end_ms": 108360
+      "start_ms": null,
+      "end_ms": null
     }
   ],
   "vocabulary": [
@@ -217,10 +217,9 @@
     }
   ],
   "questions": [],
-  "backup_audio_url": "https://voa-audio.voanews.eu/vle/2016/04/20/de238e35-97b9-4c21-81e3-e3c26fbeccaa.mp3?download=1",
-  "sync_method": "audio_word_alignment_review_pending",
-  "sync_token_match_ratio": 0.985,
-  "sync_review_pending_lines": [
-    16
-  ]
+  "conversation_audio_url": "https://voa-audio.voanews.eu/vle/2016/04/20/de238e35-97b9-4c21-81e3-e3c26fbeccaa_hq.mp3?download=1",
+  "conversation_duration_ms": 110511,
+  "conversation_backup_audio_url": "https://voa-audio.voanews.eu/vle/2016/04/20/de238e35-97b9-4c21-81e3-e3c26fbeccaa.mp3?download=1",
+  "recording_format": "original_full_lesson_video_mp4",
+  "transcript_scope": "excerpt"
 }
