@@ -13,8 +13,12 @@ void main() {
     expect(list.map((e) => e.id).toSet(), hasLength(15));
     expect(list.every((e) => e.isOfficialSource), isTrue);
     expect(list.where((e) => e.petePresent), hasLength(7));
-    expect(list.where((e) => e.syncStatus == 'provisional'), hasLength(7));
-    expect(list.where((e) => e.syncStatus == 'unverified'), hasLength(8));
+    expect(list.where((e) => e.syncStatus == 'provisional'), isEmpty);
+    expect(list.where((e) => e.syncStatus == 'unverified'), hasLength(15));
+    expect(list.every((e) => e.durationSec >= 240 && e.durationSec <= 360),
+        isTrue);
+    expect(list.every((e) => e.transcriptScope == 'excerpt'), isTrue);
+    expect(list.every((e) => e.audioUrl.contains('.mp4')), isTrue);
     expect(list.every((e) => e.existingEpisodeId == e.id), isTrue);
     expect(list.map((e) => e.number).toList(),
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 20, 30, 47]);
@@ -32,11 +36,15 @@ void main() {
     final full = list.where((e) => e.transcriptScope == 'full').toList();
     final excerpts = list.where((e) => e.transcriptScope == 'excerpt').toList();
     expect(full.map((e) => e.number),
-        containsAll([1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16]));
+        containsAll([1, 2, 3, 4, 5, 6, 9, 11, 12, 14, 15, 16]));
+    expect(excerpts.map((e) => e.number),
+        containsAll([7, 8, 10, 13, 17]));
     expect(full.length + excerpts.length, 30);
     expect(list.where((e) => e.translationStatus == 'machine_draft')
         .every((e) => e.transcriptScope == 'full'), isTrue);
     expect(list.every((e) => e.existingEpisodeId == e.id), isTrue);
+    expect(list.every((e) => e.durationSec >= 240),
+        isTrue, reason: 'VOA A2 uses real full lessons where clips were short');
   });
 
   test('A2 authentic audio refers to its translated VOA dialogue',
@@ -96,25 +104,16 @@ void main() {
       final episode = await repository.load(entry);
       expect(episode.canStream, isTrue, reason: lesson.id);
       expect(episode.canReadAloud, isFalse, reason: lesson.id);
-      const provisionalLessons = {1, 3, 8, 9, 11};
-      final hasMeasuredCues = provisionalLessons.contains(lesson.number);
-      expect(episode.isPlayable, hasMeasuredCues,
-          reason: 'Provisional original-audio alignment for ${lesson.id}');
-      if (hasMeasuredCues) {
-        expect(episode.syncStatus, 'provisional');
-      } else {
-        expect(episode.syncStatus, 'unverified');
-      }
+      expect(episode.isPlayable, isFalse,
+          reason: 'The earlier short MP3 cues must not be used for full lessons');
+      expect(episode.syncStatus, 'unverified');
+      expect(episode.isExcerpt, isTrue);
+      expect(episode.durationMs, greaterThanOrEqualTo(240000));
       expect(episode.audioUrl, lesson.audioUrl, reason: lesson.id);
-      if ({2, 4, 5, 6, 7, 8, 9, 10, 11, 12}
-          .contains(lesson.number)) {
-        expect(episode.backupAudioUrl, isNotNull,
-            reason: 'Alternative original VOA bitrate for ${lesson.id}');
-        expect(episode.backupAudioUrl, endsWith('.mp3?download=1'));
-        expect(episode.backupAudioUrl, isNot(episode.audioUrl));
-      }
+      expect(episode.backupAudioUrl, isNull,
+          reason: 'No fallback to sub-four-minute clips');
       expect(episode.sourceUrl, lesson.sourceUrl, reason: lesson.id);
-      // The player uses actual ffprobe duration with sub-second precision.
+      // The index reports the VOA site's full-lesson duration.
       expect((episode.durationMs! - lesson.durationSec * 1000).abs(),
           lessThan(1000), reason: lesson.id);
       expect(episode.dialogue, isNotEmpty, reason: lesson.id);
@@ -123,9 +122,7 @@ void main() {
           line.translationAr.trim().isNotEmpty), isTrue,
           reason: lesson.id);
       expect(episode.dialogue.every((line) =>
-          hasMeasuredCues
-              ? line.startMs != null && line.endMs != null
-              : line.startMs == null && line.endMs == null), isTrue,
+          line.startMs == null && line.endMs == null), isTrue,
           reason: lesson.id);
     }
   });
@@ -151,8 +148,8 @@ void main() {
         findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-original-en-a1-voa-020')),
         findsOneWidget);
-    expect(find.text('VOA human audio · provisional sync'),
-        findsNWidgets(7));
+    expect(find.text('VOA · full ~5-minute lesson · translated conversation'),
+        findsNWidgets(15));
   });
   testWidgets('A2 VOA audio library distinguishes full bilingual texts from excerpts',
       (tester) async {

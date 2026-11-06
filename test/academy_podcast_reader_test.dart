@@ -37,7 +37,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 120));
     expect(find.byKey(const ValueKey('podcast-original-en-a1-voa-020')),
         findsOneWidget);
-    expect(find.text('VOA human audio · provisional sync'), findsNWidgets(7));
+    expect(find.text('VOA · full ~5-minute lesson · translated conversation'),
+        findsNWidgets(15));
     final practice = find.byKey(const ValueKey('podcast-a1-reading-practice'));
     await tester.ensureVisible(practice);
     await tester.tap(practice);
