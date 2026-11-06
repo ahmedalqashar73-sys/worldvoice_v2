@@ -29,7 +29,8 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
   String _selectedLevel = 'A1';
 
   Widget _hero(bool ar) {
-    final voaPilot = _selectedLanguage == 'en' && _selectedLevel == 'A1';
+    final voaPilot = _selectedLanguage == 'en' &&
+        (_selectedLevel == 'A1' || _selectedLevel == 'A2');
     return Container(
         key: const ValueKey('podcast-hero'),
         padding: const EdgeInsets.all(19),
@@ -122,7 +123,8 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
     // Original VOA episodes 1–12 are deliberately separate from WorldVoice
     // script-practice slots in the CEFR index. Both audio and bilingual
     // dialogue are loaded from the *same* VOA lesson, never synthesized.
-    if (lesson.number >= 1 && lesson.number <= 12) {
+    if (lesson.level == 'A1' &&
+        lesson.number >= 1 && lesson.number <= 12) {
       final entry = AcademyPodcastEntry(
         id: lesson.id,
         level: 'A1',
@@ -209,8 +211,11 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
           child: Text(
             isPublished
                 ? (entry.status == 'published_audio'
-                    ? (ar ? 'VOA · صوت بشري · تزامن تجريبي'
-                        : 'VOA human audio · provisional sync')
+                    ? (entry.level == 'A2'
+                        ? (ar ? 'صوت بشري VOA · نص مختار · التزامن قيد المراجعة'
+                            : 'VOA human voice · excerpt · sync pending')
+                        : (ar ? 'VOA · صوت بشري · تزامن تجريبي'
+                            : 'VOA human audio · provisional sync'))
                     : (ar ? 'صوت ونص متزامنان' : 'Audio + synced reading'))
                 : enabled
                     ? (deviceReadAloud
@@ -281,6 +286,7 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     final scheme = Theme.of(context).colorScheme;
     final voaOnly = _selectedLanguage == 'en' && _selectedLevel == 'A1';
+    final voaA2 = _selectedLanguage == 'en' && _selectedLevel == 'A2';
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _hero(ar),
       const SizedBox(height: 20),
@@ -350,7 +356,9 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
         ]),
       ),
       const SizedBox(height: 20),
-      if (voaOnly) ...[
+      if (voaA2) ...[
+        VoaOriginalsSection(level: 'A2', onOpen: _openVoaLesson),
+      ] else if (voaOnly) ...[
         VoaOriginalsSection(onOpen: _openVoaLesson),
         const SizedBox(height: 12),
         Card(
@@ -1044,8 +1052,10 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
               key: const ValueKey('podcast-jump-to-transcript'),
               onPressed: () => _jumpToLine(_activeLine.value ?? 0),
               icon: const Icon(Icons.menu_book_rounded, size: 18),
-              label: Text(ar ? 'انتقل إلى نص المحادثة'
-                  : 'Jump to transcript'),
+              label: Text(episode.isExcerpt
+                  ? (ar ? 'انتقل إلى مقتطف المحادثة' : 'Jump to excerpt')
+                  : (ar ? 'انتقل إلى نص المحادثة'
+                      : 'Jump to transcript')),
               style: TextButton.styleFrom(
                 foregroundColor: const Color(0xFFF4D790),
               ),
@@ -1131,6 +1141,14 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                 ),
               ),
             ),
+          ],
+          if (episode.isExcerpt) ...[
+            const SizedBox(height: 8),
+            Text(ar
+                ? 'المحادثة المعروضة مقتطف أصلي مترجم وليست النص الكامل. استمع إلى التسجيل كاملًا، وافتح النص الكامل من VOA أدناه. لم يتم اعتماد توقيت الجمل.'
+                : 'These are selected translated lines, not the full transcript. Listen to the complete official VOA recording and open the full transcript below. No line timings are certified.',
+                style: const TextStyle(
+                    color: Color(0xFFE0EEE5), fontSize: 11, height: 1.4)),
           ],
           if (episode.canStream && episode.syncStatus == 'provisional') ...[
             const SizedBox(height: 8),
@@ -1467,7 +1485,9 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                       color: Color(0xFF318560), size: 21),
                   const SizedBox(width: 7),
                   Expanded(child: Text(
-                    ar ? 'نص المحادثة' : 'Transcript',
+                    episode.isExcerpt
+                        ? (ar ? 'مقتطف من المحادثة الأصلية' : 'Original conversation excerpt')
+                        : (ar ? 'نص المحادثة' : 'Transcript'),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w900))),
                   IconButton(
@@ -1532,9 +1552,13 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                                 : (ar
                                     ? 'نص تعليمي للقراءة · التسجيل الصوتي غير متوفر بعد.'
                                     : 'Reading transcript · No recording published yet.'))
-                            : (ar
-                                ? 'اقرأ النص مع تشغيل التسجيل الأصلي. مزامنة السطور قيد التحقق.'
-                                : 'Read along with the authentic recording. Line timing is under review.')),
+                            : episode.isExcerpt
+                                ? (ar
+                                    ? 'اقرأ المقتطف مع التسجيل البشري الكامل. افتح النص الكامل من VOA؛ توقيت السطور غير متاح.'
+                                    : 'Read this excerpt with the complete human recording. Full transcript on VOA; line timing unavailable.')
+                                : (ar
+                                    ? 'اقرأ النص مع تشغيل التسجيل الأصلي. مزامنة السطور قيد التحقق.'
+                                    : 'Read along with the authentic recording. Line timing is under review.')),
                     style: TextStyle(color: scheme.onSurfaceVariant,
                       fontSize: 11)),
                 ),

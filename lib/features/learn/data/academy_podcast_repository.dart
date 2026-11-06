@@ -139,6 +139,7 @@ class AcademyPodcastEpisode {
     this.sourceUrl,
     this.sourceCredit,
     this.syncStatus,
+    this.transcriptScope = 'full',
     this.hosts = const ['Anna', 'Daniel'],
     this.otherSpeakers = const [],
   });
@@ -154,6 +155,10 @@ class AcademyPodcastEpisode {
   final String? sourceUrl;
   final String? sourceCredit;
   final String? syncStatus;
+  /// 'excerpt' means this file contains selected real dialogue turns only.
+  /// The credited original VOA page contains the complete source transcript.
+  final String transcriptScope;
+  bool get isExcerpt => transcriptScope == 'excerpt';
   final List<String> hosts;
   final List<String> otherSpeakers;
   final String? audioUrl;
@@ -243,6 +248,7 @@ class AcademyPodcastEpisode {
         sourceUrl: json['source_url'] as String?,
         sourceCredit: json['source_credit'] as String?,
         syncStatus: json['sync_status'] as String?,
+        transcriptScope: json['transcript_scope'] as String? ?? 'full',
         hosts: json['hosts'] is List
             ? List<String>.from(json['hosts'] as List<dynamic>)
             : const ['Anna', 'Daniel'],

@@ -20,6 +20,16 @@ void main() {
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 20, 30, 47]);
   });
 
+  test('VOA Level 2 has fifteen source-verified audio episodes', () async {
+    final list = await const VoaOriginalCatalog(level: 'A2').load();
+    expect(list, hasLength(15));
+    expect(list.every((e) => e.isOfficialSource && e.level == 'A2'), isTrue);
+    expect(list.map((e) => e.number).toList(),
+        [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16]);
+    expect(list.every((e) => e.syncStatus == 'unverified'), isTrue);
+    expect(list.every((e) => e.existingEpisodeId == e.id), isTrue);
+  });
+
   test('VOA 01–12 have authentic source audio and readable bilingual dialogue',
       () async {
     const repository = AcademyPodcastRepository();

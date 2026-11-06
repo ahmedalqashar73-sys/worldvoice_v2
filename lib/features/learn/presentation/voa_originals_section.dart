@@ -19,6 +19,7 @@ class VoaOriginalLesson {
     required this.sourceUrl,
     required this.durationSec,
     required this.petePresent,
+    this.level = 'A1',
     this.syncStatus = 'unverified',
     this.existingEpisodeId,
   });
@@ -31,6 +32,7 @@ class VoaOriginalLesson {
   final String sourceUrl;
   final int durationSec;
   final bool petePresent;
+  final String level;
   final String syncStatus;
   final String? existingEpisodeId;
 
@@ -44,6 +46,7 @@ class VoaOriginalLesson {
         sourceUrl: json['source_url'] as String,
         durationSec: json['duration_sec'] as int,
         petePresent: json['pete_present'] as bool? ?? false,
+        level: json['level'] as String? ?? 'A1',
         syncStatus: json['sync_status'] as String? ?? 'unverified',
         existingEpisodeId: json['existing_episode_id'] as String?,
       );
@@ -64,10 +67,19 @@ class VoaOriginalLesson {
 }
 
 class VoaOriginalCatalog {
-  const VoaOriginalCatalog();
+  const VoaOriginalCatalog({this.level = 'A1'});
+
+  /// WorldVoice A2 follows original VOA Level 2 audio (intermediate course).
+  /// This is not a formal CEFR level equivalency assessment.
+  final String level;
 
   Future<List<VoaOriginalLesson>> load() async {
-    const asset = 'assets/podcasts/voa_english_a1_originals.json';
+    if (level != 'A1' && level != 'A2') {
+      throw ArgumentError.value(level, 'level', 'Unsupported VOA course');
+    }
+    final asset = level == 'A1'
+        ? 'assets/podcasts/voa_english_a1_originals.json'
+        : 'assets/podcasts/voa_english_a2_originals.json';
     final raw = await rootBundle.loadString(asset);
     final map = jsonDecode(raw) as Map<String, dynamic>;
     final items = (map['lessons'] as List<dynamic>)
@@ -76,7 +88,9 @@ class VoaOriginalCatalog {
         .toList(growable: false);
     if (items.length != 15 ||
         items.map((e) => e.id).toSet().length != 15 ||
-        items.any((item) => !item.isOfficialSource)) {
+        items.any((item) => !item.isOfficialSource ||
+            item.level != level ||
+            (level == 'A2' && !item.id.startsWith('en-a2-voa-')))) {
       throw const FormatException('VOA original audio catalog invalid');
     }
     return items;
@@ -88,8 +102,10 @@ class VoaOriginalCatalog {
 class VoaOriginalsSection extends StatefulWidget {
   const VoaOriginalsSection({
     super.key, required this.onOpen, this.initialLessons,
+    this.level = 'A1',
   });
   final ValueChanged<VoaOriginalLesson> onOpen;
+  final String level;
 
   /// Optional preloaded original catalog for reliable widget testing and
   /// embedding; production always uses the real VOA JSON asset.
@@ -102,7 +118,7 @@ class VoaOriginalsSection extends StatefulWidget {
 class _VoaOriginalsSectionState extends State<VoaOriginalsSection> {
   late final Future<List<VoaOriginalLesson>> _lessons =
       widget.initialLessons == null
-          ? const VoaOriginalCatalog().load()
+          ? VoaOriginalCatalog(level: widget.level).load()
           : SynchronousFuture<List<VoaOriginalLesson>>(
               widget.initialLessons!);
 
@@ -111,15 +127,28 @@ class _VoaOriginalsSectionState extends State<VoaOriginalsSection> {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     final scheme = Theme.of(context).colorScheme;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(ar ? 'تسجيلات VOA الأصلية — 15 حلقة'
-          : 'VOA original audio — 15 episodes',
+      Text(ar
+          ? 'تسجيلات VOA الأصلية — ${widget.level} — 15 حلقة'
+          : 'Original VOA audio — ${widget.level} — 15 episodes',
           style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
       const SizedBox(height: 5),
       Text(ar
-          ? 'جميع التسجيلات من VOA. آنا صوت رئيسي متكرر، ويشارك بيت وشخصيات أخرى حسب الحلقة. لا توجد أصوات آلية في هذه القائمة.'
-          : 'Every recording is from VOA. Anna is a recurring voice; Pete and other characters appear when they are part of the original lesson. No synthetic voices here.',
+          ? (widget.level == 'A2'
+              ? '15 تسجيلًا بشريًا من VOA Level 2. الأصوات أصلية، والشخصيات قد تتغير. نعرض نصوصًا مختارة مترجمة، والنص الكامل في موقع VOA. لم تُعتمد مزامنة الجمل بعد.'
+              : 'جميع التسجيلات من VOA. آنا صوت رئيسي متكرر، ويشارك بيت وشخصيات أخرى حسب الحلقة. لا توجد أصوات آلية في هذه القائمة.')
+          : (widget.level == 'A2'
+              ? '15 original VOA Level 2 voice recordings. Selected bilingual transcript excerpts; complete transcripts on VOA. Sentence sync is pending.'
+              : 'Every recording is from VOA. Anna is a recurring voice; Pete and other characters appear when they are part of the original lesson. No synthetic voices here.'),
           style: TextStyle(fontSize: 12, height: 1.5,
               color: scheme.onSurfaceVariant)),
+      if (widget.level == 'A2') ...[
+        const SizedBox(height: 7),
+        Text(ar
+            ? 'VOA Level 2 منهج متوسط وقد يتجاوز مستوى A2 الأوروبي في بعض الدروس. درس VOA رقم 8 غير موجود بهذه القائمة لعدم التحقق من ملف MP3 مستقل.'
+            : 'VOA Level 2 is an intermediate series, not an exact CEFR A2 match. Original lesson 8 is omitted because its MP3 could not be verified.',
+            style: TextStyle(fontSize: 11, height: 1.4,
+                color: scheme.onSurfaceVariant)),
+      ],
       const SizedBox(height: 10),
       FutureBuilder<List<VoaOriginalLesson>>(
         future: _lessons,
@@ -154,9 +183,13 @@ class _VoaOriginalsSectionState extends State<VoaOriginalsSection> {
                     lesson.syncStatus == 'provisional'
                       ? (ar ? 'VOA · صوت بشري أصلي · تزامن سطور تجريبي'
                           : 'VOA human audio · provisional sync')
-                      : (ar
-                          ? 'Anna${lesson.petePresent ? ' + Pete' : ' + ضيوف'} · تسجيل VOA بشري أصلي'
-                          : 'Anna${lesson.petePresent ? ' + Pete' : ' + guests'} · original human VOA audio'),
+                      : widget.level == 'A2'
+                          ? (ar
+                              ? 'VOA Level 2 · درس ${lesson.number} · صوت بشري'
+                              : 'VOA Level 2 · Lesson ${lesson.number} · human voice')
+                          : (ar
+                              ? 'Anna${lesson.petePresent ? ' + Pete' : ' + ضيوف'} · تسجيل VOA بشري أصلي'
+                              : 'Anna${lesson.petePresent ? ' + Pete' : ' + guests'} · original human VOA audio'),
                     style: TextStyle(fontSize: 11,
                         color: scheme.onSurfaceVariant),
                   ),
@@ -241,11 +274,13 @@ class _VoaOriginalAudioScreenState extends State<VoaOriginalAudioScreen> {
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-            const Row(children: [
-              Icon(Icons.headphones_rounded, color: Color(0xFFF1D98F)),
-              SizedBox(width: 7),
-              Expanded(child: Text('VOA LEARNING ENGLISH · ORIGINAL AUDIO',
-                  style: TextStyle(color: Color(0xFFF1D98F),
+            Row(children: [
+              const Icon(Icons.headphones_rounded,
+                  color: Color(0xFFF1D98F)),
+              const SizedBox(width: 7),
+              Expanded(child: Text(
+                  'VOA LEARNING ENGLISH · ${lesson.level} ORIGINAL AUDIO',
+                  style: const TextStyle(color: Color(0xFFF1D98F),
                       fontSize: 11, fontWeight: FontWeight.w900))),
             ]),
             const SizedBox(height: 14),
@@ -336,7 +371,7 @@ class _VoaOriginalAudioScreenState extends State<VoaOriginalAudioScreen> {
               : 'Open complete original transcript on VOA'),
         ),
         const SizedBox(height: 10),
-        Text('VOA Learning English · Let\'s Learn English Level 1. WorldVoice is not affiliated with VOA.',
+        Text('VOA Learning English · Let\'s Learn English Level ${lesson.level == 'A2' ? 2 : 1}. WorldVoice is not affiliated with VOA.',
           style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 11)),
       ]),
     );

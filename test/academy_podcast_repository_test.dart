@@ -26,8 +26,34 @@ void main() {
             e.language == language.code && e.level == level), hasLength(15));
       }
     }
-    expect(list.where((e) => e.hasTranscript), hasLength(16));
-    expect(list.where((e) => e.status == 'planned'), hasLength(704));
+    expect(list.where((e) => e.hasTranscript), hasLength(31));
+    expect(list.where((e) => e.status == 'planned'), hasLength(689));
+  });
+
+  test('English A2 contains 15 official VOA voices and translated excerpts', () async {
+    final entries = (await repo.allEpisodes()).where(
+      (e) => e.language == 'en' && e.level == 'A2').toList();
+    expect(entries, hasLength(15));
+    expect(entries.every((e) =>
+        e.status == 'published_audio' && e.hasTranscript), isTrue);
+    final expectedNumbers = [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16];
+    for (var index = 0; index < entries.length; index++) {
+      final entry = entries[index];
+      expect(entry.id, 'en-a2-voa-${expectedNumbers[index].toString().padLeft(3, '0')}');
+      final lesson = await repo.load(entry);
+      expect(lesson.canStream, isTrue, reason: entry.id);
+      expect(lesson.canReadAloud, isFalse, reason: entry.id);
+      expect(lesson.isExcerpt, isTrue, reason: entry.id);
+      expect(lesson.isPlayable, isFalse, reason: entry.id);
+      expect(lesson.dialogue, hasLength(greaterThanOrEqualTo(5)));
+      expect(lesson.dialogue.every((line) =>
+          line.text.isNotEmpty &&
+          line.translationAr.isNotEmpty &&
+          line.startMs == null && line.endMs == null), isTrue);
+      expect(lesson.questions, hasLength(2));
+      expect(lesson.audioUrl, startsWith('https://voa-audio.voanews.eu/vle/'));
+      expect(lesson.sourceUrl, startsWith('https://learningenglish.voanews.com/a/'));
+    }
   });
 
   test('the Anna and Daniel draft stays unchanged and without recording', () async {
