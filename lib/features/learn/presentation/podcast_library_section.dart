@@ -665,7 +665,13 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
         }
       });
       final local = await _offlineAudioFile(loaded);
-      final offline = await local.exists() && await local.length() > 100000;
+      // Never play a previously downloaded 29-second conversation MP3
+      // when the episode now points to VOA's complete five-minute MP4.
+      // Legacy offline files are keyed by episode ID, not source URL.
+      final isMp3Source =
+          Uri.tryParse(loaded.audioUrl ?? '')?.path.toLowerCase().endsWith('.mp3') == true;
+      final offline = isMp3Source &&
+          await local.exists() && await local.length() > 100000;
       if (offline) {
         await _player.setFilePath(local.path);
       } else {
