@@ -14,6 +14,7 @@ on:
       - 'scripts/voa_b1_transcript_candidate.py'
       - 'scripts/tests/test_voa_b1_transcript_candidate.py'
       - 'scripts/tests/test_b1_original_long_caption_assets.py'
+      - 'scripts/tests/test_nasa_advanced_actual_translations.py'
       - 'lib/features/learn/presentation/learn_screen.dart'
       - 'assets/podcasts/**'
       - 'test/academy_podcast_*.dart'
@@ -43,6 +44,8 @@ jobs:
           python -m unittest discover -s scripts/tests -p 'test_voa_b1_transcript_candidate.py'
       - name: Validate all 30 original full-length B1 English-Arabic drafts
         run: python -m unittest discover -s scripts/tests -p 'test_b1_original_long_caption_assets.py'
+      - name: Verify actual NASA B2 C1 C2 source-linked translation assets
+        run: python -m unittest discover -s scripts/tests -p 'test_nasa_advanced_actual_translations.py'
       - name: Analyze podcast modules
         run: flutter analyze
       - name: Verify eight languages, dialogue transcript, reader and controls
