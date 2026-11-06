@@ -3,36 +3,241 @@
   "id": "en-a2-voa-015",
   "language": "en",
   "level": "A2",
-  "title": "Before and After — VOA Level 2 Lesson 15",
-  "title_ar": "قبل وبعد — درس VOA 15",
+  "title": "Before and After",
+  "title_ar": "قبل وبعد",
+  "voa_lesson_number": 15,
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "sync_status": "unverified",
+  "transcript_scope": "full",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-15-before-after/4159057.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 15. Full original public-domain human dialogue with WorldVoice Arabic translation. Sentence-level timing has not been verified. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2018/01/04/99ceaa2e-fb25-43a8-8731-0a7f23901d65_hq.mp3?download=1",
+  "duration_ms": 249000,
   "hosts": [
     "Anna",
     "Penelope"
   ],
-  "other_speakers": [],
-  "status": "published_audio",
-  "recording_kind": "human",
-  "voice_rights_verified": true,
-  "source": "VOA Learning English",
-  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-15-before-after/4159057.html",
-  "source_credit": "Original VOA Learning English Level 2 Lesson 15. WorldVoice presents selected excerpts with Arabic learning translations, not the complete original transcript. Full conversation appears on the linked VOA lesson page; WorldVoice is not affiliated with VOA.",
-  "audio_url": "https://voa-audio.voanews.eu/vle/2018/01/04/99ceaa2e-fb25-43a8-8731-0a7f23901d65_hq.mp3?download=1",
-  "backup_audio_url": "https://voa-audio.voanews.eu/vle/2018/01/04/99ceaa2e-fb25-43a8-8731-0a7f23901d65.mp3?download=1",
-  "duration_ms": 249000,
-  "sync_status": "unverified",
-  "transcript_scope": "excerpt",
+  "other_speakers": [
+    "Professor Bot",
+    "Alaskan Albert"
+  ],
   "dialogue": [
     {
       "speaker": "Anna",
       "text": "Penelope, even though we both love speed walking, could we slow down a bit?",
-      "translation_ar": "بينيلوبي، رغم أننا نحب المشي السريع، هل يمكن أن نبطئ قليلًا؟",
+      "translation_ar": "بينيلوبي، رغم أننا نحب المشي السريع، هل يمكننا الإبطاء قليلًا؟",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Penelope",
-      "text": "No way!",
-      "translation_ar": "مستحيل!",
+      "text": "No way! I think because I’m walking with you, I’m walking faster.",
+      "translation_ar": "مستحيل! أعتقد أنني أمشي أسرع لأنني معك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Come on, Penelope. Let's take a break. We've been speed walking since 8 a.m.! You're so competitive! You even wore your medals!",
+      "translation_ar": "هيا يا بينيلوبي، لنسترح. نمشي بسرعة منذ الثامنة صباحًا! أنت تنافسية جدًا، حتى إنك ارتديت ميدالياتك!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "You brought your trophies! You’re out of shape. When we were little girls, we could speed walk all day!",
+      "translation_ar": "وأنت أحضرت كؤوسك! لياقتك ضعيفة. عندما كنا صغيرتين كنا نمشي بسرعة طوال اليوم!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Hey, wait for me! Hey, you know the speed walking rules! If both feet leave the ground, it’s running! You ran!",
+      "translation_ar": "مهلًا، انتظريني! تعرفين قواعد المشي السريع: إذا ارتفعت القدمان عن الأرض في الوقت نفسه فهو جري! لقد جريتِ!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Anna and Penelope are doing something they both love - speed walking! They are also using adverb clauses. Adverb clauses tell us when, why, how, where and under what conditions. For example, \"since 8 a.m.\" tells us when. Adverb clauses are dependent clauses and need an independent clause to make a complete sentence. Words like before, after, when, because, since, if and even though can signal an adverb clause. Keep watching for more adverb clauses!",
+      "translation_ar": "آنا وبينيلوبي تمارسان نشاطًا تحبانه، المشي السريع. وتستخدمان جملًا ظرفية، تخبرنا متى ولماذا وكيف وأين وتحت أي ظروف يحدث شيء. مثلًا «منذ الثامنة صباحًا» تحدد الزمن. تحتاج الجملة التابعة إلى جملة مستقلة لتكون مكتملة. كلمات مثل before وafter وwhen وbecause وsince وif وeven though قد تدل على جملة ظرفية. تابع الاستماع!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Whew! That was great!",
+      "translation_ar": "آه، كان ذلك رائعًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Wow, Penelope, you’re still really fast! Since I’ve been working in an office, my speed walking has been much slower.",
+      "translation_ar": "واو يا بينيلوبي، ما زلت سريعة! منذ بدأت العمل في مكتب أصبحت أبطأ كثيرًا في المشي السريع.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "You are slower, Anna. Maybe you should hire a personal trainer.",
+      "translation_ar": "أنت أبطأ يا آنا. ربما عليك الاستعانة بمدرب شخصي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "That will be great. As long as the trainer understands speed walking.",
+      "translation_ar": "سيكون هذا رائعًا، بشرط أن يفهم المدرب المشي السريع.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Try this company. After you fill out an online application, they will match you to the perfect trainer.",
+      "translation_ar": "جربي هذه الشركة. بعد ملء طلب عبر الإنترنت سيختارون لك مدربًا مناسبًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "As soon as I get home tonight, I’ll do it! Thanks.",
+      "translation_ar": "سأفعل ذلك بمجرد وصولي إلى المنزل الليلة! شكرًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Are you my trainer?",
+      "translation_ar": "هل أنت مدربي؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Alaskan Albert",
+      "text": "If you’re Anna, then I’m your trainer -- Alaskan Albert. Because I’m from Alaskan wilderness, I’m skilled in all outdoor activities of the wild.",
+      "translation_ar": "إذا كنتِ آنا، فأنا مدربك ألبرت الألاسكي. لأنني من براري ألاسكا، فأنا ماهر في جميع الأنشطة البرية.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "That’s great but what about speed walking?",
+      "translation_ar": "هذا رائع، لكن ماذا عن المشي السريع؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Alaskan Albert",
+      "text": "Speed walking? That's funny! Since I’ve been living in the city, I’ve combined wilderness training with a city workout. I call it “Call of the Wild Parkour!”",
+      "translation_ar": "المشي السريع؟ هذا مضحك! منذ انتقلت إلى المدينة جمعت بين التدريب البري والتمارين الحضرية. أسميه «باركور نداء البرية»!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Okay … but seriously, when do we speed walk?",
+      "translation_ar": "حسنًا... لكن متى سنمارس المشي السريع بجدية؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Alaskan Albert",
+      "text": "Your application did not say how funny you are!",
+      "translation_ar": "لم يذكر طلبك أنك مضحكة إلى هذا الحد!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No. But it did say that I'm a speed walker! Did you read it? Forget it. We'll have to cancel.",
+      "translation_ar": "لا، لكنه ذكر أنني أمارس المشي السريع! هل قرأته؟ انس الأمر، سنضطر إلى الإلغاء.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Alaskan Albert",
+      "text": "Why?",
+      "translation_ar": "لماذا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "We can't train today because it's too cold and too windy.",
+      "translation_ar": "لا يمكننا التدريب اليوم لأن الجو شديد البرودة والرياح قوية.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Alaskan Albert",
+      "text": "No way! No pain, no gain! When you exercise in really cold weather, you feel alive!",
+      "translation_ar": "مستحيل! لا مكاسب دون تعب! عندما تتمرن في طقس شديد البرودة تشعر بالحيوية!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Really? Because right now I just feel cold.",
+      "translation_ar": "حقًا؟ لأنني لا أشعر الآن إلا بالبرد!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Alaskan Albert",
+      "text": "You're so funny. But seriously, after our training, you will be ready for any extreme physical challenge. Let's get started!",
+      "translation_ar": "أنت مضحكة! لكن بعد تدريبنا ستكونين جاهزة لأي تحدٍّ بدني قاسٍ. لنبدأ!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Alaskan Albert",
+      "text": "Anna, even though you’re trying really hard, you’re really bad at Call of the Wild Parkour.",
+      "translation_ar": "آنا، رغم أنك تبذلين جهدًا كبيرًا، فإن أداءك سيئ جدًا في «باركور نداء البرية».",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I'm bad at Call of the Wild Parkour because I don’t want to do Call of the Wild Parkour! I am a speed walker. It’s what I do. It’s part of who I am.",
+      "translation_ar": "أنا سيئة في هذا الباركور لأنني لا أريد ممارسته! أنا أمارس المشي السريع؛ هذا ما أفعله وجزء من شخصيتي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Alaskan Albert",
+      "text": "Why didn’t you say something?",
+      "translation_ar": "لماذا لم تخبريني؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I did. Several times! You thought I was joking.",
+      "translation_ar": "لقد أخبرتك مرارًا! لكنك ظننت أنني أمزح.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Alaskan Albert",
+      "text": "Now I understand. Anna, I can help you. If you follow my advice, I'll put the speed back in your speed walk.",
+      "translation_ar": "الآن فهمت. يمكنني مساعدتك يا آنا، إذا اتبعت نصيحتي فسأعيد السرعة إلى مشيك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Alaskan Albert",
+      "text": "Go, Anna, go!",
+      "translation_ar": "هيا يا آنا، انطلقي!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "For more about adverb clauses, visit our website!",
+      "translation_ar": "لمعرفة المزيد عن الجمل الظرفية، زر موقعنا!",
       "start_ms": null,
       "end_ms": null
     }
@@ -43,17 +248,37 @@
       "meaning_ar": "تنافسي"
     },
     {
-      "word": "speed walking",
-      "meaning_ar": "المشي السريع"
-    },
-    {
-      "word": "although",
-      "meaning_ar": "مع أن"
+      "word": "medal",
+      "meaning_ar": "ميدالية"
     },
     {
       "word": "trophy",
       "meaning_ar": "كأس"
+    },
+    {
+      "word": "speed walking",
+      "meaning_ar": "المشي السريع"
     }
   ],
-  "questions": []
+  "questions": [
+    {
+      "question": "What does \"competitive\" mean in Arabic?",
+      "options": [
+        "تنافسي",
+        "ميدالية",
+        "كأس"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "Which VOA character speaks first in this excerpt?",
+      "options": [
+        "Anna",
+        "Penelope",
+        "Nobody"
+      ],
+      "answer": 0
+    }
+  ],
+  "backup_audio_url": "https://voa-audio.voanews.eu/vle/2018/01/04/99ceaa2e-fb25-43a8-8731-0a7f23901d65.mp3?download=1"
 }

@@ -3,25 +3,196 @@
   "id": "en-a2-voa-002",
   "language": "en",
   "level": "A2",
-  "title": "The Interview — VOA Level 2 Lesson 2",
-  "title_ar": "المقابلة — درس VOA 2",
-  "hosts": [
-    "Ms. Weaver",
-    "Pete"
-  ],
-  "other_speakers": [],
+  "title": "The Interview",
+  "title_ar": "المقابلة",
+  "voa_lesson_number": 2,
   "status": "published_audio",
   "recording_kind": "human",
   "voice_rights_verified": true,
-  "source": "VOA Learning English",
-  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-2/3960471.html",
-  "source_credit": "Original VOA Learning English Level 2 Lesson 2. WorldVoice presents selected excerpts with Arabic learning translations, not the complete original transcript. Full conversation appears on the linked VOA lesson page; WorldVoice is not affiliated with VOA.",
-  "audio_url": "https://voa-audio.voanews.eu/vle/2017/09/05/676d9800-cee0-4a59-9e79-b9378e0061ad_hq.mp3?download=1",
-  "backup_audio_url": "https://voa-audio.voanews.eu/vle/2017/09/05/676d9800-cee0-4a59-9e79-b9378e0061ad.mp3?download=1",
-  "duration_ms": 245000,
   "sync_status": "unverified",
-  "transcript_scope": "excerpt",
+  "transcript_scope": "full",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-2/3960471.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 2. Full credited original public-domain dialogue with WorldVoice Arabic translation. Human VOA audio; unverified sentence timings, so automatic highlighting is disabled. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2017/09/05/676d9800-cee0-4a59-9e79-b9378e0061ad_hq.mp3?download=1",
+  "duration_ms": 245000,
+  "hosts": [
+    "Ms. Weaver",
+    "Anna"
+  ],
+  "other_speakers": [
+    "Professor Bot",
+    "Mimi",
+    "Pete"
+  ],
   "dialogue": [
+    {
+      "speaker": "Anna",
+      "text": "Ms. Weaver is giving new assignments out. I am ready to take on anything she gives me. Well, except reporting traffic from a helicopter. Wish me luck.",
+      "translation_ar": "السيدة ويفر توزع مهام جديدة. أنا مستعدة لتولي أي مهمة تعطيني إياها، باستثناء الإبلاغ عن حركة المرور من طائرة مروحية. تمنوا لي التوفيق!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "I wonder what Anna’s new assignment will be? Professor Bot here! While you are watching, look for phrasal, or two-word verbs. Some stay together, like “go back” and some can come apart, like “give [assignments] out.” Good luck, Anna!",
+      "translation_ar": "أتساءل ما مهمة آنا الجديدة؟ أنا الأستاذ بوت! أثناء المشاهدة ابحث عن الأفعال المركبة من كلمتين. بعضها يبقى متصلًا مثل «go back»، وبعضها يمكن فصله مثل «give assignments out». بالتوفيق يا آنا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "So, as I said at the meeting last week, I have new assignments for everyone at The Studio. Anna, you're good at asking questions. So, I want you to go back to hosting and reporting.",
+      "translation_ar": "كما قلت في اجتماع الأسبوع الماضي، لدي مهام جديدة للجميع في الاستوديو. آنا، أنت ماهرة في طرح الأسئلة، لذا أريدك أن تعودي إلى تقديم البرامج وإعداد التقارير.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "That sounds great.",
+      "translation_ar": "يبدو ذلك رائعًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "You're also a team player. So, I want you team up with someone ...",
+      "translation_ar": "وأنت أيضًا تحسنين العمل ضمن فريق، لذا أريدك أن تتعاوني مع شخص...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "That sounds even better!",
+      "translation_ar": "هذا يبدو أفضل!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "... someone who is very \"different\" from you.",
+      "translation_ar": "... شخص «مختلف» تمامًا عنك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "That sounds ... what do you mean \"different\"?",
+      "translation_ar": "يبدو هذا... ماذا تقصدين بكلمة «مختلف»؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "Well, you are very cheerful, you're a people person. I want you to team up with someone who ... isn't.",
+      "translation_ar": "أنت مرحة جدًا واجتماعية، وأريدك أن تتعاوني مع شخص... ليس كذلك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Ms. Weaver, I will find that person.",
+      "translation_ar": "يا سيدة ويفر، سأجد هذا الشخص.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Mimi",
+      "text": "Excuse me. Are you using this chair?",
+      "translation_ar": "عذرًا، هل تستخدم هذا الكرسي؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Yes.",
+      "translation_ar": "نعم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Pete, hi! Thanks for meeting me.",
+      "translation_ar": "بيت، مرحبًا! شكرًا لأنك جئت للقائي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Sure. But I don’t have lots of time, Anna. I’m busy looking for work.",
+      "translation_ar": "بالتأكيد، لكن ليس لدي وقت كثير يا آنا. أنا مشغول بالبحث عن عمل.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Pete, you can tear these want ads up and throw them away! I have good news!",
+      "translation_ar": "بيت، يمكنك تمزيق إعلانات الوظائف هذه ورميها! لدي أخبار جيدة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Anna, I was working on that crossword puzzle.",
+      "translation_ar": "آنا، كنت أحل لغز الكلمات المتقاطعة هذا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh. Sorry. Sorry. Pete, forget about the crossword puzzle. I have a job offer for you!",
+      "translation_ar": "أوه، آسفة، آسفة. بيت، انسَ الكلمات المتقاطعة. لدي عرض عمل لك!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "I'm listening.",
+      "translation_ar": "أنا أستمع.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "My boss wants me to team up with someone to host a talk show. But the person must be different from me. So, I thought of you.",
+      "translation_ar": "تريد مديرتي أن أتعاون مع شخص لتقديم برنامج حواري، لكن يجب أن يكون مختلفًا عني، ففكرت فيك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Different from you? What do you mean?",
+      "translation_ar": "مختلفًا عنك؟ ماذا تقصدين؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I'm sorry, Pete, I don't have time right now. Here's my boss's address. Your interview is tomorrow morning at 10 am.",
+      "translation_ar": "آسفة يا بيت، لا وقت لدي الآن. هذا عنوان مديرتي، ومقابلتك غدًا الساعة العاشرة صباحًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "But what do you mean “different”?",
+      "translation_ar": "لكن ماذا تعنين بكلمة «مختلف»؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Just be yourself, Pete. Just be yourself.",
+      "translation_ar": "كن على طبيعتك يا بيت، فقط كن على طبيعتك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Did you find any two-word verbs? Here’s one example. Pete can throw the want ads away! Throw away is a two-word verb.",
+      "translation_ar": "هل وجدت أفعالًا مركبة؟ إليك مثالًا: يستطيع بيت أن يرمي إعلانات الوظائف. الفعل «throw away» فعل مركب من كلمتين.",
+      "start_ms": null,
+      "end_ms": null
+    },
     {
       "speaker": "Ms. Weaver",
       "text": "Thanks for coming in, Pete.",
@@ -32,28 +203,146 @@
     {
       "speaker": "Pete",
       "text": "Thanks for the opportunity, Ms. Weaver.",
-      "translation_ar": "شكرًا على الفرصة يا سيدة ويفر.",
+      "translation_ar": "شكرًا على هذه الفرصة يا سيدة ويفر.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "I need to find out if you have the skills for this job. And I want you to be completely honest.",
+      "translation_ar": "أحتاج إلى معرفة ما إذا كنت تملك المهارات اللازمة لهذه الوظيفة، وأريدك أن تكون صادقًا تمامًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Okay.",
+      "translation_ar": "حسنًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "First, let's talk about your personal skills. Pete, are you a people person?",
+      "translation_ar": "أولًا، لنتحدث عن مهاراتك الشخصية. بيت، هل أنت شخص اجتماعي؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Well, okay, sometimes I think people talk too much.",
+      "translation_ar": "حسنًا، أحيانًا أعتقد أن الناس يتحدثون كثيرًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "Pete, what work of yours are you most proud of?",
+      "translation_ar": "بيت، ما العمل الذي تفتخر به أكثر من غيره؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Last year, I locked myself in a cabin and wrote a book. I didn't speak to anybody the entire time! It was the best two months of my life.",
+      "translation_ar": "في العام الماضي عزلت نفسي في كوخ وكتبت كتابًا. لم أتحدث إلى أي شخص طوال تلك المدة! كانا أفضل شهرين في حياتي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "Okay. I think I’ve heard enough.",
+      "translation_ar": "حسنًا، أعتقد أنني سمعت ما يكفي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Hey! Hey, Pete, how was the interview with Ms. Weaver?",
+      "translation_ar": "مرحبًا يا بيت! كيف كانت المقابلة مع السيدة ويفر؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Well, she said I was grumpy and not good with people.",
+      "translation_ar": "قالت إنني متجهم ولست جيدًا في التعامل مع الناس.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "And … ?",
+      "translation_ar": "وماذا بعد...؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "And, I got the job!",
+      "translation_ar": "وحصلت على الوظيفة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I knew it! Congratulations! Let's go celebrate.",
+      "translation_ar": "كنت أعرف ذلك! تهانينا! لنذهب ونحتفل.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Okay!",
+      "translation_ar": "حسنًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Did you find more two-word verbs? Here is the list.",
+      "translation_ar": "هل وجدت مزيدًا من الأفعال المركبة؟ إليك القائمة.",
       "start_ms": null,
       "end_ms": null
     }
   ],
   "vocabulary": [
     {
+      "word": "assignment",
+      "meaning_ar": "مهمة"
+    },
+    {
       "word": "interview",
       "meaning_ar": "مقابلة"
     },
     {
-      "word": "opportunity",
-      "meaning_ar": "فرصة"
+      "word": "team",
+      "meaning_ar": "فريق"
     },
     {
-      "word": "skills",
-      "meaning_ar": "مهارات"
-    },
-    {
-      "word": "assignment",
-      "meaning_ar": "مهمة"
+      "word": "reporting",
+      "meaning_ar": "تغطية إخبارية"
     }
   ],
-  "questions": []
+  "questions": [
+    {
+      "question": "What does \"assignment\" mean in Arabic?",
+      "options": [
+        "مهمة",
+        "مقابلة",
+        "فريق"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "Which VOA character speaks first in this excerpt?",
+      "options": [
+        "Ms. Weaver",
+        "Anna",
+        "Nobody"
+      ],
+      "answer": 0
+    }
+  ],
+  "backup_audio_url": "https://voa-audio.voanews.eu/vle/2017/09/05/676d9800-cee0-4a59-9e79-b9378e0061ad.mp3?download=1"
 }

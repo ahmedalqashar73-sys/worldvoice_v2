@@ -3,36 +3,256 @@
   "id": "en-a2-voa-014",
   "language": "en",
   "level": "A2",
-  "title": "Made for Each Other — VOA Level 2 Lesson 14",
-  "title_ar": "خُلِقا لبعضهما — درس VOA 14",
+  "title": "Made for Each Other",
+  "title_ar": "خُلقا لبعضهما",
+  "voa_lesson_number": 14,
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "sync_status": "unverified",
+  "transcript_scope": "full",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-14-made-for-each-other/4159000.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 14. Full credited public-domain source dialogue translated into Arabic in WorldVoice. Human audio; no verified line timings. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2017/12/12/e2fe076d-3fa7-495a-83ea-9d4d4cba9fad_hq.mp3?download=1",
+  "duration_ms": 276000,
   "hosts": [
     "Anna",
     "Pete"
   ],
-  "other_speakers": [],
-  "status": "published_audio",
-  "recording_kind": "human",
-  "voice_rights_verified": true,
-  "source": "VOA Learning English",
-  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-14-made-for-each-other/4159000.html",
-  "source_credit": "Original VOA Learning English Level 2 Lesson 14. WorldVoice presents selected excerpts with Arabic learning translations, not the complete original transcript. Full conversation appears on the linked VOA lesson page; WorldVoice is not affiliated with VOA.",
-  "audio_url": "https://voa-audio.voanews.eu/vle/2017/12/12/e2fe076d-3fa7-495a-83ea-9d4d4cba9fad_hq.mp3?download=1",
-  "backup_audio_url": "https://voa-audio.voanews.eu/vle/2017/12/12/e2fe076d-3fa7-495a-83ea-9d4d4cba9fad.mp3?download=1",
-  "duration_ms": 276000,
-  "sync_status": "unverified",
-  "transcript_scope": "excerpt",
+  "other_speakers": [
+    "Ashley",
+    "Professor Bot",
+    "Man"
+  ],
   "dialogue": [
     {
       "speaker": "Anna",
       "text": "Hello! What are you guys looking at?",
-      "translation_ar": "مرحبًا! إلى ماذا تنظرون؟",
+      "translation_ar": "مرحبًا! إلى ماذا تنظران؟",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Pete",
-      "text": "I’m showing Ashley pictures of my girlfriend.",
-      "translation_ar": "أُري آشلي صور صديقتي.",
+      "text": "I’m showing Ashley pictures of my girlfriend. We have so much in common -- even small things. She can’t whistle and I can’t either.",
+      "translation_ar": "أعرض على آشلي صور حبيبتي. بيننا أمور مشتركة كثيرة، حتى التفاصيل الصغيرة. هي لا تستطيع الصفير وأنا كذلك لا أستطيع.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "And here’s a picture of my boyfriend.",
+      "translation_ar": "وهذه صورة حبيبي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "My family is big and so is his. I don’t like ball sports and he doesn’t either! We are made for each other ...",
+      "translation_ar": "عائلتي كبيرة وعائلته كذلك. لا أحب الرياضات التي تستخدم الكرة وهو أيضًا لا يحبها! لقد خُلقنا لبعضنا...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "… and so are we.",
+      "translation_ar": "... ونحن كذلك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Uh… you have found perfect partners … and so have I!",
+      "translation_ar": "أوه، لقد وجدتما شريكين مثاليين... وأنا أيضًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Pete and Ashley are talking about people they love. They are putting two ideas together with connectors. Let’s start with these two sentences: She can’t whistle. Pete can’t whistle. How do you put them together? Pete says, \"She can’t whistle and I can’t either.\" You can see we just add the conjunction “either” and take away the verb “whistle.” And Ashley says: \"I don’t like ball sports and he doesn’t either!\" Keep looking for connectors!",
+      "translation_ar": "بيت وآشلي يتحدثان عن الأشخاص الذين يحبونهم. ويربطان بين فكرتين بأدوات الربط. مثال: «هي لا تستطيع الصفير، وبيت لا يستطيع الصفير». يمكن جمعهما بقول: «هي لا تستطيع الصفير وأنا أيضًا لا أستطيع». نستخدم «either» ونحذف الفعل المكرر. تابع البحث عن أدوات الربط!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "You met someone, Anna? That’s great! What’s his name?",
+      "translation_ar": "تعرفتِ إلى شخص يا آنا؟ هذا رائع! ما اسمه؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "His name? His name is uh… Bus … ter. Car … ter.",
+      "translation_ar": "اسمه؟ اسمه... بوستر... كارتر.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "Bus...ter Car...ter?",
+      "translation_ar": "بوستر كارتر؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "It’s just Buster Carter, Ashley. I like him and he likes me. We’re a great couple.",
+      "translation_ar": "اسمه بوستر كارتر يا آشلي. أنا أحبه وهو يحبني. نحن ثنائي رائع.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "Hey, let’s all get dinner tonight, together. You can bring Buster.",
+      "translation_ar": "لنتناول العشاء جميعًا الليلة. أحضري بوستر معك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Yeah, I can’t wait to meet him.",
+      "translation_ar": "نعم، أتطلع إلى لقائه!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Thanks, Ashley, but he’s really busy tonight with his uh, squirrel collection. Bye, guys! Gotta go!",
+      "translation_ar": "شكرًا يا آشلي، لكنه مشغول جدًا الليلة... بمجموعة السناجب الخاصة به. وداعًا، يجب أن أذهب!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "Squirrel collection?",
+      "translation_ar": "مجموعة سناجب؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "You know, she made all that up.",
+      "translation_ar": "تعلمين أنها اختلقت تلك القصة كلها.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "That’s so sad. She needs to meet someone. Hey, do you know anyone who she might...",
+      "translation_ar": "هذا محزن. تحتاج إلى التعرف على شخص. هل تعرف أحدًا قد...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "No.",
+      "translation_ar": "لا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Anna, Anna, you lied! You lied! Now, they think you have a boyfriend - with a squirrel collection. Here, squirrel. Well, you need to tell them the truth. You don’t have a boyfriend.",
+      "translation_ar": "آنا، آنا، لقد كذبتِ! الآن يظنان أن لديك حبيبًا يجمع السناجب. تفضل أيها السنجاب. يجب أن تخبريهما الحقيقة؛ ليس لديك حبيب.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Man",
+      "text": "Excuse me, is this seat taken?",
+      "translation_ar": "عذرًا، هل هذا المقعد مشغول؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Ashley, Pete, I need to talk to you. This morning, I lied.",
+      "translation_ar": "آشلي، بيت، أريد التحدث معكما. كذبتُ هذا الصباح.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Let me guess. There’s no Buster Carter. What a surprise!",
+      "translation_ar": "دعيني أخمّن، لا يوجد شخص اسمه بوستر كارتر. يا لها من مفاجأة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I’m sorry. But later I really did meet someone and we have a lot in common! He’s good at flying kites and so am I. He likes to read comics and so do I. I can play the ukulele and so can he.",
+      "translation_ar": "أنا آسفة. لكنني تعرفت لاحقًا إلى شخص حقيقي وبيننا الكثير من القواسم المشتركة! يجيد إطلاق الطائرات الورقية وأنا كذلك. يحب قراءة القصص المصورة وأنا أيضًا. أستطيع عزف اليوكوليلي وهو كذلك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "He sounds perfect for you, Anna. Can he come tonight?",
+      "translation_ar": "يبدو مناسبًا تمامًا لك يا آنا. هل يمكنه الحضور الليلة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "That’s the sad part. You see, he just got a job as a spy, and tonight he leaves on assignment.",
+      "translation_ar": "هذا هو الجزء المحزن. لقد حصل للتو على وظيفة جاسوس، وسيغادر الليلة في مهمة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Of course he does.",
+      "translation_ar": "بالطبع!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "But that's okay, because now I know that there is someone out there made for me. Oh, it’s late! I have to see him off at the train station. Bye, you guys!",
+      "translation_ar": "لا بأس، فأنا أعرف الآن أن هناك شخصًا مناسبًا لي. أوه، تأخر الوقت! يجب أن أودعه في محطة القطار. وداعًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "Bye Anna! Oh dear, she’s worse than we thought.",
+      "translation_ar": "وداعًا يا آنا! يا إلهي، حالتها أسوأ مما ظننا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "She’s lost her mind.",
+      "translation_ar": "لقد فقدت عقلها!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "What should we do?",
+      "translation_ar": "ماذا علينا أن نفعل؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Let’s tell her!",
+      "translation_ar": "لنخبرها!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "No, Pete. Mr. Right may not be real but he makes her really happy.",
+      "translation_ar": "لا يا بيت. قد لا يكون الشخص المثالي حقيقيًا، لكنه يجعلها سعيدة حقًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Did you find any other connectors? Notice how the words are in a different order in the part after “so.” \"I am\" becomes \"am I\" and \"he can\" becomes \"can he.\" \"He’s good at flying kites and so am I. I can play the ukulele and so can he.\"",
+      "translation_ar": "هل وجدت أدوات ربط أخرى؟ لاحظ أن ترتيب الكلمات يتغير بعد «so». «I am» تصبح «am I»، و«he can» تصبح «can he». مثل: «إنه يجيد إطلاق الطائرات الورقية وأنا كذلك»، و«أنا أستطيع عزف اليوكوليلي وهو كذلك».",
       "start_ms": null,
       "end_ms": null
     }
@@ -40,20 +260,40 @@
   "vocabulary": [
     {
       "word": "girlfriend",
-      "meaning_ar": "صديقة عاطفية"
+      "meaning_ar": "صديقة"
+    },
+    {
+      "word": "boyfriend",
+      "meaning_ar": "صديق"
     },
     {
       "word": "partner",
       "meaning_ar": "شريك"
     },
     {
-      "word": "either",
-      "meaning_ar": "أيضًا في النفي"
-    },
-    {
-      "word": "neither",
-      "meaning_ar": "ولا واحد منهما"
+      "word": "couple",
+      "meaning_ar": "ثنائي"
     }
   ],
-  "questions": []
+  "questions": [
+    {
+      "question": "What does \"girlfriend\" mean in Arabic?",
+      "options": [
+        "صديقة",
+        "صديق",
+        "شريك"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "Which VOA character speaks first in this excerpt?",
+      "options": [
+        "Anna",
+        "Pete",
+        "Nobody"
+      ],
+      "answer": 0
+    }
+  ],
+  "backup_audio_url": "https://voa-audio.voanews.eu/vle/2017/12/12/e2fe076d-3fa7-495a-83ea-9d4d4cba9fad.mp3?download=1"
 }

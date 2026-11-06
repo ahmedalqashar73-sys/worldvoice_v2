@@ -3,29 +3,59 @@
   "id": "en-a2-voa-005",
   "language": "en",
   "level": "A2",
-  "title": "Greatest Vacation of All Time — VOA Level 2 Lesson 5",
-  "title_ar": "أروع إجازة على الإطلاق — درس VOA 5",
-  "hosts": [
-    "Anna",
-    "Dan"
-  ],
-  "other_speakers": [],
+  "title": "Greatest Vacation of All Time",
+  "title_ar": "أفضل عطلة على الإطلاق",
+  "voa_lesson_number": 5,
   "status": "published_audio",
   "recording_kind": "human",
   "voice_rights_verified": true,
-  "source": "VOA Learning English",
-  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-5-greatest-vacation/4035571.html",
-  "source_credit": "Original VOA Learning English Level 2 Lesson 5. WorldVoice presents selected excerpts with Arabic learning translations, not the complete original transcript. Full conversation appears on the linked VOA lesson page; WorldVoice is not affiliated with VOA.",
-  "audio_url": "https://voa-audio.voanews.eu/vle/2017/09/27/11289bfa-a821-47fb-905b-7b4174ae0c5e_hq.mp3?download=1",
-  "backup_audio_url": "https://voa-audio.voanews.eu/vle/2017/09/27/11289bfa-a821-47fb-905b-7b4174ae0c5e.mp3?download=1",
-  "duration_ms": 290000,
   "sync_status": "unverified",
-  "transcript_scope": "excerpt",
+  "transcript_scope": "full",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-5-greatest-vacation/4035571.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2 Lesson 5. Full original public-domain dialogue with WorldVoice Arabic translation. The original human audio is provided; line timings are not verified. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2017/09/27/11289bfa-a821-47fb-905b-7b4174ae0c5e_hq.mp3?download=1",
+  "duration_ms": 290000,
+  "hosts": [
+    "Dan",
+    "Anna"
+  ],
+  "other_speakers": [
+    "Professor Bot",
+    "Trudy"
+  ],
   "dialogue": [
     {
       "speaker": "Anna",
+      "text": "“Do you need a vacation?” Wow. That was the best vacation I have ever had … in my head. A beach is much better than here. I need a vacation!",
+      "translation_ar": "«هل تحتاج إلى إجازة؟» واو! تلك كانت أفضل إجازة قضيتها... في خيالي! الشاطئ أفضل بكثير من هنا. أحتاج إلى إجازة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "I hear you, Anna. I need a vacation too but not at the beach. Sand is not good for robots! When we compare things, we use special forms of adjectives. \"Better\" is a comparative adjective. That is used to compare two things. \"Best\" is a superlative adjective. It shows that one thing has more of ...something than ALL of the others. Try to find more of these adjectives. Look for ER or EST at the end.",
+      "translation_ar": "أفهمك يا آنا. أنا أيضًا أحتاج إلى إجازة، لكن ليس على الشاطئ؛ فالرمال ليست جيدة للروبوتات! عندما نقارن الأشياء نستعمل صيغًا خاصة للصفات. «better» للمقارنة بين شيئين، و«best» للتفضيل بين جميع الأشياء. ابحث عن مزيد من الصفات المنتهية بـ ER أو EST.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Dan",
+      "text": "NO! You can’t get your money back. I don’t care that it was your worst vacation ever!",
+      "translation_ar": "لا! لا يمكنك استعادة أموالك! لا يهمني أنها كانت أسوأ إجازة في حياتك!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Dan",
+      "text": "Hello! Have a seat! Welcome to the World’s Best Vacation Travel Agency!",
+      "translation_ar": "مرحبًا، تفضل بالجلوس! أهلًا بك في أفضل وكالة سفر للإجازات في العالم!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
       "text": "Thank you and congratulations!",
-      "translation_ar": "شكرًا لك، وتهانينا!",
+      "translation_ar": "شكرًا، وتهانينا!",
       "start_ms": null,
       "end_ms": null
     },
@@ -39,28 +69,237 @@
     {
       "speaker": "Anna",
       "text": "For being the world’s best travel agency.",
-      "translation_ar": "لأنها أفضل وكالة سفر في العالم.",
+      "translation_ar": "لأنكم أفضل وكالة سفر في العالم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Dan",
+      "text": "Right … thanks.",
+      "translation_ar": "صحيح... شكرًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Dan",
+      "text": "Trudy, hold my calls. I am going to sell our most expensive vacation.",
+      "translation_ar": "ترودي، لا تحوّلي إليّ المكالمات. سأبيع أغلى إجازة لدينا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Trudy",
+      "text": "Sure thing, Boss.",
+      "translation_ar": "حاضر يا مدير.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Dan",
+      "text": "The Mountain Getaway is good for you. It’s a little pricey. But think of it -- you, on top of a mountain for seven days!",
+      "translation_ar": "رحلة الجبل مناسبة لك. إنها باهظة قليلًا، لكن تخيلي نفسك على قمة جبل لمدة سبعة أيام!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I’m afraid of high places.",
+      "translation_ar": "أنا أخاف من الأماكن المرتفعة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Dan",
+      "text": "Of course you are. That’s why our Deep Sea Adventure is better for you! It is pricier than the Mountain Getaway. Just you and the animals of the sea!",
+      "translation_ar": "بالطبع تخافين! لذلك مغامرة أعماق البحار أفضل لك! إنها أغلى من رحلة الجبل؛ ستكونين مع حيوانات البحر!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Shark! Shark!",
+      "translation_ar": "قرش! قرش!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Dan",
+      "text": "No, there are no sharks in your dream vacation! You need the Safari Camp Out! It is our priciest vacation. But I think it’s the best one for you. During the day, you’ll see elephants, giraffes and lions. At night, you’ll sleep out under the stars.",
+      "translation_ar": "لا، لا توجد أسماك قرش في إجازة أحلامك! أنت بحاجة إلى رحلة سفاري. إنها أغلى إجازة لدينا، لكنني أعتقد أنها الأفضل لك. في النهار سترين الفيلة والزرافات والأسود، وفي الليل ستنامين تحت النجوم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Look, I think this was a bad idea.",
+      "translation_ar": "انظر، أعتقد أنها كانت فكرة سيئة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Dan",
+      "text": "Sure, you can leave. But then you won’t see the latest vacation technology.",
+      "translation_ar": "بإمكانك المغادرة، لكنك حينها لن تشاهدي أحدث تقنيات الإجازات.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Did you find all of those adjectives? Dan started with good - The mountain getaway; then he moved to better - The Deep Sea Adventure. And finally, he said the Safari Campout was the best vacation for Anna!",
+      "translation_ar": "هل وجدت كل تلك الصفات؟ بدأ دان بـ «good» لرحلة الجبل، ثم «better» لمغامرة البحر، وأخيرًا قال إن السفاري هي «best» بالنسبة إلى آنا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Exactly what is the “latest vacation technology” … exactly?",
+      "translation_ar": "ما هي بالضبط «أحدث تقنيات الإجازات»؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Dan",
+      "text": "I’m happy you asked. Meet the Travel Max 2000!",
+      "translation_ar": "سعيد لأنك سألتِ. تعرّفي على جهاز ترافل ماكس 2000!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Wow.",
+      "translation_ar": "واو.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Dan",
+      "text": "So, tell me, how do you like to travel?",
+      "translation_ar": "إذن أخبريني: كيف تحبين السفر؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Well, I like travel that is cozy and romantic but still exciting.",
+      "translation_ar": "أحب السفر المريح والرومانسي، ولكن المثير أيضًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Dan",
+      "text": "Great. Tell me more.",
+      "translation_ar": "رائع. أخبريني بالمزيد.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I like traveling in a plane but not in a helicopter! Planes are a little scary but helicopters are scarier! My favorite way of traveling is by train. Ships can be the scariest! Have you seen the movie “Titanic”? Oh, and no horses. But I will ride a camel. And no bike tours. Biking is THE slowest AND least romantic way to travel. Excuse me, but I think the Travel Max 2000 is on fire.",
+      "translation_ar": "أحب السفر بالطائرة، لكن ليس بالمروحية! الطائرات مخيفة قليلًا، والمروحيات أكثر إخافة! وطريقتي المفضلة هي القطار. أما السفن فقد تكون الأكثر رعبًا! هل شاهدت فيلم «تايتانيك»؟ ولا أريد الخيول، لكن يمكنني ركوب الجمل. ولا أريد جولات بالدراجات؛ فهي الأبطأ والأقل رومانسية. عذرًا، أظن أن جهاز ترافل ماكس 2000 يحترق!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Dan",
+      "text": "Yes, we’re both on fire! We really want to sell you the most ex-, I mean, best vacation ever!",
+      "translation_ar": "نعم، نحن متحمسان جدًا! نريد أن نبيعك أغلى... أقصد أفضل إجازة على الإطلاق!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No, I mean it’s really on fire!",
+      "translation_ar": "لا، أعني أنه يحترق فعلًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Dan",
+      "text": "You killed it. You killed the Travel Max 2000!",
+      "translation_ar": "لقد أتلفته! لقد أتلفت جهاز ترافل ماكس 2000!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I am so sorry! Can I help you fix it?",
+      "translation_ar": "أنا آسفة جدًا! هل يمكنني مساعدتك في إصلاحه؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Dan",
+      "text": "No, no!",
+      "translation_ar": "لا، لا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Don’t cry. I know what you need -- a vacation!",
+      "translation_ar": "لا تبكِ. أعرف ما تحتاج إليه: إجازة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "The Safari Campout looks fun. It is the priciest. But I think you deserve it.",
+      "translation_ar": "تبدو رحلة السفاري ممتعة. إنها الأغلى، لكنني أعتقد أنك تستحقها.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Dan",
+      "text": "No, no!",
+      "translation_ar": "لا، لا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Oh Anna. This is the smokiest lesson yet! There were a lot of comparatives and superlatives but … I can’t breathe. Just go to the website to learn the best ways to use them!",
+      "translation_ar": "أوه يا آنا! هذا أكثر دروسنا امتلاءً بالدخان حتى الآن! استخدمنا الكثير من صفات المقارنة والتفضيل، لكنني لا أستطيع التنفس! اذهبوا إلى الموقع لتتعلموا أفضل طريقة لاستخدامها!",
       "start_ms": null,
       "end_ms": null
     }
   ],
   "vocabulary": [
     {
-      "word": "comparative",
-      "meaning_ar": "صيغة المقارنة"
-    },
-    {
       "word": "vacation",
       "meaning_ar": "إجازة"
     },
     {
-      "word": "expensive",
-      "meaning_ar": "مرتفع الثمن"
+      "word": "travel",
+      "meaning_ar": "سفر"
     },
     {
-      "word": "destination",
-      "meaning_ar": "وجهة سفر"
+      "word": "expensive",
+      "meaning_ar": "مكلف"
+    },
+    {
+      "word": "mountain",
+      "meaning_ar": "جبل"
     }
   ],
-  "questions": []
+  "questions": [
+    {
+      "question": "What does \"vacation\" mean in Arabic?",
+      "options": [
+        "إجازة",
+        "سفر",
+        "مكلف"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "Which VOA character speaks first in this excerpt?",
+      "options": [
+        "Dan",
+        "Anna",
+        "Nobody"
+      ],
+      "answer": 0
+    }
+  ],
+  "backup_audio_url": "https://voa-audio.voanews.eu/vle/2017/09/27/11289bfa-a821-47fb-905b-7b4174ae0c5e.mp3?download=1"
 }
