@@ -40,6 +40,8 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
         (_selectedLevel == 'A1' ||
             _selectedLevel == 'A2' ||
             _selectedLevel == 'B1');
+    final nasaOriginal = _selectedLanguage == 'en' &&
+        const ['B2', 'C1', 'C2'].contains(_selectedLevel);
     return Container(
         key: const ValueKey('podcast-hero'),
         padding: const EdgeInsets.all(19),
@@ -72,32 +74,46 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
                 color: Color(0xFFBCE2CE), size: 28),
           ]),
           const SizedBox(height: 15),
-          Text(ar ? (voaPilot
+          Text(ar
+                  ? (voaPilot
                       ? 'أصوات VOA الأصلية · تعلّم الإنجليزية'
-                      : 'صوتان، حوار واحد، لغة جديدة')
+                      : (nasaOriginal
+                          ? 'بودكاست NASA الأصلي · الإنجليزية المتقدمة'
+                          : 'صوتان، حوار واحد، لغة جديدة'))
                   : (voaPilot
                       ? 'Original VOA voices · Learn English'
-                      : 'Two voices. One new language'),
+                      : (nasaOriginal
+                          ? 'Original NASA voices · Advanced English'
+                          : 'Two voices. One new language')),
               style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w900, fontSize: 21)),
           const SizedBox(height: 6),
           Text(
-            ar ? (voaPilot
-                ? 'استمع إلى آنا وضيوفها في التسجيلات الأصلية من VOA، واقرأ المحادثات المطابقة.'
-                : 'محادثات تعليمية للاستماع والقراءة في وقت واحد.')
-               : (voaPilot
-                ? 'Hear Anna and the original VOA cast in their authentic lessons.'
-                : 'Read and listen to language conversations.'),
+            ar
+                ? (voaPilot
+                    ? (_selectedLevel == 'B1'
+                        ? 'استمع إلى برامج VOA الطويلة بأصوات مذيعيها الأصليين، مع النص والترجمة العربية.'
+                        : 'استمع إلى التسجيلات الأصلية من VOA واقرأ المحادثات المطابقة.')
+                    : (nasaOriginal
+                        ? '30 تسجيلًا طويلًا من NASA لكل مستوى، مع النص الإنجليزي وترجمة عربية أولية عند توفرها.'
+                        : 'محادثات تعليمية للاستماع والقراءة في وقت واحد.'))
+                : (voaPilot
+                    ? (_selectedLevel == 'B1'
+                        ? 'Listen to long original VOA broadcasts with English and Arabic text.'
+                        : 'Original VOA voices and matching lesson dialogues.')
+                    : (nasaOriginal
+                        ? '30 long NASA originals per level, with English text and draft Arabic translation when available.'
+                        : 'Read and listen to language conversations.')),
             style: const TextStyle(
                 color: Color(0xFFE0EEE5), height: 1.5, fontSize: 13),
           ),
           const SizedBox(height: 17),
           Row(children: [
-            _hostPill('ANNA', Icons.face_3_rounded,
+            _hostPill(nasaOriginal ? 'NASA' : (voaPilot && _selectedLevel == 'B1' ? 'VOA' : 'ANNA'), Icons.face_3_rounded,
                 const Color(0xFFF2BDD6)),
             const SizedBox(width: 9),
-            _hostPill(voaPilot ? 'VOA CAST' : 'DANIEL', Icons.face_rounded,
+            _hostPill(nasaOriginal ? 'NASA CAST' : (voaPilot ? 'VOA CAST' : 'DANIEL'), Icons.face_rounded,
                 const Color(0xFFC1DBFF)),
             const Spacer(),
             const Icon(Icons.schedule_rounded,
@@ -105,7 +121,7 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
             const SizedBox(width: 4),
             Text(voaPilot
                 ? (_selectedLevel == 'A1' ? '15 VOA' : '30 VOA')
-                : '≈ 05:00',
+                : (nasaOriginal ? '30 NASA' : '≈ 05:00'),
                 style: TextStyle(color: Color(0xFFF1D98F),
                     fontWeight: FontWeight.w800, fontSize: 13)),
           ]),
