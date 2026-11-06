@@ -41,11 +41,9 @@ class NasaAdvancedActualTranslationAssets(unittest.TestCase):
                          if x["level"] == level]
             path = TRANSLATION_DIR / (
                 f"nasa_{level.lower()}_translations.json")
-            if not path.exists():
-                # Level-specific publication is intentionally atomic.
-                # Intermediate draft artifacts may be generated but are
-                # never represented as completed in-app translations.
-                continue
+            self.assertTrue(
+                path.exists(), f"Missing full 30-episode bilingual {level} asset"
+            )
             with self.subTest(level=level):
                 document = json.loads(path.read_text(encoding="utf-8"))
                 self.assertEqual(document["language"], "en")

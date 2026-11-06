@@ -45,10 +45,10 @@ void main() {
         throwsFormatException);
   });
 
-  test('B2 and C1 show bilingual text only when their source-linked assets exist',
+  test('all B2 C1 C2 originals expose actual bilingual assets',
       () async {
     final catalog = await const NasaLongCatalog().load();
-    for (final level in ['B2', 'C1']) {
+    for (final level in ['B2', 'C1', 'C2']) {
       final ids = await const NasaTranscriptRepository().availableIds(level);
       expect(ids, hasLength(30));
       final originals = catalog.where((item) => item.level == level);
@@ -56,12 +56,11 @@ void main() {
     }
   });
 
-  test('all 60 committed B2/C1 original broadcasts have readable bilingual text',
+  test('all 90 B2/C1/C2 original broadcasts have readable bilingual text',
       () async {
     final originalEpisodes = await const NasaLongCatalog().load();
     const transcripts = NasaTranscriptRepository();
-    for (final episode in originalEpisodes.where(
-        (episode) => episode.level == 'B2' || episode.level == 'C1')) {
+    for (final episode in originalEpisodes) {
       final transcript = await transcripts.loadFor(episode);
       expect(transcript, isNotNull, reason: episode.id);
       expect(transcript!.id, episode.id);
