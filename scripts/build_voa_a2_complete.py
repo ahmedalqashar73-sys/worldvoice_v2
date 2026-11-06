@@ -21,6 +21,9 @@ import requests
 BASE = Path("assets/podcasts")
 CATALOG = BASE / "voa_english_a2_originals.json"
 ALLOWED = {8, *range(17, 31)}
+# Official VOA Lesson 30 has speaker labels without a colon; recheck a
+# machine draft on a subsequent run without altering manually edited lessons.
+RECHECK_MACHINE_DRAFT = {30}
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; WorldVoiceVOATranscript/1.0; +https://learningenglish.voanews.com/)"}
 SPEAKER = re.compile(r"^([A-Za-z][A-Za-z.'’\-\s]{0,42}):\s*(.*)$")
 DIRECTIONS = re.compile(r"\([^()]*\)")
@@ -75,7 +78,7 @@ def extract_dialogue(html: str) -> list[dict[str, str]]:
             if pending:
                 piece = pending + " " + piece
                 pending = ""
-            matched = SPEAKER.match(piece)
+            # VOA Level 2 Lesson 30 prints "Nurse Well," and "Pete Oh."\n            # without the usual colon. Recover ONLY these verified speaker\n            # labels; otherwise two actors incorrectly become one turn.\n            piece = re.sub(r"^(Nurse)(?=\\s+Well,)", r"\\1:", piece)\n            piece = re.sub(r"^(Pete)(?=\\s+Oh\\.)", r"\\1:", piece)\n            matched = SPEAKER.match(piece)
             if matched:
                 who, spoken = matched.groups()
                 if not spoken:
@@ -116,13 +119,11 @@ def read_html(url: str) -> str:
 
 def update_one(item: dict, translator, dry_run: bool) -> dict:
     number = int(item["voa_lesson_number"])
-    if number not in ALLOWED or item.get("transcript_scope") == "full":
-        return {"lesson": number, "skipped": True}
+    is_machine_recheck = (number in RECHECK_MACHINE_DRAFT and\n                          item.get("translation_status") == "machine_draft")\n    if number not in ALLOWED or (item.get("transcript_scope") == "full" and\n                                  not is_machine_recheck):\n        return {"lesson": number, "skipped": True}
     path = BASE / "en" / "A2" / item["id"]
     file_path = path.with_suffix(".json")
     episode = json.loads(file_path.read_text(encoding="utf-8"))
-    if episode.get("transcript_scope") != "excerpt":
-        raise ValueError(f"Unexpected transcript scope: {number}")
+    if episode.get("transcript_scope") not in ({"excerpt", "full"} if is_machine_recheck else {"excerpt"}):\n        raise ValueError(f"Unexpected transcript scope: {number}")
     if episode["source_url"] != item["source_url"] or episode["audio_url"] != item["audio_url"]:
         raise ValueError(f"Source and recording mismatch: {number}")
     spoken = extract_dialogue(read_html(item["source_url"]))
@@ -176,7 +177,7 @@ def main():
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     targets = [x for x in catalog["lessons"]
                if x["voa_lesson_number"] in ALLOWED
-               and x.get("transcript_scope") == "excerpt"]
+               and (x.get("transcript_scope") == "excerpt" or\n                    (x["voa_lesson_number"] in RECHECK_MACHINE_DRAFT and\n                     x.get("translation_status") == "machine_draft"))]
     if not targets:
         print("All eligible VOA Level 2 transcripts are already full.")
         return 0
