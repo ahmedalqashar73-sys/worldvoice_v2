@@ -1,0 +1,47 @@
+name: VOA B1 original full-audio transcript review candidates
+
+on:
+  workflow_dispatch:
+    inputs:
+      episode_number:
+        description: 'One original B1 recording, 1 to 30'
+        required: true
+        default: '1'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  transcribe-for-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Validate original sources and script offline
+        run: |
+          python -m py_compile scripts/voa_b1_transcript_candidate.py
+          python -m unittest discover -s scripts/tests -p 'test_voa_b1_transcript_candidate.py'
+      - name: Install local speech recognition for original English MP3
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y ffmpeg
+          python -m pip install --no-cache-dir whisper-timestamped==1.15.9
+      - name: Produce one full English source transcript with draft timings
+        env:
+          EPISODE: ${{ inputs.episode_number }}
+        run: |
+          python scripts/voa_b1_transcript_candidate.py \
+            --episode-number "$EPISODE" \
+            --output /tmp/voa_b1_transcript_REVIEW_ONLY.json
+      - name: Keep transcripts as review-only artifacts, not published content
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: voa-b1-original-English-review-required
+          path: /tmp/voa_b1_transcript_REVIEW_ONLY.json
+          if-no-files-found: ignore
+          retention-days: 14
