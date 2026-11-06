@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "id": "en-a2-voa-012",
+  "language": "en",
+  "level": "A2",
+  "title": "Run! Bees!",
+  "title_ar": "اركضوا! نحل!",
+  "voa_lesson_number": 12,
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "sync_status": "unverified",
+  "transcript_scope": "excerpt",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-12-run-bees/4139015.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 12. Human VOA audio; WorldVoice provides only a selected, bilingual transcript excerpt; read the full conversation on the credited official page. No sentence timings have been verified. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2017/11/28/260c25bd-1773-42d0-8b8a-54924d27427c_hq.mp3?download=1",
+  "duration_ms": 258000,
+  "hosts": [
+    "Anna",
+    "Kaveh"
+  ],
+  "other_speakers": [],
+  "dialogue": [
+    {
+      "speaker": "Anna",
+      "text": "Wow. Did you know that bees are dying?",
+      "translation_ar": "واو. هل تعلم أن النحل يموت؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kaveh",
+      "text": "That is bad news. If all the bees died, there would be no food. Bees are very important.",
+      "translation_ar": "هذا خبر سيئ. لو مات كل النحل فلن يكون هناك طعام. النحل مهم جدًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Yes, they are. Speaking of bees, one of our little friends is here now.",
+      "translation_ar": "صحيح. وبما أننا نتحدث عن النحل، ها قد جاء أحد أصدقائنا الصغار.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kaveh",
+      "text": "You know, Anna, if you ignore it, it will fly away. But if you swat it, it might sting you.",
+      "translation_ar": "تعلمين يا آنا، إن تجاهلتِ النحلة فستطير بعيدًا، لكن إن حاولتِ ضربها فقد تلدغك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I’ll ignore it. I can ignore it. See, I’m ignoring it.",
+      "translation_ar": "سأتجاهلها. أستطيع تجاهلها. أرأيت؟ أنا أتجاهلها.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kaveh",
+      "text": "Anna, are you afraid of bees?",
+      "translation_ar": "آنا، هل تخافين من النحل؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "What makes you say that?",
+      "translation_ar": "ما الذي يجعلك تقول ذلك؟",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "bee",
+      "meaning_ar": "نحلة"
+    },
+    {
+      "word": "fear",
+      "meaning_ar": "خوف"
+    },
+    {
+      "word": "ignore",
+      "meaning_ar": "يتجاهل"
+    },
+    {
+      "word": "sting",
+      "meaning_ar": "يلدغ"
+    }
+  ],
+  "questions": [
+    {
+      "question": "What does \"bee\" mean in Arabic?",
+      "options": [
+        "نحلة",
+        "خوف",
+        "يتجاهل"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "Which VOA character speaks first in this excerpt?",
+      "options": [
+        "Anna",
+        "Kaveh",
+        "Nobody"
+      ],
+      "answer": 0
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "schema": 1,
+  "id": "en-a2-voa-005",
+  "language": "en",
+  "level": "A2",
+  "title": "Greatest Vacation of All Time",
+  "title_ar": "أفضل عطلة على الإطلاق",
+  "voa_lesson_number": 5,
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "sync_status": "unverified",
+  "transcript_scope": "excerpt",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-5-greatest-vacation/4035571.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 5. Human VOA audio; WorldVoice provides only a selected, bilingual transcript excerpt; read the full conversation on the credited official page. No sentence timings have been verified. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2017/09/27/11289bfa-a821-47fb-905b-7b4174ae0c5e_hq.mp3?download=1",
+  "duration_ms": 290000,
+  "hosts": [
+    "Dan",
+    "Anna"
+  ],
+  "other_speakers": [],
+  "dialogue": [
+    {
+      "speaker": "Dan",
+      "text": "NO! You can’t get your money back. I don’t care that it was your worst vacation ever!",
+      "translation_ar": "لا! لا يمكنك استرداد نقودك. لا يهمني أنها كانت أسوأ إجازة على الإطلاق!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Dan",
+      "text": "Hello! Have a seat! Welcome to the World’s Best Vacation Travel Agency!",
+      "translation_ar": "مرحبًا! تفضلي بالجلوس! أهلًا بك في أفضل وكالة سفر للعطلات في العالم!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Thank you and congratulations!",
+      "translation_ar": "شكرًا، وتهانينا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Dan",
+      "text": "For what?",
+      "translation_ar": "على ماذا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "For being the world’s best travel agency.",
+      "translation_ar": "لأنكم أفضل وكالة سفر في العالم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Dan",
+      "text": "Right … thanks.",
+      "translation_ar": "صحيح... شكرًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Dan",
+      "text": "The Mountain Getaway is good for you. It’s a little pricey. But think of it -- you, on top of a mountain for seven days!",
+      "translation_ar": "رحلة الجبال مناسبة لك، وإن كانت باهظة قليلًا. تخيلي نفسك فوق جبل سبعة أيام!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I’m afraid of high places.",
+      "translation_ar": "أنا أخاف الأماكن المرتفعة.",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "vacation",
+      "meaning_ar": "إجازة"
+    },
+    {
+      "word": "travel",
+      "meaning_ar": "سفر"
+    },
+    {
+      "word": "expensive",
+      "meaning_ar": "مكلف"
+    },
+    {
+      "word": "mountain",
+      "meaning_ar": "جبل"
+    }
+  ],
+  "questions": [
+    {
+      "question": "What does \"vacation\" mean in Arabic?",
+      "options": [
+        "إجازة",
+        "سفر",
+        "مكلف"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "Which VOA character speaks first in this excerpt?",
+      "options": [
+        "Dan",
+        "Anna",
+        "Nobody"
+      ],
+      "answer": 0
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "id": "en-a2-voa-007",
+  "language": "en",
+  "level": "A2",
+  "title": "Tip Your Tour Guide",
+  "title_ar": "قدّم إكرامية لمرشدك السياحي",
+  "voa_lesson_number": 7,
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "sync_status": "unverified",
+  "transcript_scope": "excerpt",
+  "source_url": "https://learningenglish.voanews.com/a/lesson-7-tip-your-tour-guide/4064769.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 7. Human VOA audio; WorldVoice provides only a selected, bilingual transcript excerpt; read the full conversation on the credited official page. No sentence timings have been verified. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2017/10/17/45e008c5-648b-4275-ad2d-d3b058d199a6_hq.mp3?download=1",
+  "duration_ms": 237000,
+  "hosts": [
+    "Anna",
+    "Boy"
+  ],
+  "other_speakers": [],
+  "dialogue": [
+    {
+      "speaker": "Anna",
+      "text": "Penelope, the Lincoln Memorial is coming up on your left!",
+      "translation_ar": "بينيلوبي، يقترب نصب لنكولن التذكاري على يسارك!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Boy",
+      "text": "You’re going to love my Lincoln Memorial Fun Fact!",
+      "translation_ar": "ستعجبك هذه المعلومة الطريفة عن نصب لنكولن!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh, please tell us!",
+      "translation_ar": "أوه، أخبرنا من فضلك!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Boy",
+      "text": "On a wall inside the memorial, the word “FUTURE” was carved wrong! They carved “EUTURE”!",
+      "translation_ar": "على أحد الجدران داخل النصب، نُحتت كلمة «المستقبل» خطأً! كتبوا «EUTURE»!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Well, we all make mistakes.",
+      "translation_ar": "حسنًا، كلنا نخطئ.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Boy",
+      "text": "Yeah, but this mistake was carved in stone!",
+      "translation_ar": "صحيح، لكن هذا الخطأ نُحت في الحجر!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "You’re right. That is pretty bad. Here’s another dollar!",
+      "translation_ar": "أنت محق، هذا خطأ سيئ فعلًا. إليك دولارًا آخر!",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "guide",
+      "meaning_ar": "مرشد"
+    },
+    {
+      "word": "bridge",
+      "meaning_ar": "جسر"
+    },
+    {
+      "word": "river",
+      "meaning_ar": "نهر"
+    },
+    {
+      "word": "memorial",
+      "meaning_ar": "نصب تذكاري"
+    }
+  ],
+  "questions": [
+    {
+      "question": "What does \"guide\" mean in Arabic?",
+      "options": [
+        "مرشد",
+        "جسر",
+        "نهر"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "Which VOA character speaks first in this excerpt?",
+      "options": [
+        "Anna",
+        "Boy",
+        "Nobody"
+      ],
+      "answer": 0
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "schema": 1,
+  "id": "en-a2-voa-016",
+  "language": "en",
+  "level": "A2",
+  "title": "Find Your Joy!",
+  "title_ar": "ابحث عن سعادتك!",
+  "voa_lesson_number": 16,
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "sync_status": "unverified",
+  "transcript_scope": "excerpt",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-16/4198066.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 16. Human VOA audio; WorldVoice provides only a selected, bilingual transcript excerpt; read the full conversation on the credited official page. No sentence timings have been verified. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2018/01/10/95f0ce1f-6cfd-44e4-b83a-e225d7cb0224_hq.mp3?download=1",
+  "duration_ms": 281000,
+  "hosts": [
+    "Anna",
+    "Kaveh"
+  ],
+  "other_speakers": [],
+  "dialogue": [
+    {
+      "speaker": "Anna",
+      "text": "Hi, Kaveh! Let’s go to lunch!",
+      "translation_ar": "مرحبًا يا كافيه! لنذهب لتناول الغداء!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kaveh",
+      "text": "Ooh, I know a great place. When I first started working here, I would go every day!",
+      "translation_ar": "أوه، أعرف مكانًا رائعًا. عندما بدأت العمل هنا كنت أذهب إليه كل يوم!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Great. Oh, no.",
+      "translation_ar": "رائع. أوه، لا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kaveh",
+      "text": "What’s wrong?",
+      "translation_ar": "ما المشكلة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I lost my key! I just had it this morning.",
+      "translation_ar": "لقد فقدت مفتاحي! كان معي هذا الصباح!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kaveh",
+      "text": "You should check the Lost & Found office.",
+      "translation_ar": "عليك مراجعة مكتب المفقودات.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Great idea. Where is it?",
+      "translation_ar": "فكرة رائعة. أين يقع؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kaveh",
+      "text": "Oh, it used to be across from the cafeteria. But now it’s down in the basement next to the elevators. It’s really hard to find.",
+      "translation_ar": "كان مقابل الكافتيريا، لكنه الآن في القبو بجانب المصاعد. من الصعب العثور عليه!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "The Lost & Found is hard to find. That’s funny.",
+      "translation_ar": "من الصعب العثور على مكتب المفقودات! هذا مضحك.",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "key",
+      "meaning_ar": "مفتاح"
+    },
+    {
+      "word": "lost and found",
+      "meaning_ar": "المفقودات"
+    },
+    {
+      "word": "basement",
+      "meaning_ar": "قبو"
+    },
+    {
+      "word": "joy",
+      "meaning_ar": "سعادة"
+    }
+  ],
+  "questions": [
+    {
+      "question": "What does \"key\" mean in Arabic?",
+      "options": [
+        "مفتاح",
+        "المفقودات",
+        "قبو"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "Which VOA character speaks first in this excerpt?",
+      "options": [
+        "Anna",
+        "Kaveh",
+        "Nobody"
+      ],
+      "answer": 0
+    }
+  ]
+}

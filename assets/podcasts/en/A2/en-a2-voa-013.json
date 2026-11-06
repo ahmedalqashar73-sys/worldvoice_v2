@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "id": "en-a2-voa-013",
+  "language": "en",
+  "level": "A2",
+  "title": "Save the Bees!",
+  "title_ar": "أنقذوا النحل!",
+  "voa_lesson_number": 13,
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "sync_status": "unverified",
+  "transcript_scope": "excerpt",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-13-save-the-bees/4145716.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 13. Human VOA audio; WorldVoice provides only a selected, bilingual transcript excerpt; read the full conversation on the credited official page. No sentence timings have been verified. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2017/12/01/104a6627-290a-4472-911e-3bb9349f44f7_hq.mp3?download=1",
+  "duration_ms": 231000,
+  "hosts": [
+    "Caroline",
+    "Anna"
+  ],
+  "other_speakers": [],
+  "dialogue": [
+    {
+      "speaker": "Caroline",
+      "text": "I have a feeling that your fear of bees will be gone soon. There are things beekeepers do to protect ourselves. For example, we wear protective clothing. This is a beekeeper’s veil, suit and gloves. There are other things we can do, too. If I use a smoker, the bees will stay calm.",
+      "translation_ar": "أظن أن خوفك من النحل سيزول قريبًا. يفعل مربّو النحل أشياء لحماية أنفسهم، مثل ارتداء ملابس واقية وقناع وقفازات. وإذا استخدمت أداة التدخين فسيهدأ النحل.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Let’s use smoke … lots of smoke.",
+      "translation_ar": "لنستخدم الدخان... الكثير من الدخان!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Caroline",
+      "text": "Okay, Anna, that’s enough smoke. Another thing you can do is stay calm. Okay. When I lift the frame, you will see the bees.",
+      "translation_ar": "حسنًا يا آنا، هذا دخان كافٍ. يمكنك أيضًا الحفاظ على هدوئك. عندما أرفع الإطار سترين النحل.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I’m ready. Let's do this thing!",
+      "translation_ar": "أنا مستعدة. هيا بنا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Caroline",
+      "text": "Okay, let's put on our protective clothing.",
+      "translation_ar": "حسنًا، لنرتدِ ملابسنا الواقية.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "There are so many! And they are so busy! Now I know why we say, “busy as a bee!”",
+      "translation_ar": "ما أكثرها! وكم هي مشغولة! الآن فهمت لماذا نقول «مشغول كالنحلة»!",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "beekeeper",
+      "meaning_ar": "مربّي نحل"
+    },
+    {
+      "word": "protective",
+      "meaning_ar": "واقٍ"
+    },
+    {
+      "word": "honey",
+      "meaning_ar": "عسل"
+    },
+    {
+      "word": "smoker",
+      "meaning_ar": "مدخّن النحل"
+    }
+  ],
+  "questions": [
+    {
+      "question": "What does \"beekeeper\" mean in Arabic?",
+      "options": [
+        "مربّي نحل",
+        "واقٍ",
+        "عسل"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "Which VOA character speaks first in this excerpt?",
+      "options": [
+        "Caroline",
+        "Anna",
+        "Nobody"
+      ],
+      "answer": 0
+    }
+  ]
+}

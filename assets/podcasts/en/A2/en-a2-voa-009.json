@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "id": "en-a2-voa-009",
+  "language": "en",
+  "level": "A2",
+  "title": "Pets Are Family, Too!",
+  "title_ar": "الحيوانات الأليفة جزء من العائلة أيضًا!",
+  "voa_lesson_number": 9,
+  "status": "published_audio",
+  "recording_kind": "human",
+  "voice_rights_verified": true,
+  "sync_status": "unverified",
+  "transcript_scope": "excerpt",
+  "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-9-pets-are-family-too/4074883.html",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 9. Human VOA audio; WorldVoice provides only a selected, bilingual transcript excerpt; read the full conversation on the credited official page. No sentence timings have been verified. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2017/10/25/268efe48-7ad7-48da-8d13-89846a1f681a_hq.mp3?download=1",
+  "duration_ms": 266000,
+  "hosts": [
+    "Anna",
+    "Ashley"
+  ],
+  "other_speakers": [],
+  "dialogue": [
+    {
+      "speaker": "Anna",
+      "text": "Hi Ashley!",
+      "translation_ar": "مرحبًا يا آشلي!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "Hey, Anna! How was your weekend?",
+      "translation_ar": "مرحبًا يا آنا! كيف كانت عطلتك الأسبوعية؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "It was great! I went to the D.C. State Fair.",
+      "translation_ar": "كانت رائعة! ذهبت إلى معرض ولاية واشنطن.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "I would have gone, but I was busy. How was it?",
+      "translation_ar": "كنت سأذهب لكنني كنت مشغولة. كيف كان؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "It was awesome! I won first place in a pet contest!",
+      "translation_ar": "كان مذهلًا! فزت بالمركز الأول في مسابقة للحيوانات الأليفة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ashley",
+      "text": "But, you don’t have a pet, do you?",
+      "translation_ar": "لكنك لا تملكين حيوانًا أليفًا، أليس كذلك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Yes and no. What do you mean by “pet”?",
+      "translation_ar": "نعم ولا. ماذا تقصدين بكلمة «حيوان أليف»؟",
+      "start_ms": null,
+      "end_ms": null
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "pet",
+      "meaning_ar": "حيوان أليف"
+    },
+    {
+      "word": "fair",
+      "meaning_ar": "معرض"
+    },
+    {
+      "word": "contest",
+      "meaning_ar": "مسابقة"
+    },
+    {
+      "word": "weekend",
+      "meaning_ar": "عطلة نهاية الأسبوع"
+    }
+  ],
+  "questions": [
+    {
+      "question": "What does \"pet\" mean in Arabic?",
+      "options": [
+        "حيوان أليف",
+        "معرض",
+        "مسابقة"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "Which VOA character speaks first in this excerpt?",
+      "options": [
+        "Anna",
+        "Ashley",
+        "Nobody"
+      ],
+      "answer": 0
+    }
+  ]
+}
