@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:worldvoice/features/learn/presentation/b1_voa_long_form_section.dart';
+import 'package:worldvoice/features/learn/presentation/b1_voa_transcript_section.dart';
 import 'package:worldvoice/features/learn/presentation/podcast_library_section.dart';
 
 void main() {
@@ -48,6 +49,11 @@ void main() {
     final recordings = await tester.runAsync(
         () => const B1VoaLongCatalog().load());
     expect(recordings, hasLength(30));
+    // Read the real bundled bilingual asset before asserting the async
+    // readiness UI. A fixed pump duration does not settle rootBundle IO.
+    final available = await tester.runAsync(
+        () => const B1VoaTranscriptRepository().availableIds());
+    expect(available, hasLength(30));
     await tester.pumpWidget(MaterialApp(
       home: Scaffold(
         body: SingleChildScrollView(
@@ -60,7 +66,7 @@ void main() {
     expect(find.byKey(const ValueKey('b1-voa-long-30')), findsOneWidget);
     // Loading is asynchronous; the library may initially show a pending
     // label but must switch to a draft label once the cached asset is read.
-    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump();
     expect(find.textContaining('machine drafts'), findsNWidgets(30));
   });
 
