@@ -159,8 +159,8 @@ class _B1VoaLongSectionState extends State<B1VoaLongSection> {
             const SizedBox(height: 6),
             Text(
               ar
-                  ? 'تسجيلات VOA الأصلية بمدة تقارب 30 دقيقة لكل حلقة، حوالي 15 ساعة استماع. النص الإنجليزي الكامل والترجمة العربية وتوقيت الجمل قيد المراجعة ولم نعتمدها بعد.'
-                  : 'Real VOA recordings, roughly 30 minutes each, about 15 hours total. Full English transcripts, Arabic translation and synchronized line cues are pending review.',
+                  ? '30 تسجيلًا أصليًا من VOA، مدة كل حلقة نحو 30 دقيقة. النص الإنجليزي والترجمة العربية الآلية متاحان للقراءة؛ وتوقيت الجمل تقريبي ويحتاج إلى مراجعة.'
+                  : '30 original VOA recordings, roughly 30 minutes each. English transcripts and Arabic machine-draft translations are available to read; sentence timing is approximate and needs review.',
               style: TextStyle(fontSize: 12, height: 1.5,
                   color: scheme.onSurfaceVariant),
             ),
