@@ -59,8 +59,13 @@ void main() {
           reason: item.id);
       expect(episode.sourceUrl, item.sourceUrl, reason: item.id);
       expect(episode.audioUrl, item.audioUrl, reason: item.id);
-      if (item.transcriptScope == 'full') {
-        expect(episode.backupAudioUrl, isNotNull, reason: item.id);
+      // Availability of an alternative bitrate is independent of whether
+      // the dialogue is complete. Lesson 17+ may have only one VOA MP3.
+      if (episode.backupAudioUrl != null) {
+        expect(episode.backupAudioUrl, isNot(equals(episode.audioUrl)),
+            reason: item.id);
+        expect(episode.backupAudioUrl, startsWith('https://'),
+            reason: item.id);
       }
       expect(episode.durationMs, item.durationSec * 1000, reason: item.id);
       expect(episode.dialogue.length,
