@@ -68,7 +68,10 @@ void main() {
       final levelChip = find.byKey(ValueKey('podcast-level-$level'));
       await tester.ensureVisible(levelChip);
       await tester.tap(levelChip);
-      await tester.pumpAndSettle();
+      // Podcasts contain an asynchronous asset catalog and may show a
+      // loading indicator; pumpAndSettle would wait forever for its animation.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 500));
       expect(find.byType(NasaLongPodcastSection), findsOneWidget);
     }
   });
