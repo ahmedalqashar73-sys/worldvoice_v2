@@ -11,9 +11,9 @@
   "voice_rights_verified": true,
   "recording_format": "original_mp3",
   "sync_status": "unverified",
-  "transcript_scope": "excerpt",
+  "transcript_scope": "full",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-18/4231290.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 18. Original VOA MP3 with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2 Lesson 18. Complete original spoken VOA English conversation with WorldVoice Arabic translation. Human VOA audio, sentence cues unverified. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2018/01/31/16d806b3-f878-4eff-bd6e-1857ec1241e0_hq.mp3?download=1",
   "duration_ms": 258000,
   "hosts": [
@@ -27,8 +27,8 @@
   "dialogue": [
     {
       "speaker": "Professor Bot",
-      "text": "In Part 1 of this two-part lesson, Ms. Weaver gave Anna and Pete an assignment. Ms. Weaver instructed them to do everything by themselves.",
-      "translation_ar": "في الجزء الأول، أعطت السيدة ويفر آنا وبيت مهمة وطلبت منهما أداء كل شيء بنفسيهما.",
+      "text": "In Part 1 of this two-part lesson, Ms. Weaver gave Anna and Pete an assignment. Ms. Weaver instructed them to do everything by themselves. “Themselves” is a reflexive pronoun.",
+      "translation_ar": "في الجزء الأول، أعطت السيدة ويفر آنا وبيت مهمة وطلبت منهما أداء كل شيء بنفسيهما. وكلمة themselves ضمير انعكاسي.",
       "start_ms": null,
       "end_ms": null
     },
@@ -117,6 +117,20 @@
       "end_ms": null
     },
     {
+      "speaker": "Professor Bot",
+      "text": "Okay. So, we use a reflexive pronoun when it refers to the subject of a sentence or clause. But we DON’T use a reflexive pronoun with prepositions of place.",
+      "translation_ar": "نستخدم الضمير الانعكاسي عندما يعود على فاعل الجملة، لكننا لا نستخدمه بعد حروف الجر المكانية.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Anna uses examples of both in one sentence: While I was making myself dinner, I put Baby next to me. We use a reflexive pronoun in the first part of the sentence. “Myself” refers to the subject “I.” But in the second part of the sentence, we don’t use a reflexive pronoun in the prepositional phrase. We use the pronoun “me.” Why? “next to” is a preposition of place.",
+      "translation_ar": "تستخدم آنا الحالتين معًا؛ ففي عبارة صنع العشاء لنفسي نستخدم myself لأنه يعود على الفاعل I، بينما نقول next to me لأن next to حرف جر مكاني.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
       "speaker": "Ms. Weaver",
       "text": "Anna, Anna, you should be very proud of yourself.",
       "translation_ar": "آنا، ينبغي أن تفخري بنفسك.",
@@ -125,8 +139,8 @@
     },
     {
       "speaker": "Pete",
-      "text": "Proud? She stabbed and burned her baby!!",
-      "translation_ar": "تفخر؟ لقد طعنت طفلها وأحرقته!",
+      "text": "Proud? She stabbed and burned her baby!! And she only did one page of research…and it’s covered in milk. Ew.",
+      "translation_ar": "تفخر؟ لقد طعنت طفلها وأحرقته! ولم تنجز إلا صفحة واحدة من البحث مغطاة بالحليب! يا للقرف!",
       "start_ms": null,
       "end_ms": null
     },
@@ -134,6 +148,20 @@
       "speaker": "Ms. Weaver",
       "text": "Yes, Pete. But she followed instructions.",
       "translation_ar": "نعم يا بيت، لكنها اتبعت التعليمات.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Hey, I did ...",
+      "translation_ar": "لكنني أنا أيضًا...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "Please, Pete. Anna, I think your baby has lost some weight. Is there something else you want to share?",
+      "translation_ar": "أرجوك يا بيت. آنا، أظن أن طفلتك فقدت بعض الوزن. هل هناك شيء آخر تودين عرضه؟",
       "start_ms": null,
       "end_ms": null
     },
@@ -157,6 +185,41 @@
       "translation_ar": "خبزتها بعد انتهاء التجربة يا بيت. عندها كان مجرد كيس دقيق.",
       "start_ms": null,
       "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "It was always just a bag of flour!!",
+      "translation_ar": "لطالما كان مجرد كيس دقيق!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "Pete, will you listen to yourself?! You sound crazy.",
+      "translation_ar": "بيت، هل تسمع نفسك؟ تبدو مجنونًا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "I sound crazy! This whole experiment was crazy!! She was the one who carried around and fed it and ...",
+      "translation_ar": "أنا أبدو مجنونًا؟ التجربة كلها مجنونة! هي التي حملته وأطعمته و...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Mmm. That is good.",
+      "translation_ar": "ممم، هذا لذيذ.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "So, what have we learned? We’ve learned when to use reflexive pronouns and when not to. Go to our website for more information! You can practice using reflexive pronouns in our comments section.",
+      "translation_ar": "ماذا تعلمنا؟ عرفنا متى نستخدم الضمائر الانعكاسية ومتى لا نستخدمها. زوروا موقعنا للمزيد وتدربوا عليها في قسم التعليقات.",
+      "start_ms": null,
+      "end_ms": null
     }
   ],
   "vocabulary": [
@@ -169,5 +232,25 @@
       "meaning_ar": "تجربة"
     }
   ],
-  "questions": []
+  "questions": [
+    {
+      "question": "What is the meaning of the word research?",
+      "options": [
+        "بحث",
+        "تذكرة",
+        "حديقة"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "Who assigns the parenting experiment?",
+      "options": [
+        "Ms. Weaver",
+        "Ashley",
+        "Jonathan"
+      ],
+      "answer": 0
+    }
+  ],
+  "translation_status": "authored"
 }

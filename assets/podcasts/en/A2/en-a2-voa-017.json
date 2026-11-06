@@ -11,9 +11,9 @@
   "voice_rights_verified": true,
   "recording_format": "original_mp3",
   "sync_status": "unverified",
-  "transcript_scope": "excerpt",
+  "transcript_scope": "full",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-17/4220576.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 17. Original VOA MP3 with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2 Lesson 17. Complete original spoken VOA English conversation with WorldVoice Arabic translation. Human VOA audio, sentence cues unverified. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2018/01/24/4f5af081-e654-4912-9f5d-24cd3fa5170a_hq.mp3?download=1",
   "duration_ms": 238000,
   "hosts": [
@@ -75,6 +75,27 @@
       "end_ms": null
     },
     {
+      "speaker": "Professor Bot",
+      "text": "This lesson teaches reflexive pronouns. Reflexive pronouns refer back to the subject of a sentence or clause. We use them when the subject and the object are the same person or thing.",
+      "translation_ar": "يشرح الدرس الضمائر الانعكاسية التي تعود على الفاعل؛ ونستخدمها عندما يكون الفاعل والمفعول الشخص نفسه أو الشيء نفسه.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "For example, Ms. Weaver says, “I asked myself the same question.” “I” is the subject and “myself” refers back to it. Here, she would not use the pronoun “me.” You need to use the reflexive pronoun “myself.”",
+      "translation_ar": "مثلًا قالت السيدة ويفر: «سألت نفسي السؤال نفسه». يعود myself على الفاعل I، فلا يصح هنا استخدام me.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Reflexive pronouns are easy to find: they end in “self” or “selves.” I have a feeling we are going to see a lot of reflexive pronouns. Listen for them!",
+      "translation_ar": "تنتهي الضمائر الانعكاسية بـ self أو selves. سنسمع الكثير منها؛ فانتبهوا إليها!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
       "speaker": "Ms. Weaver",
       "text": "Here are your babies!",
       "translation_ar": "ها هما طفلاكُما!",
@@ -90,8 +111,8 @@
     },
     {
       "speaker": "Ms. Weaver",
-      "text": "No, Pete, for the next six days, this is your baby. Here are your instructions. Do not leave your babies alone. A baby cannot take care of itself. And you two must do everything by yourselves.",
-      "translation_ar": "لا يا بيت. طوال الأيام الستة القادمة سيكون هذا طفلك. لا تترك طفلك وحده، ولا يستطيع الطفل الاعتناء بنفسه؛ عليكما فعل كل شيء بنفسيكما.",
+      "text": "No, Pete, for the next six days, this is your baby. Here are your instructions. Do not leave your babies alone. A baby cannot take care of itself. And you two must do everything by yourselves. We will meet next Friday. Oh, and the person who does the best research will get an extra day of vacation. Help yourself to a baby.",
+      "translation_ar": "لا يا بيت. طوال الأيام الستة القادمة سيكون هذا طفلك. لا تترك طفلك وحده، ولا يستطيع الطفل الاعتناء بنفسه؛ عليكما فعل كل شيء بنفسيكما. سنلتقي الجمعة المقبلة. ومن يقدم أفضل بحث سيحصل على يوم إجازة إضافي. خذ كل منكما طفلًا.",
       "start_ms": null,
       "end_ms": null
     },
@@ -145,9 +166,30 @@
       "end_ms": null
     },
     {
+      "speaker": "Professor Bot",
+      "text": "Singular reflexive pronouns end in “self.” Plural ones end in “selves.”",
+      "translation_ar": "تنتهي الضمائر الانعكاسية للمفرد بـ self، أما للجمع فتنتهي بـ selves.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Anna says, “We need to throw ourselves into the research!” The subject “we” is plural. So, we must use the plural reflexive pronoun “ourselves.”",
+      "translation_ar": "تقول آنا إن علينا الانخراط بأنفسنا في البحث. ولأن الفاعل we للجمع، نستخدم الضمير الانعكاسي ourselves.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
       "speaker": "Anna",
       "text": "This is hard! I hope Pete is not doing well. I really need that vacation day!",
       "translation_ar": "هذا صعب! أتمنى ألا يسير بيت جيدًا، فأنا أحتاج حقًا إلى يوم الإجازة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "We will all see how Pete is doing in the next episode. We’ll also learn when not to use reflexive pronouns.",
+      "translation_ar": "سنرى تجربة بيت في الحلقة القادمة، وسنتعلم متى لا نستخدم الضمائر الانعكاسية.",
       "start_ms": null,
       "end_ms": null
     }
@@ -162,5 +204,25 @@
       "meaning_ar": "انعكاسي"
     }
   ],
-  "questions": []
+  "questions": [
+    {
+      "question": "What is the meaning of the word research?",
+      "options": [
+        "بحث",
+        "تذكرة",
+        "حديقة"
+      ],
+      "answer": 0
+    },
+    {
+      "question": "Who assigns the parenting experiment?",
+      "options": [
+        "Ms. Weaver",
+        "Ashley",
+        "Jonathan"
+      ],
+      "answer": 0
+    }
+  ],
+  "translation_status": "authored"
 }

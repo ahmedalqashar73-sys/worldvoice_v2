@@ -257,9 +257,10 @@
       "anna_present": true,
       "pete_present": true,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
+      "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-017",
-      "recording_format": "original_mp3"
+      "recording_format": "original_mp3",
+      "translation_status": "authored"
     },
     {
       "id": "en-a2-voa-018",
@@ -273,9 +274,10 @@
       "anna_present": true,
       "pete_present": true,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
+      "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-018",
-      "recording_format": "original_mp3"
+      "recording_format": "original_mp3",
+      "translation_status": "authored"
     },
     {
       "id": "en-a2-voa-019",
