@@ -43,7 +43,7 @@ void main() {
       final lesson = await repo.load(entry);
       expect(lesson.canStream, isTrue, reason: entry.id);
       expect(lesson.canReadAloud, isFalse, reason: entry.id);
-      expect(lesson.isExcerpt, !{1, 2, 3}.contains(expectedNumbers[index]), reason: entry.id);
+      expect(lesson.isExcerpt, !{1, 2, 3, 4, 5}.contains(expectedNumbers[index]), reason: entry.id);
       expect(lesson.isPlayable, isFalse, reason: entry.id);
       expect(lesson.dialogue,
           hasLength(greaterThanOrEqualTo({1, 2}.contains(expectedNumbers[index]) ? 25 : 5)));

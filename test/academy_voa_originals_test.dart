@@ -28,8 +28,8 @@ void main() {
         [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16]);
     expect(list.every((e) => e.syncStatus == 'unverified'), isTrue);
     expect(list.where((e) => e.transcriptScope == 'full').map((e) => e.number),
-        [1, 2, 3]);
-    expect(list.where((e) => e.transcriptScope == 'excerpt'), hasLength(12));
+        [1, 2, 3, 4, 5]);
+    expect(list.where((e) => e.transcriptScope == 'excerpt'), hasLength(10));
     expect(list.every((e) => e.existingEpisodeId == e.id), isTrue);
   });
 
@@ -123,8 +123,8 @@ void main() {
     ));
     await tester.pump();
     expect(find.text('VOA index unavailable.'), findsNothing);
-    expect(find.textContaining('full bilingual text'), findsNWidgets(3));
-    expect(find.textContaining('translated excerpt'), findsNWidgets(12));
+    expect(find.textContaining('full bilingual text'), findsNWidgets(5));
+    expect(find.textContaining('translated excerpt'), findsNWidgets(10));
     expect(find.byKey(const ValueKey('podcast-original-en-a2-voa-001')),
         findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-original-en-a2-voa-016')),
