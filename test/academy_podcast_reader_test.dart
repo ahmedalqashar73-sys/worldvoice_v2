@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:worldvoice/features/learn/data/academy_podcast_repository.dart';
 import 'package:worldvoice/features/learn/presentation/podcast_library_section.dart';
 import 'package:worldvoice/features/learn/presentation/voa_originals_section.dart';
-import 'package:worldvoice/features/learn/presentation/voa_originals_section.dart';
 
 void main() {
   testWidgets('Podcast tab shows CEFR levels and script-ready pilot',
