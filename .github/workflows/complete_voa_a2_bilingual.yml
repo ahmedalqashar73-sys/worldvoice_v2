@@ -11,6 +11,11 @@ on:
 permissions:
   contents: write
 
+# Do not race two editors writing VOA episode JSON files on main.
+concurrency:
+  group: worldvoice-voa-a2-transcripts-main
+  cancel-in-progress: false
+
 jobs:
   build-original-dialogues:
     runs-on: ubuntu-latest
@@ -26,6 +31,8 @@ jobs:
       - name: Install official transcript reader and offline Arabic translator
         run: |
           python -m pip install 'requests>=2.32,<3' 'beautifulsoup4>=4.12,<5' 'argostranslate>=1.9,<2'
+      - name: Refresh only original main before extracting source transcripts
+        run: git pull --ff-only origin main
       - name: Import all remaining complete VOA original English dialogues
         env:
           ARGOS_DEVICE_TYPE: cpu
