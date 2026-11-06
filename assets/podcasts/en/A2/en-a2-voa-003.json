@@ -10,9 +10,9 @@
   "recording_kind": "human",
   "voice_rights_verified": true,
   "sync_status": "unverified",
-  "transcript_scope": "excerpt",
+  "transcript_scope": "full",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-3/4027340.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 3. Human VOA audio; WorldVoice provides only a selected, bilingual transcript excerpt; read the full conversation on the credited official page. No sentence timings have been verified. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 3. Full original credited VOA conversation with WorldVoice Arabic translation. Original human voices; sentence timing is unverified. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2017/09/15/078ffce1-f691-4e1e-811e-058154119d2d_hq.mp3?download=1",
   "duration_ms": 295000,
   "hosts": [
@@ -20,55 +20,196 @@
     "Anna"
   ],
   "other_speakers": [
+    "Professor Bot",
     "Pete"
   ],
   "dialogue": [
     {
+      "speaker": "Anna",
+      "text": "Today, Pete and I are meeting with a consultant who will help us with our new show. Yesterday, Pete had promised to meet me here at 8:00 am. but he did not come on time.",
+      "translation_ar": "اليوم سألتقي أنا وبيت بمستشارة ستساعدنا في برنامجنا الجديد. بالأمس وعد بيت بأن يقابلني الساعة الثامنة صباحًا، لكنه لم يصل في الموعد.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Uh-oh. It’s bad to be late for a business meeting. But while we wait for Pete, let’s talk about a new verb tense -- past perfect! You know the past tense, right? Like, \"Pete promised to meet me here at 8:00 a.m.\" Past perfect is a little different. When we talk about two things in the past, we can use the past perfect for the first event. Put \"had\" before the past participle. \"Pete had promised he would meet Anna.\" Here's your assignment: find sentences with the past perfect tense. Remember, look for \"had!\"",
+      "translation_ar": "التأخر عن اجتماع عمل أمر سيئ! وبينما ننتظر بيت، لنتحدث عن الماضي التام. عندما نتحدث عن حدثين في الماضي، نستطيع استعمال الماضي التام للحدث الأسبق، بإضافة had قبل التصريف الثالث للفعل. مهمتك العثور على جمل بهذا الزمن.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
       "speaker": "Kelly",
       "text": "You two are late -- exactly 43 minutes late! What happened?",
-      "translation_ar": "أنتما متأخران، بالتحديد 43 دقيقة! ماذا حدث؟",
+      "translation_ar": "تأخرتما كليكما، بالتحديد ثلاثًا وأربعين دقيقة! ماذا حدث؟",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "He had to get his \"special\" coffee -- SPECIAL coffee!",
-      "translation_ar": "كان لا بد له من الحصول على قهوته «الخاصة»... قهوة خاصة جدًا!",
+      "translation_ar": "كان لا بد أن يشتري قهوته «الخاصة»!",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Pete",
       "text": "She had to feed her birds -- HER birds!",
-      "translation_ar": "كان عليها أن تطعم طيورها... طيورها هي!",
+      "translation_ar": "وكان لا بد أن تطعم طيورها!",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Kelly",
       "text": "Okay, I can see already that you need my help. You can’t both talk at the same time. You have to take turns. Alright, Anna, you go first.",
-      "translation_ar": "حسنًا، أرى أنكما بحاجة إلى مساعدتي. لا يمكنكما التحدث في الوقت نفسه، عليكما التناوب. آنا، ابدئي أنت.",
+      "translation_ar": "أرى منذ الآن أنكما تحتاجان إلى مساعدتي. لا يمكنكما التحدث في الوقت نفسه. عليكما التناوب. آنا، ابدئي أنت.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Sure. Kelly, see, Pete and I live in the same building. So, we decided to meet at 8:00 a.m. - 8:00 a.m. to come to work together. I had waited 15 minutes when Pete arrived!",
-      "translation_ar": "بالتأكيد. أنا وبيت نسكن في المبنى نفسه، فاتفقنا أن نلتقي الثامنة صباحًا لنذهب إلى العمل معًا. كنت قد انتظرت خمس عشرة دقيقة حين وصل بيت.",
+      "translation_ar": "بالتأكيد. نعيش أنا وبيت في المبنى نفسه، فاتفقنا على اللقاء الساعة الثامنة لنذهب للعمل معًا. كنت قد انتظرت خمس عشرة دقيقة عندما وصل بيت!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "After Pete had wasted time waiting for coffee, we were late. I left you a message.*",
+      "translation_ar": "بعد أن أضاع بيت وقتًا في انتظار القهوة، تأخرنا. تركت لك رسالة.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Kelly",
       "text": "Hum. I didn’t get that message.",
-      "translation_ar": "هممم، لم تصلني تلك الرسالة.",
+      "translation_ar": "همم، لم تصلني تلك الرسالة.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Oh. Sorry.",
-      "translation_ar": "أوه، آسفة.",
+      "translation_ar": "آسفة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kelly",
+      "text": "Pete?",
+      "translation_ar": "بيت؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Anna left a message. That’s the right thing to do. Did you find some examples of the past perfect sentences? I did. Anna said,",
+      "translation_ar": "تركت آنا رسالة، وهذا تصرف صحيح. هل وجدت أمثلة على الماضي التام؟ أنا وجدتها. قالت آنا:",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "After Pete had wasted time waiting for coffee, we were late.",
+      "translation_ar": "بعد أن أضاع بيت وقتًا في انتظار القهوة، تأخرنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Look at that coffee! It looks more like dessert! Okay, keep watching for past perfect!",
+      "translation_ar": "انظر إلى تلك القهوة! تبدو كالحلوى! حسنًا، واصل البحث عن الماضي التام.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Yeah, that’s not why we’re late. This is why we’re late: I had arrived on time at 8:00 a.m. but didn’t see Anna. She was standing behind a tree. I think she was hugging it. I always walk to work. But she said that would take too long and that a scooter would be much faster. It was awful. I hated it. And it added too much time to our commute!",
+      "translation_ar": "لا، ليس هذا سبب التأخر. كنت قد وصلت في الموعد، لكنني لم أرَ آنا. كانت تقف خلف شجرة، وربما كانت تعانقها! أنا أمشي إلى العمل دائمًا، لكنها أرادت ركوب سكوتر لأنه أسرع. كان الأمر فظيعًا وأضاع وقتًا إضافيًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Then Anna stopped by a pond to feed the birds. She had named them after characters from books and yelled the names out loud … Romeo! Juliet! Sherlock! By the time she had fed all the birds, we were late.",
+      "translation_ar": "ثم توقفت آنا عند بركة لإطعام الطيور. كانت قد سمّتها بأسماء شخصيات من الكتب ونادتها بصوت عالٍ: روميو، جولييت، شيرلوك! وعندما أنهت إطعامها كنا قد تأخرنا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kelly",
+      "text": "This is what I think. You two see the same event very differently. Does this happen often with you two?",
+      "translation_ar": "هذا رأيي: أنتما تريان الحدث نفسه بطريقتين مختلفتين جدًا. هل يحدث ذلك كثيرًا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Yes.",
+      "translation_ar": "نعم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No.",
+      "translation_ar": "لا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "No.",
+      "translation_ar": "لا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Yes.",
+      "translation_ar": "نعم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kelly",
+      "text": "Okay. This is good. This is good! It’s good to see things differently. I have an idea: we will call the show \"He Said, She Said.\" For every story, you tell a different point of view.",
+      "translation_ar": "هذا جيد! من الجيد رؤية الأشياء بصورة مختلفة. لدي فكرة: سنسمّي البرنامج «قال وقالت»، وستقدمان في كل قصة وجهتي نظر مختلفتين.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "That is a great idea, Kelly! Pete, we are different. That’s why I thought of you for this job!",
+      "translation_ar": "فكرة رائعة يا كيلي! بيت، نحن مختلفان، ولهذا فكرت فيك لهذه الوظيفة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kelly",
+      "text": "I think you two understand perfectly.",
+      "translation_ar": "أعتقد أنكما فهمتما الأمر تمامًا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Let’s get to work!",
+      "translation_ar": "لنبدأ العمل!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Kelly",
+      "text": "She named the birds? Really?",
+      "translation_ar": "لقد سمّت الطيور؟ حقًا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Yeah…",
+      "translation_ar": "نعم...",
       "start_ms": null,
       "end_ms": null
     }
