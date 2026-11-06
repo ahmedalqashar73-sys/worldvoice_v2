@@ -27,6 +27,9 @@ void main() {
     expect(list.map((e) => e.number).toList(),
         [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16]);
     expect(list.every((e) => e.syncStatus == 'unverified'), isTrue);
+    expect(list.where((e) => e.transcriptScope == 'full').map((e) => e.number),
+        [1, 2, 3]);
+    expect(list.where((e) => e.transcriptScope == 'excerpt'), hasLength(12));
     expect(list.every((e) => e.existingEpisodeId == e.id), isTrue);
   });
 
@@ -102,4 +105,30 @@ void main() {
     expect(find.text('VOA human audio · provisional sync'),
         findsNWidgets(7));
   });
+  testWidgets('A2 VOA audio library distinguishes full bilingual texts from excerpts',
+      (tester) async {
+    final originals = await tester.runAsync(
+        () => const VoaOriginalCatalog(level: 'A2').load());
+    expect(originals, hasLength(15));
+    await tester.pumpWidget(MaterialApp(
+      home: Scaffold(
+        body: SingleChildScrollView(
+          child: VoaOriginalsSection(
+            level: 'A2',
+            initialLessons: originals!,
+            onOpen: (_) {},
+          ),
+        ),
+      ),
+    ));
+    await tester.pump();
+    expect(find.text('VOA index unavailable.'), findsNothing);
+    expect(find.textContaining('full bilingual text'), findsNWidgets(3));
+    expect(find.textContaining('translated excerpt'), findsNWidgets(12));
+    expect(find.byKey(const ValueKey('podcast-original-en-a2-voa-001')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('podcast-original-en-a2-voa-016')),
+        findsOneWidget);
+  });
+
 }

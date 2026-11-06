@@ -21,6 +21,7 @@ class VoaOriginalLesson {
     required this.petePresent,
     this.level = 'A1',
     this.syncStatus = 'unverified',
+    this.transcriptScope = 'full',
     this.existingEpisodeId,
   });
 
@@ -34,6 +35,7 @@ class VoaOriginalLesson {
   final bool petePresent;
   final String level;
   final String syncStatus;
+  final String transcriptScope;
   final String? existingEpisodeId;
 
   factory VoaOriginalLesson.fromJson(Map<String, dynamic> json) =>
@@ -48,6 +50,7 @@ class VoaOriginalLesson {
         petePresent: json['pete_present'] as bool? ?? false,
         level: json['level'] as String? ?? 'A1',
         syncStatus: json['sync_status'] as String? ?? 'unverified',
+        transcriptScope: json['transcript_scope'] as String? ?? 'full',
         existingEpisodeId: json['existing_episode_id'] as String?,
       );
 
@@ -62,7 +65,8 @@ class VoaOriginalLesson {
         transcript.scheme == 'https' &&
         transcript.host == 'learningenglish.voanews.com' &&
         durationSec > 0 &&
-        const {'provisional', 'unverified'}.contains(syncStatus);
+        const {'provisional', 'unverified'}.contains(syncStatus) &&
+        const {'full', 'excerpt'}.contains(transcriptScope);
   }
 }
 
@@ -134,10 +138,10 @@ class _VoaOriginalsSectionState extends State<VoaOriginalsSection> {
       const SizedBox(height: 5),
       Text(ar
           ? (widget.level == 'A2'
-              ? '15 تسجيلًا بشريًا من VOA Level 2. الأصوات أصلية، والشخصيات قد تتغير. نعرض نصوصًا مختارة مترجمة، والنص الكامل في موقع VOA. لم تُعتمد مزامنة الجمل بعد.'
+              ? '15 تسجيلًا بشريًا من VOA Level 2. الدروس المكتملة تعرض المحادثة مترجمة داخل التطبيق؛ والبقية تعرض مقتطفات مترجمة مع رابط النص الأصلي الكامل. لم تُعتمد مزامنة الجمل بعد.'
               : 'جميع التسجيلات من VOA. آنا صوت رئيسي متكرر، ويشارك بيت وشخصيات أخرى حسب الحلقة. لا توجد أصوات آلية في هذه القائمة.')
           : (widget.level == 'A2'
-              ? '15 original VOA Level 2 voice recordings. Selected bilingual transcript excerpts; complete transcripts on VOA. Sentence sync is pending.'
+              ? '15 original VOA Level 2 recordings. Complete bilingual dialogues are shown for finished lessons; remaining lessons have excerpts and links to VOA. Sentence sync is pending.'
               : 'Every recording is from VOA. Anna is a recurring voice; Pete and other characters appear when they are part of the original lesson. No synthetic voices here.'),
           style: TextStyle(fontSize: 12, height: 1.5,
               color: scheme.onSurfaceVariant)),
@@ -185,8 +189,8 @@ class _VoaOriginalsSectionState extends State<VoaOriginalsSection> {
                           : 'VOA human audio · provisional sync')
                       : widget.level == 'A2'
                           ? (ar
-                              ? 'VOA Level 2 · درس ${lesson.number} · صوت بشري'
-                              : 'VOA Level 2 · Lesson ${lesson.number} · human voice')
+                              ? 'VOA درس ${lesson.number} · صوت أصلي · ${lesson.transcriptScope == 'full' ? 'نص مترجم كامل' : 'مقتطف مترجم'}'
+                              : 'VOA Lesson ${lesson.number} · original audio · ${lesson.transcriptScope == 'full' ? 'full bilingual text' : 'translated excerpt'}')
                           : (ar
                               ? 'Anna${lesson.petePresent ? ' + Pete' : ' + ضيوف'} · تسجيل VOA بشري أصلي'
                               : 'Anna${lesson.petePresent ? ' + Pete' : ' + guests'} · original human VOA audio'),
