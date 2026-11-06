@@ -56,6 +56,23 @@ void main() {
     }
   });
 
+  test('all 60 committed B2/C1 original broadcasts have readable bilingual text',
+      () async {
+    final originalEpisodes = await const NasaLongCatalog().load();
+    const transcripts = NasaTranscriptRepository();
+    for (final episode in originalEpisodes.where(
+        (episode) => episode.level == 'B2' || episode.level == 'C1')) {
+      final transcript = await transcripts.loadFor(episode);
+      expect(transcript, isNotNull, reason: episode.id);
+      expect(transcript!.id, episode.id);
+      expect(transcript.audioUrl, episode.audioUrl);
+      expect(transcript.paragraphs, hasLength(greaterThanOrEqualTo(10)));
+      expect(transcript.paragraphs.every((line) =>
+          line.english.trim().isNotEmpty && line.arabic.trim().isNotEmpty),
+          isTrue);
+    }
+  });
+
   testWidgets('30 B2 originals show as normal podcast rows', (tester) async {
     final all = await tester.runAsync(() => const NasaLongCatalog().load());
     await tester.pumpWidget(MaterialApp(
