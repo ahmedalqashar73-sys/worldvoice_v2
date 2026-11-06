@@ -42,6 +42,7 @@ def approved_source(record: dict) -> str:
         raise ValueError("Missing VOA audio URL")
     url = urlparse(source)
     official_mp3 = (
+        record["id"] != "en-a2-voa-008" and
         url.hostname == "voa-audio.voanews.eu" and
         url.path.startswith("/vle/") and
         url.path.lower().endswith(".mp3")
