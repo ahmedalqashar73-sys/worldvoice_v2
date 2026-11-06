@@ -13,6 +13,8 @@ void main() {
     expect(list.map((e) => e.id).toSet(), hasLength(15));
     expect(list.every((e) => e.isOfficialSource), isTrue);
     expect(list.where((e) => e.petePresent), hasLength(7));
+    expect(list.where((e) => e.syncStatus == 'provisional'), hasLength(7));
+    expect(list.where((e) => e.syncStatus == 'unverified'), hasLength(8));
     expect(list.every((e) => e.existingEpisodeId == e.id), isTrue);
     expect(list.map((e) => e.number).toList(),
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 20, 30, 47]);
@@ -87,6 +89,7 @@ void main() {
         findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-original-en-a1-voa-020')),
         findsOneWidget);
-    expect(find.text('VOA human audio · provisional sync'), findsOneWidget);
+    expect(find.text('VOA human audio · provisional sync'),
+        findsNWidgets(7));
   });
 }

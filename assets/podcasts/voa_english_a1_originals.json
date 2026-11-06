@@ -14,7 +14,8 @@
       "duration_sec": 29,
       "anna_present": true,
       "pete_present": true,
-      "existing_episode_id": "en-a1-voa-001"
+      "existing_episode_id": "en-a1-voa-001",
+      "sync_status": "provisional"
     },
     {
       "id": "en-a1-voa-002",
@@ -26,7 +27,8 @@
       "duration_sec": 48,
       "anna_present": true,
       "pete_present": true,
-      "existing_episode_id": "en-a1-voa-002"
+      "existing_episode_id": "en-a1-voa-002",
+      "sync_status": "unverified"
     },
     {
       "id": "en-a1-voa-003",
@@ -38,7 +40,8 @@
       "duration_sec": 120,
       "anna_present": true,
       "pete_present": false,
-      "existing_episode_id": "en-a1-voa-003"
+      "existing_episode_id": "en-a1-voa-003",
+      "sync_status": "provisional"
     },
     {
       "id": "en-a1-voa-004",
@@ -50,7 +53,8 @@
       "duration_sec": 89,
       "anna_present": true,
       "pete_present": true,
-      "existing_episode_id": "en-a1-voa-004"
+      "existing_episode_id": "en-a1-voa-004",
+      "sync_status": "unverified"
     },
     {
       "id": "en-a1-voa-005",
@@ -62,7 +66,8 @@
       "duration_sec": 60,
       "anna_present": true,
       "pete_present": false,
-      "existing_episode_id": "en-a1-voa-005"
+      "existing_episode_id": "en-a1-voa-005",
+      "sync_status": "unverified"
     },
     {
       "id": "en-a1-voa-006",
@@ -74,7 +79,8 @@
       "duration_sec": 108,
       "anna_present": true,
       "pete_present": true,
-      "existing_episode_id": "en-a1-voa-006"
+      "existing_episode_id": "en-a1-voa-006",
+      "sync_status": "unverified"
     },
     {
       "id": "en-a1-voa-007",
@@ -86,7 +92,8 @@
       "duration_sec": 149,
       "anna_present": true,
       "pete_present": false,
-      "existing_episode_id": "en-a1-voa-007"
+      "existing_episode_id": "en-a1-voa-007",
+      "sync_status": "unverified"
     },
     {
       "id": "en-a1-voa-008",
@@ -98,7 +105,8 @@
       "duration_sec": 118,
       "anna_present": true,
       "pete_present": false,
-      "existing_episode_id": "en-a1-voa-008"
+      "existing_episode_id": "en-a1-voa-008",
+      "sync_status": "provisional"
     },
     {
       "id": "en-a1-voa-009",
@@ -110,7 +118,8 @@
       "duration_sec": 121,
       "anna_present": true,
       "pete_present": false,
-      "existing_episode_id": "en-a1-voa-009"
+      "existing_episode_id": "en-a1-voa-009",
+      "sync_status": "provisional"
     },
     {
       "id": "en-a1-voa-010",
@@ -122,7 +131,8 @@
       "duration_sec": 90,
       "anna_present": true,
       "pete_present": false,
-      "existing_episode_id": "en-a1-voa-010"
+      "existing_episode_id": "en-a1-voa-010",
+      "sync_status": "unverified"
     },
     {
       "id": "en-a1-voa-011",
@@ -134,7 +144,8 @@
       "duration_sec": 110,
       "anna_present": true,
       "pete_present": false,
-      "existing_episode_id": "en-a1-voa-011"
+      "existing_episode_id": "en-a1-voa-011",
+      "sync_status": "provisional"
     },
     {
       "id": "en-a1-voa-012",
@@ -146,7 +157,8 @@
       "duration_sec": 189,
       "anna_present": true,
       "pete_present": false,
-      "existing_episode_id": "en-a1-voa-012"
+      "existing_episode_id": "en-a1-voa-012",
+      "sync_status": "unverified"
     },
     {
       "id": "en-a1-voa-020",
@@ -158,7 +170,8 @@
       "duration_sec": 219,
       "anna_present": true,
       "pete_present": true,
-      "existing_episode_id": "en-a1-voa-020"
+      "existing_episode_id": "en-a1-voa-020",
+      "sync_status": "provisional"
     },
     {
       "id": "en-a1-voa-030",
@@ -170,7 +183,8 @@
       "duration_sec": 199,
       "anna_present": true,
       "pete_present": true,
-      "existing_episode_id": "en-a1-voa-030"
+      "existing_episode_id": "en-a1-voa-030",
+      "sync_status": "provisional"
     },
     {
       "id": "en-a1-voa-047",
@@ -182,7 +196,8 @@
       "duration_sec": 191,
       "anna_present": true,
       "pete_present": true,
-      "existing_episode_id": "en-a1-voa-047"
+      "existing_episode_id": "en-a1-voa-047",
+      "sync_status": "unverified"
     }
   ]
 }

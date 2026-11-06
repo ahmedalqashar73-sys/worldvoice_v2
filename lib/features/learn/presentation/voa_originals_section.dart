@@ -19,6 +19,7 @@ class VoaOriginalLesson {
     required this.sourceUrl,
     required this.durationSec,
     required this.petePresent,
+    this.syncStatus = 'unverified',
     this.existingEpisodeId,
   });
 
@@ -30,6 +31,7 @@ class VoaOriginalLesson {
   final String sourceUrl;
   final int durationSec;
   final bool petePresent;
+  final String syncStatus;
   final String? existingEpisodeId;
 
   factory VoaOriginalLesson.fromJson(Map<String, dynamic> json) =>
@@ -42,6 +44,7 @@ class VoaOriginalLesson {
         sourceUrl: json['source_url'] as String,
         durationSec: json['duration_sec'] as int,
         petePresent: json['pete_present'] as bool? ?? false,
+        syncStatus: json['sync_status'] as String? ?? 'unverified',
         existingEpisodeId: json['existing_episode_id'] as String?,
       );
 
@@ -55,7 +58,8 @@ class VoaOriginalLesson {
         audio.path.endsWith('.mp3') &&
         transcript.scheme == 'https' &&
         transcript.host == 'learningenglish.voanews.com' &&
-        durationSec > 0;
+        durationSec > 0 &&
+        const {'provisional', 'unverified'}.contains(syncStatus);
   }
 }
 
@@ -147,8 +151,8 @@ class _VoaOriginalsSectionState extends State<VoaOriginalsSection> {
                       maxLines: 2, overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontWeight: FontWeight.w800)),
                   subtitle: Text(
-                    lesson.number == 20
-                      ? (ar ? 'VOA · صوت أصلي · تزامن تجريبي'
+                    lesson.syncStatus == 'provisional'
+                      ? (ar ? 'VOA · صوت بشري أصلي · تزامن سطور تجريبي'
                           : 'VOA human audio · provisional sync')
                       : (ar
                           ? 'Anna${lesson.petePresent ? ' + Pete' : ' + ضيوف'} · تسجيل VOA بشري أصلي'
