@@ -29,6 +29,12 @@ void main() {
     expect(list.singleWhere((e) => e.number == 8).audioUrl,
         contains('voa-video-ns.akamaized.net'));
     expect(list.every((e) => e.syncStatus == 'unverified'), isTrue);
+    // A2 alone: never swap a genuine 3:30+ VOA podcast for a short clip,
+    // and never pad a recording by duplicating or slowing its audio.
+    expect(list.every((e) => e.durationSec >= 210), isTrue,
+        reason: 'Every English A2 recording must be at least 3:30');
+    expect(list.every((e) => e.audioUrl.startsWith('https://voa-')), isTrue,
+        reason: 'Keep original VOA audio sources, not synthesized replacements');
     final full = list.where((e) => e.transcriptScope == 'full').toList();
     final excerpts = list.where((e) => e.transcriptScope == 'excerpt').toList();
     expect(full.map((e) => e.number),
