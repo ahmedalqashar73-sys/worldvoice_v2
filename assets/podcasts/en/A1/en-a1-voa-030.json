@@ -15,269 +15,270 @@
   "voice_rights_verified": true,
   "source": "VOA Learning English",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-30-rolling-river/3522798.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 30. The authentic ~5-minute full VOA lesson video is used as audio. English dialogue and WorldVoice Arabic translation cover only the conversation segment, not all teaching/narration in the complete lesson. Full-lesson line cues are unverified. WorldVoice is not affiliated with VOA.",
-  "audio_url": "https://voa-video-ns.akamaized.net/pangeavideo/2021/02/c/cc/cc4d97ac-b23a-4c71-a915-205f1bac86fc_240p.mp4?cb=edc40d53c&download=1",
-  "duration_ms": 300000,
-  "sync_status": "unverified",
+  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 30: Rolling on the River. Original VOA recording and transcript; WorldVoice is not affiliated with VOA. Sentence cues are machine-aligned from the original VOA audio and are provisional pending listening review.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2016/09/27/a8dbb32b-ada5-4441-a2d1-340924241a4b_hq.mp3?download=1",
+  "backup_audio_url": "https://voa-audio.voanews.eu/vle/2016/09/27/a8dbb32b-ada5-4441-a2d1-340924241a4b.mp3?download=1",
+  "duration_ms": 199275,
+  "sync_status": "provisional",
   "dialogue": [
     {
       "speaker": "Anna",
       "text": "Hello! Washington, D.C. sits on the Potomac River. This river is important to the history and culture of the city. Today, I am at an outdoor seafood market near the Potomac River. Some say it is the oldest outdoor seafood market in the United States! I am here to buy seafood. Let’s see what they have!",
       "translation_ar": "مرحبًا! تقع واشنطن العاصمة على نهر بوتوماك، وله أهمية في تاريخ المدينة وثقافتها. اليوم أنا في سوق خارجي للمأكولات البحرية قرب النهر، ويقول البعض إنه أقدم سوق خارجي للمأكولات البحرية في الولايات المتحدة! جئت لأشتري بعض المأكولات البحرية. لنرَ ما لديهم!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 0,
+      "end_ms": 25080
     },
     {
       "speaker": "Anna",
       "text": "Excuse me. Can you help me?",
       "translation_ar": "عذرًا، هل يمكنك مساعدتي؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 25620,
+      "end_ms": 29280
     },
     {
       "speaker": "Pete",
       "text": "Sure! What do you need?",
       "translation_ar": "بالتأكيد! ماذا تحتاجين؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 29860,
+      "end_ms": 31330
     },
     {
       "speaker": "Anna",
       "text": "Pete!",
       "translation_ar": "بيت!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 31330,
+      "end_ms": 31900
     },
     {
       "speaker": "Pete",
       "text": "Anna!",
       "translation_ar": "آنا!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 32220,
+      "end_ms": 33080
     },
     {
       "speaker": "Anna",
       "text": "What are you doing here?",
       "translation_ar": "ماذا تفعل هنا؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 33220,
+      "end_ms": 34900
     },
     {
       "speaker": "Pete",
       "text": "I work here. You know, it’s not easy to be a writer.",
       "translation_ar": "أعمل هنا. كما تعلمين، ليس من السهل أن تكون كاتبًا.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 35140,
+      "end_ms": 39770
     },
     {
       "speaker": "Anna",
       "text": "Yeah, I heard that. Sorry.",
       "translation_ar": "نعم، سمعت ذلك. آسفة.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 39770,
+      "end_ms": 42820
     },
     {
       "speaker": "Pete",
       "text": "But this job is great. I work outside by the river. And I can eat all the free seafood I want!",
       "translation_ar": "لكن هذه الوظيفة رائعة. أعمل في الخارج بجانب النهر، وأستطيع تناول ما أريده من المأكولات البحرية المجانية!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 42900,
+      "end_ms": 52360
     },
     {
       "speaker": "Anna",
       "text": "That is great, Pete. In fact, I am here to buy some seafood for my dinner party.",
       "translation_ar": "هذا رائع يا بيت. في الحقيقة، جئت لأشتري مأكولات بحرية لحفل العشاء عندي.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 52540,
+      "end_ms": 59040
     },
     {
       "speaker": "Pete",
       "text": "You came to the right place. They have the freshest seafood in town. How much money can you spend?",
       "translation_ar": "جئت إلى المكان الصحيح. لديهم أطزج مأكولات بحرية في المدينة. كم تستطيعين أن تنفقي؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 59640,
+      "end_ms": 65460
     },
     {
       "speaker": "Anna",
       "text": "I can only spend $50.",
       "translation_ar": "أستطيع إنفاق خمسين دولارًا فقط.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 65640,
+      "end_ms": 68120
     },
     {
       "speaker": "Pete",
       "text": "Okay. What do you want?",
       "translation_ar": "حسنًا، ماذا تريدين؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 68420,
+      "end_ms": 71040
     },
     {
       "speaker": "Anna",
       "text": "First, I want to buy some shrimp.",
       "translation_ar": "أولًا، أريد شراء بعض الروبيان.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 71220,
+      "end_ms": 74600
     },
     {
       "speaker": "Pete",
       "text": "Sure thing. Follow me. How much shrimp do you want?",
       "translation_ar": "بالطبع. اتبعيني. ما كمية الروبيان التي تريدينها؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 75700,
+      "end_ms": 79760
     },
     {
       "speaker": "Anna",
       "text": "How much do I need for five people?",
       "translation_ar": "كم أحتاج لخمسة أشخاص؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 80300,
+      "end_ms": 83460
     },
     {
       "speaker": "Pete",
       "text": "(yells to co-worker) Give her a pound of shrimp!",
       "translation_ar": "(ينادي زميله) أعطها رطلًا من الروبيان!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 84580,
+      "end_ms": 86280
     },
     {
       "speaker": "Anna",
       "text": "Ok, now I want to buy some crabs.",
       "translation_ar": "حسنًا، أريد الآن شراء بعض السلطعون.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 88060,
+      "end_ms": 91360
     },
     {
       "speaker": "Pete",
       "text": "The crabs here are delicious! They are the best because they come from the nearby Chesapeake Bay! Walk this way.",
       "translation_ar": "السلطعون هنا لذيذ! إنه الأفضل لأنه يأتي من خليج تشيسابيك القريب! تعالي من هنا.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 92580,
+      "end_ms": 102320
     },
     {
       "speaker": "Pete",
       "text": "How many crabs do you want?",
       "translation_ar": "كم سلطعونًا تريدين؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 103260,
+      "end_ms": 104740
     },
     {
       "speaker": "Anna",
       "text": "I want a dozen crabs.",
       "translation_ar": "أريد اثنتي عشرة حبة من السلطعون.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 105800,
+      "end_ms": 107920
     },
     {
       "speaker": "Pete",
       "text": "You should get the larger crabs. They have the most meat.",
       "translation_ar": "من الأفضل أن تختاري السلطعون الأكبر حجمًا، فهو يحتوي على لحم أكثر.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 108340,
+      "end_ms": 112580
     },
     {
       "speaker": "Anna",
       "text": "Then I want a dozen large crabs, please!",
       "translation_ar": "إذن أريد اثنتي عشرة حبة كبيرة من السلطعون، من فضلك!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 113440,
+      "end_ms": 117880
     },
     {
       "speaker": "Pete",
       "text": "Is that everything you need?",
       "translation_ar": "هل هذا كل ما تحتاجينه؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 119620,
+      "end_ms": 120720
     },
     {
       "speaker": "Anna",
       "text": "Let’s see … I have shrimp and crabs. And a friend is bringing a salad and many ears of corn-on-the-cob.",
       "translation_ar": "دعني أفكر... لدي روبيان وسلطعون، وصديق سيحضر سلطة وعدة أكواز من الذرة.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 121220,
+      "end_ms": 130280
     },
     {
       "speaker": "Pete",
       "text": "Is that all the seafood that you need?",
       "translation_ar": "هل هذه كل المأكولات البحرية التي تحتاجينها؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 130900,
+      "end_ms": 133600
     },
     {
       "speaker": "Anna",
       "text": "Yes.",
       "translation_ar": "نعم.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 134020,
+      "end_ms": 134780
     },
     {
       "speaker": "Pete",
       "text": "That’ll be $49.95. Cash or credit?",
       "translation_ar": "المجموع 49 دولارًا و95 سنتًا. نقدًا أم بالبطاقة؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 135500,
+      "end_ms": 140220
     },
     {
       "speaker": "Anna",
       "text": "Credit, please.",
       "translation_ar": "بالبطاقة، من فضلك.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 140860,
+      "end_ms": 141600
     },
     {
       "speaker": "Pete",
       "text": "Anna, you love to eat seafood. Did you grow up on the water?",
       "translation_ar": "يا آنا، أنت تحبين المأكولات البحرية. هل نشأتِ قرب الماء؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 143280,
+      "end_ms": 147720
     },
     {
       "speaker": "Anna",
       "text": "No, I didn’t. But I love the water. And I love being on the water.",
       "translation_ar": "لا، لكنني أحب الماء، وأحب أن أكون فوق الماء أيضًا.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 148320,
+      "end_ms": 153980
     },
     {
       "speaker": "Pete",
       "text": "You know how to sail?",
       "translation_ar": "هل تعرفين كيف تبحرين؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 155080,
+      "end_ms": 155960
     },
     {
       "speaker": "Anna",
       "text": "Well … this afternoon I am going on a boat.",
       "translation_ar": "حسنًا... سأركب قاربًا بعد ظهر اليوم.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 157160,
+      "end_ms": 160080
     },
     {
       "speaker": "Pete",
       "text": "You are full of surprises. What kind of boat? Is it a motorboat or a sailboat?",
       "translation_ar": "أنت مليئة بالمفاجآت. أي نوع من القوارب؟ هل هو قارب بمحرك أم قارب شراعي؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 161020,
+      "end_ms": 167760
     },
     {
       "speaker": "Anna",
       "text": "It’s a special boat, Pete. Well, thanks for your help. See you later!",
       "translation_ar": "إنه قارب مميز يا بيت. شكرًا لمساعدتك. أراك لاحقًا!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 168620,
+      "end_ms": 174040
     },
     {
       "speaker": "Pete",
       "text": "See you, Anna! Wow, Anna’s a sailor! Who knew?",
       "translation_ar": "إلى اللقاء يا آنا! واو، آنا بحّارة! من كان يتوقع ذلك؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 174780,
+      "end_ms": 180800
     },
     {
       "speaker": "Anna",
       "text": "Yes, rivers are important to the history and culture of Washington, D.C. And now I am part of this city’s interesting waterfront culture. Until next time!",
       "translation_ar": "نعم، للأنهار أهمية في تاريخ واشنطن العاصمة وثقافتها. والآن أصبحت جزءًا من ثقافة الواجهة المائية المثيرة في هذه المدينة. إلى اللقاء في المرة القادمة!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 182120,
+      "end_ms": 195680
     }
   ],
   "vocabulary": [
@@ -377,9 +378,9 @@
       "answer": 0
     }
   ],
-  "conversation_audio_url": "https://voa-audio.voanews.eu/vle/2016/09/27/a8dbb32b-ada5-4441-a2d1-340924241a4b_hq.mp3?download=1",
-  "conversation_duration_ms": 199275,
-  "conversation_backup_audio_url": "https://voa-audio.voanews.eu/vle/2016/09/27/a8dbb32b-ada5-4441-a2d1-340924241a4b.mp3?download=1",
-  "recording_format": "original_full_lesson_video_mp4",
-  "transcript_scope": "excerpt"
+  "sync_method": "audio_word_alignment_review_pending",
+  "sync_token_match_ratio": 0.973,
+  "sync_review_pending_lines": [
+    17
+  ]
 }

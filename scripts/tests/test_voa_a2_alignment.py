@@ -23,7 +23,7 @@ class A2AlignmentTests(unittest.TestCase):
         self.assertEqual(len(module.APPROVED_EPISODES), 30)
         for n in range(1, 31):
             x = record(n)
-            if n in (7, 8, 10, 13, 17):
+            if n == 8:
                 x["audio_url"] = (
                     "https://voa-video-ns.akamaized.net/pangeavideo/"
                     "2021/02/6/6a/6a264ff8-5d3a-4460-8d09-b56daf6ebe65_240p.mp4"
@@ -32,11 +32,10 @@ class A2AlignmentTests(unittest.TestCase):
         for n in (0, 31, 99):
             with self.assertRaises(ValueError):
                 module.approved_source(record(n))
-        for number in (7, 8, 10, 13, 17):
-            with self.assertRaises(ValueError):
-                module.approved_source(record(number))
         with self.assertRaises(ValueError):
-            module.approved_source(record(19,
+            module.approved_source(record(8))
+        with self.assertRaises(ValueError):
+            module.approved_source(record(17,
                 "https://voa-video-ns.akamaized.net/pangeavideo/2021/clip_240p.mp4"))
 
     def test_protect_against_wrong_source_or_level(self):

@@ -11,13 +11,10 @@ spec.loader.exec_module(module)
 
 def episode(ident="en-a1-voa-030", url=None):
     return {
-        "id": ident, "language": "en", "level": "A1",
-        "recording_kind": "human", "voice_rights_verified": True,
-        "status": "published_audio", "duration_ms": 300000,
-        "recording_format": "original_full_lesson_video_mp4",
+        "id": ident, "language": "en", "recording_kind": "human",
+        "voice_rights_verified": True, "status": "published_audio",
         "audio_url": url or (
-            "https://voa-video-ns.akamaized.net/pangeavideo/"
-            "2021/02/c/cc/cc4d97ac-b23a-4c71-a915-205f1bac86fc_240p.mp4"
+            "https://voa-audio.voanews.eu/vle/2016/09/27/recording_hq.mp3?download=1"
         ),
     }
 
@@ -33,11 +30,10 @@ class VoaApprovedSourceTests(unittest.TestCase):
         for data in (
             episode(ident="en-a1-voa-999"),
             episode(ident="en-a1-voa-013"),
-            episode(url="https://example.com/pangeavideo/fake_mobile.mp4"),
-            episode(url="https://voa-video-ns.akamaized.net.evil.com/pangeavideo/fake_mobile.mp4"),
-            episode(url="http://voa-video-ns.akamaized.net/pangeavideo/fake_mobile.mp4"),
-            episode(url="https://voa-video-ns.akamaized.net/fake_mobile.mp4"),
-            episode(url="https://voa-audio.voanews.eu/vle/short.mp3"),
+            episode(url="https://example.com/vle/fake.mp3"),
+            episode(url="https://voa-audio.voanews.eu.evil.com/vle/fake.mp3"),
+            episode(url="http://voa-audio.voanews.eu/vle/fake.mp3"),
+            episode(url="https://voa-audio.voanews.eu/fake.mp3"),
         ):
             with self.assertRaises(ValueError):
                 module.approved_source(data)

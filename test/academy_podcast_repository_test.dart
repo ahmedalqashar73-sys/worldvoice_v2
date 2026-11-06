@@ -43,9 +43,7 @@ void main() {
       final lesson = await repo.load(entry);
       expect(lesson.canStream, isTrue, reason: entry.id);
       expect(lesson.canReadAloud, isFalse, reason: entry.id);
-      expect(lesson.isExcerpt,
-          const {7, 10, 13}.contains(expectedNumbers[index]),
-          reason: entry.id);
+      expect(lesson.isExcerpt, isFalse, reason: entry.id);
       expect(lesson.isPlayable, isFalse, reason: entry.id);
       expect(lesson.dialogue,
           hasLength(greaterThanOrEqualTo(25)));
@@ -54,10 +52,7 @@ void main() {
           line.translationAr.isNotEmpty &&
           line.startMs == null && line.endMs == null), isTrue);
       expect(lesson.questions, hasLength(2));
-      expect(lesson.audioUrl, startsWith(
-          const {7, 10, 13}.contains(expectedNumbers[index])
-              ? 'https://voa-video-ns.akamaized.net/pangeavideo/'
-              : 'https://voa-audio.voanews.eu/vle/'));
+      expect(lesson.audioUrl, startsWith('https://voa-audio.voanews.eu/vle/'));
       expect(lesson.sourceUrl, startsWith('https://learningenglish.voanews.com/a/'));
     }
   });
@@ -133,20 +128,19 @@ void main() {
     expect(lesson.dialogue.every((line) =>
         line.text.trim().isNotEmpty && line.translationAr.trim().isNotEmpty),
         isTrue);
-    expect(lesson.audioUrl, contains('voa-video-ns.akamaized.net'));
+    expect(lesson.audioUrl, contains('voa-audio.voanews.eu'));
     expect(lesson.sourceUrl, contains('learningenglish.voanews.com'));
-    expect(lesson.durationMs, 300000);
+    expect(lesson.durationMs, 219311);
     expect(lesson.canStream, isTrue);
-    expect(lesson.syncStatus, 'unverified');
-    expect(lesson.isExcerpt, isTrue);
-    expect(lesson.isPlayable, isFalse,
-        reason: 'Prior short-clip cues must not be reused for full video');
-    expect(lesson.lineAt(const Duration(seconds: 50)), isNull);
+    expect(lesson.syncStatus, 'provisional');
+    expect(lesson.isPlayable, isTrue,
+        reason: 'Measured but provisional cues support trial read-along');
+    expect(lesson.lineAt(const Duration(seconds: 50)), isNotNull);
     expect(lesson.dialogue.every((line) =>
-        line.startMs == null && line.endMs == null), isTrue);
+        line.startMs != null && line.endMs != null), isTrue);
   });
 
-  test('VOA Lesson 30 uses full original audio without false cue timings',
+  test('VOA Lesson 30 has provisional cues measured from genuine audio',
       () async {
     final entries = await repo.allEpisodes();
     final item = entries.singleWhere((e) => e.id == 'en-a1-voa-030');
@@ -156,12 +150,12 @@ void main() {
     expect(episode.otherSpeakers, isEmpty);
     expect(episode.dialogue, hasLength(37));
     expect(episode.sourceUrl, contains('learningenglish.voanews.com'));
-    expect(episode.audioUrl, contains('voa-video-ns.akamaized.net'));
-    expect(episode.durationMs, 300000);
+    expect(episode.audioUrl, contains('voa-audio.voanews.eu'));
+    expect(episode.durationMs, 199275);
     expect(episode.canStream, isTrue);
-    expect(episode.syncStatus, 'unverified');
-    expect(episode.isPlayable, isFalse);
-    expect(episode.lineAt(const Duration(seconds: 40)), isNull);
+    expect(episode.syncStatus, 'provisional');
+    expect(episode.isPlayable, isTrue);
+    expect(episode.lineAt(const Duration(seconds: 40)), isNotNull);
   });
 
   test('VOA Lesson 47 has original audio and all speaker names',
@@ -173,8 +167,8 @@ void main() {
     expect(lesson.hosts, ['Anna', 'Pete']);
     expect(lesson.otherSpeakers, ['Dan', 'Master']);
     expect(lesson.dialogue, hasLength(41));
-    expect(lesson.audioUrl, contains('voa-video-ns.akamaized.net'));
-    expect(lesson.durationMs, 300000);
+    expect(lesson.audioUrl, contains('voa-audio.voanews.eu'));
+    expect(lesson.durationMs, 191000);
     expect(lesson.canStream, isTrue);
     expect(lesson.isPlayable, isFalse);
   });

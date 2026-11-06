@@ -650,9 +650,7 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
         // A2 VOA originals are bilingual: show the matching Arabic text
         // immediately, while preserving the reader's manual toggle.
         // Never infer audio cue timings when sync_status is unverified.
-        _showArabic = loaded.language == 'en' &&
-            (loaded.level == 'A2' ||
-                (loaded.level == 'A1' && loaded.canStream));
+        _showArabic = loaded.language == 'en' && loaded.level == 'A2';
         _anchors = List<GlobalKey>.generate(
             loaded.dialogue.length, (_) => GlobalKey());
       });
@@ -665,13 +663,7 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
         }
       });
       final local = await _offlineAudioFile(loaded);
-      // Never play a previously downloaded 29-second conversation MP3
-      // when the episode now points to VOA's complete five-minute MP4.
-      // Legacy offline files are keyed by episode ID, not source URL.
-      final isMp3Source =
-          Uri.tryParse(loaded.audioUrl ?? '')?.path.toLowerCase().endsWith('.mp3') == true;
-      final offline = isMp3Source &&
-          await local.exists() && await local.length() > 100000;
+      final offline = await local.exists() && await local.length() > 100000;
       if (offline) {
         await _player.setFilePath(local.path);
       } else {
@@ -1169,12 +1161,8 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
           if (episode.isExcerpt) ...[
             const SizedBox(height: 8),
             Text(ar
-                ? (Uri.tryParse(episode.audioUrl ?? '')?.path.endsWith('.mp4') == true
-                    ? 'الدرس الأصلي الكامل من VOA مدته نحو 5 دقائق. النص الإنجليزي وترجمته العربية هنا للمحادثة فقط؛ فقرات الشرح الأخرى ليست مترجمة أو متزامنة بعد.'
-                    : 'المحادثة المعروضة مقتطف مترجم وليست النص الكامل. افتح المصدر الأصلي من VOA. لم يتم اعتماد توقيت الجمل.')
-                : (Uri.tryParse(episode.audioUrl ?? '')?.path.endsWith('.mp4') == true
-                    ? 'The complete original VOA lesson is about five minutes. The bilingual text covers the conversation only, not the additional teaching narration. Full-lesson timing is not yet verified.'
-                    : 'These are translated excerpts, not the full transcript. Open the original VOA source. No line timings are certified.'),
+                ? 'المحادثة المعروضة مقتطف أصلي مترجم وليست النص الكامل. استمع إلى التسجيل كاملًا، وافتح النص الكامل من VOA أدناه. لم يتم اعتماد توقيت الجمل.'
+                : 'These are selected translated lines, not the full transcript. Listen to the complete official VOA recording and open the full transcript below. No line timings are certified.',
                 style: const TextStyle(
                     color: Color(0xFFE0EEE5), fontSize: 11, height: 1.4)),
           ],

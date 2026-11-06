@@ -14,10 +14,7 @@
       "status": "published_audio",
       "asset": "assets/podcasts/en/A1/en-a1-voa-020.json",
       "title_ar": "ماذا يمكنك أن تفعل؟",
-      "language": "en",
-      "duration_ms": 300000,
-      "recording_format": "original_full_lesson_video_mp4",
-      "attribution": "VOA Learning English"
+      "language": "en"
     },
     {
       "id": "en-a1-pod-001",
@@ -37,9 +34,8 @@
       "asset": "assets/podcasts/en/A1/en-a1-voa-030.json",
       "language": "en",
       "recording_kind": "human",
-      "duration_ms": 300000,
-      "attribution": "VOA Learning English",
-      "recording_format": "original_full_lesson_video_mp4"
+      "duration_ms": 199000,
+      "attribution": "VOA Learning English"
     },
     {
       "id": "en-a1-voa-047",
@@ -50,9 +46,8 @@
       "asset": "assets/podcasts/en/A1/en-a1-voa-047.json",
       "language": "en",
       "recording_kind": "human",
-      "duration_ms": 300000,
-      "attribution": "VOA Learning English",
-      "recording_format": "original_full_lesson_video_mp4"
+      "duration_ms": 191000,
+      "attribution": "VOA Learning English"
     },
     {
       "id": "en-a1-pod-005",
@@ -214,10 +209,7 @@
       "status": "published_audio",
       "asset": "assets/podcasts/en/A2/en-a2-voa-007.json",
       "title_ar": "قدّم إكرامية لمرشدك السياحي",
-      "language": "en",
-      "duration_ms": 300000,
-      "recording_format": "original_full_lesson_video_mp4",
-      "attribution": "VOA Learning English"
+      "language": "en"
     },
     {
       "id": "en-a2-voa-009",
@@ -235,10 +227,7 @@
       "status": "published_audio",
       "asset": "assets/podcasts/en/A2/en-a2-voa-010.json",
       "title_ar": "زيارة إلى بيرو",
-      "language": "en",
-      "duration_ms": 300000,
-      "recording_format": "original_full_lesson_video_mp4",
-      "attribution": "VOA Learning English"
+      "language": "en"
     },
     {
       "id": "en-a2-voa-011",
@@ -265,10 +254,7 @@
       "status": "published_audio",
       "asset": "assets/podcasts/en/A2/en-a2-voa-013.json",
       "title_ar": "أنقذوا النحل!",
-      "language": "en",
-      "duration_ms": 300000,
-      "recording_format": "original_full_lesson_video_mp4",
-      "attribution": "VOA Learning English"
+      "language": "en"
     },
     {
       "id": "en-a2-voa-014",

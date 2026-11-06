@@ -17,319 +17,319 @@
   "voice_rights_verified": true,
   "source": "VOA Learning English",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-20-what-can-you-do/3384429.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 20. The authentic ~5-minute full VOA lesson video is used as audio. English dialogue and WorldVoice Arabic translation cover only the conversation segment, not all teaching/narration in the complete lesson. Full-lesson line cues are unverified. WorldVoice is not affiliated with VOA.",
-  "audio_url": "https://voa-video-ns.akamaized.net/pangeavideo/2016/06/5/5d/5d078c81-3fa1-4101-9d0f-9cbab2c671ce_mobile.mp4?cb=ecfb9e1dc&download=1",
-  "duration_ms": 300000,
-  "sync_status": "unverified",
+  "source_credit": "VOA Learning English — Let's Learn English, Level 1, Lesson 20. Original VOA recording and transcript; no WorldVoice/VOA affiliation.",
+  "audio_url": "https://voa-audio.voanews.eu/vle/2016/06/29/8225db0f-179b-453f-92bb-50f548175c42_hq.mp3",
+  "duration_ms": 219311,
+  "sync_status": "provisional",
   "target_duration_ms": 219000,
   "dialogue": [
     {
       "speaker": "Anna",
       "text": "Hi, there! Washington, D.C. is a great place to work. Many people here work in government and politics. But there are many other jobs. You can work at a hospital; a university. You can work in a coffee shop. Wait a minute, I think I see a friend of mine. Pete? Is that you?",
       "translation_ar": "أهلًا! واشنطن العاصمة مكان رائع للعمل. يعمل كثيرون هنا في الحكومة والسياسة، ولكن توجد وظائف أخرى كثيرة. يمكنك العمل في مستشفى أو جامعة أو مقهى. لحظة، أظن أنني رأيت صديقًا لي. بيت، أهذا أنت؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 0,
+      "end_ms": 29360
     },
     {
       "speaker": "Pete",
       "text": "Hi, Anna.",
       "translation_ar": "مرحبًا يا آنا.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 29820,
+      "end_ms": 31460
     },
     {
       "speaker": "Anna",
       "text": "You look different. Your beard … is really big.",
       "translation_ar": "تبدو مختلفًا. لحيتك كبيرة جدًا.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 32020,
+      "end_ms": 36860
     },
     {
       "speaker": "Pete",
       "text": "You don’t like it, do you?",
       "translation_ar": "أنت لا تحبينها، أليس كذلك؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 38460,
+      "end_ms": 40140
     },
     {
       "speaker": "Anna",
       "text": "No, no. You just look … different.",
       "translation_ar": "لا، لا. أنت فقط تبدو مختلفًا.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 40340,
+      "end_ms": 43360
     },
     {
       "speaker": "Anna",
       "text": "(To server) Thank you. So, what’s wrong? You look sad.",
       "translation_ar": "(للنادل) شكرًا لك. إذن، ما المشكلة؟ تبدو حزينًا.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 44040,
+      "end_ms": 46320
     },
     {
       "speaker": "Pete",
       "text": "I don’t have a job.",
       "translation_ar": "ليس لدي عمل.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 47360,
+      "end_ms": 48400
     },
     {
       "speaker": "Anna",
       "text": "Sorry, I can’t hear you.",
       "translation_ar": "آسفة، لا أستطيع سماعك.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 49080,
+      "end_ms": 50460
     },
     {
       "speaker": "Pete",
       "text": "I do not have a job!",
       "translation_ar": "ليس لدي عمل!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 50780,
+      "end_ms": 53260
     },
     {
       "speaker": "Anna",
       "text": "Oh. I’m sorry to hear that, Pete.",
       "translation_ar": "أوه، يؤسفني سماع ذلك يا بيت.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 53940,
+      "end_ms": 56240
     },
     {
       "speaker": "Pete",
       "text": "I don’t have a skill.",
       "translation_ar": "ليس لدي مهارة.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 56800,
+      "end_ms": 58320
     },
     {
       "speaker": "Anna",
       "text": "Everyone has a skill. You need to find yours.",
       "translation_ar": "كل شخص لديه مهارة. عليك أن تكتشف مهارتك.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 59020,
+      "end_ms": 62820
     },
     {
       "speaker": "Pete",
       "text": "I don’t know, Anna.",
       "translation_ar": "لا أعرف يا آنا.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 64280,
+      "end_ms": 65000
     },
     {
       "speaker": "Anna",
       "text": "Pete, I am good at asking questions. Let me ask you some.",
       "translation_ar": "يا بيت، أنا جيدة في طرح الأسئلة. دعني أسألك بعضًا منها.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 65300,
+      "end_ms": 69620
     },
     {
       "speaker": "Pete",
       "text": "Really, Anna? Can you help me?",
       "translation_ar": "حقًا يا آنا؟ هل تستطيعين مساعدتي؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 70180,
+      "end_ms": 73140
     },
     {
       "speaker": "Anna",
       "text": "Yes, I can. Let me help.",
       "translation_ar": "نعم أستطيع. دعني أساعدك.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 73500,
+      "end_ms": 75940
     },
     {
       "speaker": "Pete",
       "text": "Sure, Anna. Maybe you can help.",
       "translation_ar": "بالتأكيد يا آنا. ربما تستطيعين المساعدة.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 76380,
+      "end_ms": 79180
     },
     {
       "speaker": "Anna",
       "text": "Can you write code?",
       "translation_ar": "هل تستطيع كتابة الشفرة البرمجية؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 79880,
+      "end_ms": 81880
     },
     {
       "speaker": "Pete",
       "text": "Sure, c-o-l-d. How is this going to help?",
       "translation_ar": "بالتأكيد، C-O-L-D. كيف سيساعدني هذا؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 82440,
+      "end_ms": 88520
     },
     {
       "speaker": "Anna",
       "text": "No, not “cold.” Code; you know, for making phone apps, or websites. You can make tons of money writing code.",
       "translation_ar": "لا، ليس كلمة «cold». أقصد «code»؛ أي البرمجة لإنشاء تطبيقات الهاتف أو المواقع. يمكنك كسب مال كثير من كتابة الشفرة.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 88900,
+      "end_ms": 99020
     },
     {
       "speaker": "Pete",
       "text": "Tons of money? But I can’t code.",
       "translation_ar": "مال كثير؟ لكنني لا أستطيع البرمجة.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 99740,
+      "end_ms": 103560
     },
     {
       "speaker": "Anna",
       "text": "Next question. Can you drive?",
       "translation_ar": "السؤال التالي. هل تستطيع القيادة؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 104040,
+      "end_ms": 106780
     },
     {
       "speaker": "Pete",
       "text": "Do you mean drive a race car? It’s really hard to be a race car driver. First, you need a race car ...",
       "translation_ar": "هل تقصدين قيادة سيارة سباق؟ من الصعب حقًا أن تصبح سائق سباقات. أولًا تحتاج إلى سيارة سباق...",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 107560,
+      "end_ms": 114600
     },
     {
       "speaker": "Anna",
       "text": "No, I mean drive a taxi or drive a bus.",
       "translation_ar": "لا، أقصد قيادة سيارة أجرة أو حافلة.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 114740,
+      "end_ms": 118160
     },
     {
       "speaker": "Pete",
       "text": "No, I always fall asleep when I drive.",
       "translation_ar": "لا، أنا دائمًا أغفو عندما أقود.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 118820,
+      "end_ms": 122040
     },
     {
       "speaker": "Anna",
       "text": "Oh, that’s not good. Next question. Can you teach? You can be a teacher in a school.",
       "translation_ar": "أوه، هذا ليس جيدًا. السؤال التالي: هل تستطيع التدريس؟ يمكنك أن تصبح معلمًا في مدرسة.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 123340,
+      "end_ms": 130400
     },
     {
       "speaker": "Pete",
       "text": "No, I cannot teach.",
       "translation_ar": "لا، لا أستطيع التدريس.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 130980,
+      "end_ms": 133080
     },
     {
       "speaker": "Anna",
       "text": "Can you cook? You can be a chef in a restaurant.",
       "translation_ar": "هل تستطيع الطبخ؟ يمكنك أن تصبح طاهيًا في مطعم.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 133800,
+      "end_ms": 137280
     },
     {
       "speaker": "Pete",
       "text": "No, I can’t code! I can’t teach! I can’t cook! Anna, I can’t do anything. This is sad. I’m gonna write about my feelings in my blog.",
       "translation_ar": "لا، لا أستطيع البرمجة! ولا التدريس! ولا الطبخ! يا آنا، لا أستطيع فعل أي شيء. هذا محزن. سأكتب عن مشاعري في مدونتي.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 137920,
+      "end_ms": 150440
     },
     {
       "speaker": "Anna",
       "text": "You write a blog?",
       "translation_ar": "هل تكتب مدونة؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 151380,
+      "end_ms": 152960
     },
     {
       "speaker": "Pete",
       "text": "Yeah, I write a blog.",
       "translation_ar": "نعم، أكتب مدونة.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 153220,
+      "end_ms": 154320
     },
     {
       "speaker": "Anna",
       "text": "How many followers do you have?",
       "translation_ar": "كم عدد متابعيك؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 154980,
+      "end_ms": 156920
     },
     {
       "speaker": "Pete",
       "text": "I don’t know … 59,538.",
       "translation_ar": "لا أعرف... 59,538.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 157440,
+      "end_ms": 161220
     },
     {
       "speaker": "Anna",
       "text": "Pete, that's a lot of followers! You can make money writing!",
       "translation_ar": "يا بيت، هذا عدد كبير من المتابعين! يمكنك كسب المال بالكتابة!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 161880,
+      "end_ms": 167040
     },
     {
       "speaker": "Pete",
       "text": "Writing is easy. Everyone can write.",
       "translation_ar": "الكتابة سهلة. يستطيع الجميع الكتابة.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 167800,
+      "end_ms": 171600
     },
     {
       "speaker": "Anna",
       "text": "Not everyone can write well. You can be a writer!",
       "translation_ar": "ليس الجميع قادرين على الكتابة جيدًا. يمكنك أن تصبح كاتبًا!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 171760,
+      "end_ms": 176320
     },
     {
       "speaker": "Pete",
       "text": "I can be a writer. I can be a writer! I can be a writer! Thanks, Anna.",
       "translation_ar": "أستطيع أن أكون كاتبًا. أستطيع أن أكون كاتبًا! أستطيع أن أكون كاتبًا! شكرًا يا آنا.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 176960,
+      "end_ms": 183960
     },
     {
       "speaker": "Marsha",
       "text": "Hi, Pete. Hi, Anna.",
       "translation_ar": "مرحبًا يا بيت. مرحبًا يا آنا.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 184720,
+      "end_ms": 186580
     },
     {
       "speaker": "Pete",
       "text": "Hi, Marsha. Excuse me, I have to go.",
       "translation_ar": "مرحبًا يا مارشا. اعذريني، عليّ الذهاب.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 187040,
+      "end_ms": 191240
     },
     {
       "speaker": "Marsha",
       "text": "Where are you going?",
       "translation_ar": "إلى أين أنت ذاهب؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 191660,
+      "end_ms": 193000
     },
     {
       "speaker": "Pete",
       "text": "I’m going to be a writer!",
       "translation_ar": "سأصبح كاتبًا!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 193400,
+      "end_ms": 197000
     },
     {
       "speaker": "Marsha",
       "text": "Good luck, Pete!",
       "translation_ar": "حظًا موفقًا يا بيت!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 197600,
+      "end_ms": 199140
     },
     {
       "speaker": "Marsha",
       "text": "(To Anna) He does know that it’s not easy to be a writer, doesn’t he?",
       "translation_ar": "(لآنا) هو يعرف أن العمل ككاتب ليس سهلًا، أليس كذلك؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 199840,
+      "end_ms": 204460
     },
     {
       "speaker": "Anna",
       "text": "There are many different jobs you can have in Washington, D.C. Pete wants to be a writer. I wish him luck. Lots of luck. Until next time!",
       "translation_ar": "توجد وظائف كثيرة مختلفة يمكنك العمل بها في واشنطن العاصمة. يريد بيت أن يصبح كاتبًا. أتمنى له حظًا موفقًا، والكثير من الحظ! إلى اللقاء في المرة القادمة!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 204880,
+      "end_ms": 217240
     }
   ],
   "vocabulary": [
@@ -429,9 +429,13 @@
       "answer": 0
     }
   ],
-  "conversation_audio_url": "https://voa-audio.voanews.eu/vle/2016/06/29/8225db0f-179b-453f-92bb-50f548175c42_hq.mp3",
-  "conversation_duration_ms": 219311,
-  "conversation_backup_audio_url": "https://voa-audio.voanews.eu/vle/2016/06/29/8225db0f-179b-453f-92bb-50f548175c42.mp3",
-  "recording_format": "original_full_lesson_video_mp4",
-  "transcript_scope": "excerpt"
+  "backup_audio_url": "https://voa-audio.voanews.eu/vle/2016/06/29/8225db0f-179b-453f-92bb-50f548175c42.mp3",
+  "sync_quality": {
+    "method": "whisper-timestamped forced alignment from real VOA MP3",
+    "mp3_sha256": "1261ee461b7aa81f998149137cf66c6485197a0cca2029242e74f3d896a5dbb3",
+    "token_match_ratio": 0.982,
+    "manual_review_pending": true,
+    "provisional_line_number": 6,
+    "disclaimer": "These are automatically measured cues; one line has low text-to-audio coverage and whole-track listening validation remains pending."
+  }
 }

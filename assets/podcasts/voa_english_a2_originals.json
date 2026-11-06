@@ -2,7 +2,7 @@
   "schema": 1,
   "source": "VOA Learning English — Let's Learn English Level 2",
   "worldvoice_track": "English A2",
-  "notes": "30 genuine VOA Level 2 English lesson recordings. Original conversation MP3s that are under four minutes (lessons 7, 10, 13 and 17) were changed to official full five-minute lesson MP4 sound; lesson 8 also uses original video audio. Full-lesson video translation text covers the conversation section only (transcript_scope=excerpt), not all instruction/narration. Other MP3 transcripts remain complete as marked. Original short MP3 sources are preserved in conversation_audio_url. Original VOA Level 2 is intermediate, not formally equivalent to CEFR A2.",
+  "notes": "VOA Level 2 has 30 recordings, with English conversations from the official VOA lesson pages and Arabic translations. New translations marked machine_draft require editorial review; no unverified line timings are enabled. Lesson 8 uses the official video audio because standalone MP3 is unavailable. VOA Level 2 is intermediate, not formally equivalent to CEFR A2.",
   "lessons": [
     {
       "id": "en-a2-voa-001",
@@ -101,16 +101,13 @@
       "title": "Tip Your Tour Guide",
       "title_ar": "قدّم إكرامية لمرشدك السياحي",
       "source_url": "https://learningenglish.voanews.com/a/lesson-7-tip-your-tour-guide/4064769.html",
-      "audio_url": "https://voa-video-ns.akamaized.net/pangeavideo/2021/02/2/26/263b6553-9229-4c76-8c64-90ea037c2a8e_240p.mp4?cb=edc3e7990&download=1",
-      "duration_sec": 300,
+      "audio_url": "https://voa-audio.voanews.eu/vle/2017/10/17/45e008c5-648b-4275-ad2d-d3b058d199a6_hq.mp3?download=1",
+      "duration_sec": 237,
       "anna_present": true,
       "pete_present": false,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
-      "existing_episode_id": "en-a2-voa-007",
-      "conversation_audio_url": "https://voa-audio.voanews.eu/vle/2017/10/17/45e008c5-648b-4275-ad2d-d3b058d199a6_hq.mp3?download=1",
-      "conversation_duration_sec": 237,
-      "recording_format": "original_full_lesson_video_mp4"
+      "transcript_scope": "full",
+      "existing_episode_id": "en-a2-voa-007"
     },
     {
       "id": "en-a2-voa-008",
@@ -152,16 +149,13 @@
       "title": "Visit to Peru",
       "title_ar": "زيارة إلى بيرو",
       "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-10-visit-to-peru/4079037.html",
-      "audio_url": "https://voa-video-ns.akamaized.net/pangeavideo/2021/02/7/78/785c4ee4-6b29-45d8-a060-65bcfbcc1f16_240p.mp4?cb=edc3e7a33&download=1",
-      "duration_sec": 300,
+      "audio_url": "https://voa-audio.voanews.eu/vle/2017/10/27/863aecf4-1d6a-4fe1-9789-5251ac1e0be1_hq.mp3?download=1",
+      "duration_sec": 237,
       "anna_present": true,
       "pete_present": false,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
-      "existing_episode_id": "en-a2-voa-010",
-      "conversation_audio_url": "https://voa-audio.voanews.eu/vle/2017/10/27/863aecf4-1d6a-4fe1-9789-5251ac1e0be1_hq.mp3?download=1",
-      "conversation_duration_sec": 237,
-      "recording_format": "original_full_lesson_video_mp4"
+      "transcript_scope": "full",
+      "existing_episode_id": "en-a2-voa-010"
     },
     {
       "id": "en-a2-voa-011",
@@ -200,16 +194,13 @@
       "title": "Save the Bees!",
       "title_ar": "أنقذوا النحل!",
       "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-13-save-the-bees/4145716.html",
-      "audio_url": "https://voa-video-ns.akamaized.net/pangeavideo/2021/02/d/d7/d71f7385-7af3-4032-b1a8-3e543cf0cac0_240p.mp4?cb=edc3e7ade&download=1",
-      "duration_sec": 300,
+      "audio_url": "https://voa-audio.voanews.eu/vle/2017/12/01/104a6627-290a-4472-911e-3bb9349f44f7_hq.mp3?download=1",
+      "duration_sec": 231,
       "anna_present": true,
       "pete_present": false,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
-      "existing_episode_id": "en-a2-voa-013",
-      "conversation_audio_url": "https://voa-audio.voanews.eu/vle/2017/12/01/104a6627-290a-4472-911e-3bb9349f44f7_hq.mp3?download=1",
-      "conversation_duration_sec": 231,
-      "recording_format": "original_full_lesson_video_mp4"
+      "transcript_scope": "full",
+      "existing_episode_id": "en-a2-voa-013"
     },
     {
       "id": "en-a2-voa-014",
@@ -263,17 +254,15 @@
       "title": "Flour Baby, Part 1",
       "title_ar": "طفل من الدقيق — الجزء الأول",
       "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-17/4220576.html",
-      "audio_url": "https://voa-video-ns.akamaized.net/pangeavideo/2021/02/9/99/99b14704-c92c-4969-9b69-cba7e81ed310_240p.mp4?cb=edc3e7baf&download=1",
-      "duration_sec": 300,
+      "audio_url": "https://voa-audio.voanews.eu/vle/2018/01/24/4f5af081-e654-4912-9f5d-24cd3fa5170a_hq.mp3?download=1",
+      "duration_sec": 238,
       "anna_present": true,
       "pete_present": true,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
+      "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-017",
-      "recording_format": "original_full_lesson_video_mp4",
-      "translation_status": "authored",
-      "conversation_audio_url": "https://voa-audio.voanews.eu/vle/2018/01/24/4f5af081-e654-4912-9f5d-24cd3fa5170a_hq.mp3?download=1",
-      "conversation_duration_sec": 238
+      "recording_format": "original_mp3",
+      "translation_status": "authored"
     },
     {
       "id": "en-a2-voa-018",
