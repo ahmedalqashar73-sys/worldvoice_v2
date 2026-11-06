@@ -36,7 +36,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 120));
     expect(find.byKey(const ValueKey('podcast-original-en-a1-voa-020')),
         findsOneWidget);
-    expect(find.text('VOA human audio · provisional sync'), findsOneWidget);
+    expect(find.text('VOA human audio · provisional sync'), findsNWidgets(7));
     final practice = find.byKey(const ValueKey('podcast-a1-reading-practice'));
     await tester.ensureVisible(practice);
     await tester.tap(practice);
@@ -72,6 +72,30 @@ void main() {
     expect(find.text('مرحبًا! هل هذا المقعد فارغ؟ المقهى مزدحم اليوم.'),
         findsOneWidget);
   });
+  testWidgets('English A2 lists 15 original VOA human-voice lessons',
+      (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: Scaffold(
+        body: SingleChildScrollView(child: PodcastLibrarySection()),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    final a2 = find.byKey(const ValueKey('podcast-level-A2'));
+    await tester.ensureVisible(a2);
+    await tester.tap(a2);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
+
+    expect(find.byKey(const ValueKey('podcast-original-en-a2-voa-001')),
+        findsOneWidget);
+    expect(find.byKey(const ValueKey('podcast-original-en-a2-voa-016')),
+        findsOneWidget);
+    // Lesson 8 has no independently verified MP3. Never invent one.
+    expect(find.byKey(const ValueKey('podcast-original-en-a2-voa-008')),
+        findsNothing);
+    expect(find.textContaining('VOA Level 2 · Lesson'), findsNWidgets(15));
+  });
+
   testWidgets('Spanish A1 shows its complete bilingual readable pilot',
       (tester) async {
     await tester.pumpWidget(const MaterialApp(
