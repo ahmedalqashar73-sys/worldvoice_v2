@@ -108,11 +108,18 @@ class NasaBilingualParagraph {
   final String english;
   final String arabic;
 
-  factory NasaBilingualParagraph.fromJson(Map<String, dynamic> data) =>
-      NasaBilingualParagraph(
-        english: data['text'] as String,
-        arabic: data['translation_ar'] as String,
-      );
+  factory NasaBilingualParagraph.fromJson(Map<String, dynamic> data) {
+    // Paragraph-level timings must come from an independently reviewed
+    // alignment. Never silently treat an unverified machine estimate as a
+    // timed subtitle cue.
+    if (data.containsKey('start_ms') || data.containsKey('end_ms')) {
+      throw const FormatException('Unverified NASA paragraph timestamps');
+    }
+    return NasaBilingualParagraph(
+      english: data['text'] as String,
+      arabic: data['translation_ar'] as String,
+    );
+  }
 }
 
 class NasaBilingualTranscript {
