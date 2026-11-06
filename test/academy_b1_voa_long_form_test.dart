@@ -69,7 +69,7 @@ void main() {
     // so assert the model's verified availability, not frame scheduling.
     final availableIds = available!;
     expect(availableIds, hasLength(30));
-    expect(recordings.every((recording) =>
+    expect(recordings!.every((recording) =>
         availableIds.contains(recording.id)), isTrue);
   });
 
