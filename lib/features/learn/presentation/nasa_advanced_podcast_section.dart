@@ -153,21 +153,34 @@ class NasaBilingualTranscript {
 class NasaTranscriptRepository {
   const NasaTranscriptRepository();
 
-  Future<NasaBilingualTranscript?> loadFor(NasaLongEpisode episode) async {
-    if (!episode.isOfficialSource) return null;
+  // One large bilingual document per CEFR level. Keep a shared in-memory
+  // Future so changing episodes does not decode another 30 long transcripts.
+  static final Map<String, Future<Map<String, dynamic>?>> _levelCache = {};
+
+  static Future<Map<String, dynamic>?> _loadLevel(String level) async {
     final path =
-        'assets/podcasts/nasa_${episode.level.toLowerCase()}_translations.json';
+        'assets/podcasts/nasa_${level.toLowerCase()}_translations.json';
     String raw;
     try {
       raw = await rootBundle.loadString(path);
     } on FlutterError {
+      // Streaming original NASA audio works without downloaded captions.
       return null;
     }
     final doc = jsonDecode(raw) as Map<String, dynamic>;
-    if (doc['schema'] != 1 || doc['level'] != episode.level ||
-        doc['language'] != 'en') {
+    if (doc['schema'] != 1 || doc['level'] != level ||
+        doc['language'] != 'en' || doc['episode_count'] != 30 ||
+        (doc['episodes'] as List<dynamic>).length != 30) {
       throw const FormatException('Unexpected NASA translation catalog');
     }
+    return doc;
+  }
+
+  Future<NasaBilingualTranscript?> loadFor(NasaLongEpisode episode) async {
+    if (!episode.isOfficialSource) return null;
+    final doc = await _levelCache.putIfAbsent(
+      episode.level, () => _loadLevel(episode.level));
+    if (doc == null) return null;
     for (final value in doc['episodes'] as List<dynamic>) {
       final json = value as Map<String, dynamic>;
       if (json['id'] == episode.id) {
