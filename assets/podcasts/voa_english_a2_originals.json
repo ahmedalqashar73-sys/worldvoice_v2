@@ -22,7 +22,7 @@
       "anna_present": true,
       "pete_present": false,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
+      "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-001"
     },
     {
@@ -35,9 +35,9 @@
       "audio_url": "https://voa-audio.voanews.eu/vle/2017/09/05/676d9800-cee0-4a59-9e79-b9378e0061ad_hq.mp3?download=1",
       "duration_sec": 245,
       "anna_present": true,
-      "pete_present": false,
+      "pete_present": true,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
+      "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-002"
     },
     {
