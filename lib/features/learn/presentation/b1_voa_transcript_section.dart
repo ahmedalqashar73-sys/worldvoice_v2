@@ -178,8 +178,8 @@ class B1VoaCaptionPanel extends StatefulWidget {
 }
 
 class _B1VoaCaptionPanelState extends State<B1VoaCaptionPanel> {
-  static const double rowHeight = 160;
   final ScrollController _controller = ScrollController();
+  final Map<int, GlobalKey> _rowKeys = {};
   bool _showArabic = true;
   bool _autoScroll = true;
   int _lastLine = -2;
@@ -193,23 +193,45 @@ class _B1VoaCaptionPanelState extends State<B1VoaCaptionPanel> {
   @override
   void didUpdateWidget(covariant B1VoaCaptionPanel oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.transcript.id != widget.transcript.id) {
+      _rowKeys.clear();
+      _lastLine = -2;
+    }
     final index = widget.transcript.indexAt(widget.position);
     if (index != _lastLine) {
       _lastLine = index;
-      if (_autoScroll && index >= 0) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted || !_controller.hasClients) return;
-          final destination = (index * rowHeight -
-                  _controller.position.viewportDimension * .3)
-              .clamp(0.0, _controller.position.maxScrollExtent);
-          _controller.animateTo(
-            destination,
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeOut,
-          );
-        });
-      }
+      if (_autoScroll && index >= 0) _scrollToLine(index);
     }
+  }
+
+  // Caption lengths vary widely: a fixed item height clipped the real
+  // English and Arabic text. Scroll to the actual rendered paragraph instead
+  // of assuming that every line is exactly 160 pixels tall.
+  void _scrollToLine(int index) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_autoScroll || !_controller.hasClients) return;
+      void revealIfMounted() {
+        final rowContext = _rowKeys[index]?.currentContext;
+        if (mounted && _autoScroll && rowContext != null) {
+          Scrollable.ensureVisible(rowContext,
+              alignment: 0.25,
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOut);
+        }
+      }
+      if (_rowKeys[index]?.currentContext != null) {
+        revealIfMounted();
+      } else {
+        // A large seek may target an off-screen lazy-built row. Jump near
+        // the target and refine once it has been laid out.
+        final extent = _controller.position.maxScrollExtent;
+        final fraction = widget.transcript.lines.length > 1
+            ? index / (widget.transcript.lines.length - 1)
+            : 0.0;
+        _controller.jumpTo((extent * fraction).clamp(0.0, extent));
+        WidgetsBinding.instance.addPostFrameCallback((_) => revealIfMounted());
+      }
+    });
   }
 
   @override
@@ -261,8 +283,9 @@ class _B1VoaCaptionPanelState extends State<B1VoaCaptionPanel> {
           width: double.infinity,
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: scheme.primaryContainer,
+            color: scheme.surfaceContainerLow,
             borderRadius: BorderRadius.circular(12),
+            border: Border(bottom: BorderSide(color: scheme.primary, width: 2)),
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(widget.transcript.lines[active].english,
@@ -283,17 +306,16 @@ class _B1VoaCaptionPanelState extends State<B1VoaCaptionPanel> {
         child: ListView.builder(
           key: const ValueKey('b1-bilingual-captions'),
           controller: _controller,
-          itemExtent: rowHeight,
           itemCount: widget.transcript.lines.length,
           itemBuilder: (context, i) {
             final item = widget.transcript.lines[i];
             final selected = i == active;
+            final completed = item.endMs < widget.position.inMilliseconds;
             return Padding(
+              key: _rowKeys.putIfAbsent(i, () => GlobalKey()),
               padding: const EdgeInsets.only(bottom: 6),
               child: Material(
-                color: selected
-                    ? scheme.primaryContainer
-                    : scheme.surfaceContainerLow,
+                color: scheme.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(10),
                 child: InkWell(
                   key: ValueKey('b1-caption-line-$i'),
@@ -313,8 +335,6 @@ class _B1VoaCaptionPanelState extends State<B1VoaCaptionPanel> {
                         const SizedBox(height: 5),
                         Text(item.english,
                           textDirection: TextDirection.ltr,
-                          maxLines: _showArabic ? 3 : 5,
-                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(fontSize: 13,
                               fontWeight: selected
                                   ? FontWeight.w800 : FontWeight.normal)),
@@ -322,9 +342,15 @@ class _B1VoaCaptionPanelState extends State<B1VoaCaptionPanel> {
                           const SizedBox(height: 3),
                           Text(item.arabic,
                             textDirection: TextDirection.rtl,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 13)),
+                            style: const TextStyle(fontSize: 13, height: 1.4)),
+                        ],
+                        if (selected || completed) ...[
+                          const SizedBox(height: 7),
+                          Container(
+                            height: selected ? 2 : 1,
+                            color: selected ? scheme.primary
+                                : scheme.outlineVariant,
+                          ),
                         ],
                       ],
                     ),
