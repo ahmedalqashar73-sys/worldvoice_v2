@@ -11,6 +11,7 @@ import argparse
 import json
 from pathlib import Path
 import re
+import time
 
 import requests
 from bs4 import BeautifulSoup
@@ -65,13 +66,30 @@ def fetch_source(url: str) -> str:
         "https://www.nasa.gov/podcasts/houston-we-have-a-podcast/"
     ):
         raise ValueError("Only official NASA transcript pages allowed")
-    response = requests.get(url, headers=HEADERS, timeout=75)
-    response.raise_for_status()
-    if not response.url.startswith(
-        "https://www.nasa.gov/podcasts/houston-we-have-a-podcast/"
-    ) or len(response.content) < 15000:
-        raise ValueError("Unexpected source page or redirect")
-    return response.text
+    # NASA may rate-limit simultaneous podcast transcript imports.
+    # Retry only transient network/server failures without swapping sources.
+    last_error = None
+    for attempt in range(6):
+        try:
+            response = requests.get(url, headers=HEADERS, timeout=75)
+            if response.status_code in (429, 500, 502, 503, 504):
+                last_error = RuntimeError(
+                    f"NASA temporarily returned HTTP {response.status_code}"
+                )
+            else:
+                response.raise_for_status()
+                if not response.url.startswith(
+                    "https://www.nasa.gov/podcasts/houston-we-have-a-podcast/"
+                ) or len(response.content) < 15000:
+                    raise ValueError("Unexpected source page or redirect")
+                return response.text
+        except requests.RequestException as exc:
+            last_error = exc
+        if attempt < 5:
+            time.sleep(min(9 * (2 ** attempt), 65))
+    raise RuntimeError(
+        f"Original NASA transcript unavailable after retry: {last_error}"
+    )
 
 
 def clean_row(value: str) -> str:
@@ -135,8 +153,11 @@ def extract_original_transcript(html: str) -> list[str]:
                              "related articles", "more on this topic",
                              "was this page helpful")):
             break
-        if len(value) > 3500:
-            raise ValueError("Unexpected page container in NASA transcript")
+        # Some official NASA episodes place several minutes of genuine
+        # speech inside a single <p> element. Split the source paragraph
+        # into readable passages; never confuse length with invalid text.
+        if len(value) > 150000:
+            raise ValueError("Implausibly large NASA transcript container")
         rows.extend(split_long_paragraph(value))
 
     if len(rows) < 12 or sum(len(x) for x in rows) < 2500:

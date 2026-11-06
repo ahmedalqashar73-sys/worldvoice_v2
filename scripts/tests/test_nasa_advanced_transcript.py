@@ -36,6 +36,14 @@ class TranscriptGuards(unittest.TestCase):
         self.assertGreaterEqual(len(rows), 30)
         self.assertIn("Original statement 0.", rows[0])
 
+    def test_long_genuine_source_paragraph_is_split_not_discarded(self):
+        spoken = "An original extended interview with NASA scientists. " * 200
+        markup = "<main><h2>Transcript</h2>" + (
+            f"<p>{spoken}</p>" * 3) + "</main>"
+        rows = m.extract_original_transcript(markup)
+        self.assertGreater(len(rows), 15)
+        self.assertTrue(all(len(x) <= 620 for x in rows))
+
     def test_draft_does_not_fabricate_cues(self):
         code = path.read_text(encoding="utf-8")
         self.assertIn('"sync_status": "unverified"', code)
