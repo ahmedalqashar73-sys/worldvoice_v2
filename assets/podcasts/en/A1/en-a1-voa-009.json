@@ -15,171 +15,171 @@
   "voice_rights_verified": true,
   "source": "VOA Learning English",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-9-is-it-cold/3261789.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 9. Original VOA conversation audio and dialogue. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 9. Original VOA conversation audio and dialogue. WorldVoice is not affiliated with VOA. Sentence cues are machine-aligned from the original VOA audio and are provisional pending listening review.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2016/04/01/fe67e651-87d0-4b62-9c68-749b2d3c2f21_hq.mp3?download=1",
-  "duration_ms": 121000,
-  "sync_status": "unverified",
+  "duration_ms": 121848,
+  "sync_status": "provisional",
   "dialogue": [
     {
       "speaker": "Anna",
       "text": "Oh, hi, everyone! Here in Washington, DC, the weather changes often. One day is cold and windy. But the next day is warm and sunny! So, every day I check the forecast. Hello, Phone? What is today’s temperature?",
       "translation_ar": "مرحبًا بالجميع! في واشنطن يتغير الطقس كثيرًا. يوم بارد وعاصف ويوم دافئ ومشمس! لذلك أراجع توقعات الطقس كل يوم. مرحبًا أيها الهاتف، ما درجة حرارة اليوم؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 0,
+      "end_ms": 24480
     },
     {
       "speaker": "Phone",
       "text": "Today it is 18 degrees ...",
       "translation_ar": "درجة الحرارة اليوم 18 درجة...",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 24540,
+      "end_ms": 27340
     },
     {
       "speaker": "Anna",
       "text": "Eighteen degrees! That is cold!",
       "translation_ar": "ثماني عشرة درجة! هذا بارد!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 28500,
+      "end_ms": 29900
     },
     {
       "speaker": "Phone",
       "text": "… eighteen degrees Celsius.",
       "translation_ar": "... ثماني عشرة درجة مئوية.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 30820,
+      "end_ms": 31960
     },
     {
       "speaker": "Anna",
       "text": "Oh, Celsius. That is 65 degrees Fahrenheit. That’s warm.",
       "translation_ar": "آه، مئوية. إنها 65 درجة فهرنهايت. هذا دافئ.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 33060,
+      "end_ms": 38560
     },
     {
       "speaker": "Phone",
       "text": "Yes, Anna. It is warm.",
       "translation_ar": "نعم يا آنا، الجو دافئ.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 38940,
+      "end_ms": 41300
     },
     {
       "speaker": "Anna",
       "text": "Excuse me, Phone. Is it windy today?",
       "translation_ar": "عفوًا أيها الهاتف، هل الجو عاصف اليوم؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 41920,
+      "end_ms": 44800
     },
     {
       "speaker": "Phone",
       "text": "No, it is not windy today.",
       "translation_ar": "لا، ليس عاصفًا اليوم.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 45620,
+      "end_ms": 48360
     },
     {
       "speaker": "Anna",
       "text": "Is it sunny today?",
       "translation_ar": "هل الجو مشمس اليوم؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 49440,
+      "end_ms": 51000
     },
     {
       "speaker": "Phone",
       "text": "Yes, Anna. It is sunny.",
       "translation_ar": "نعم يا آنا، الجو مشمس.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 51380,
+      "end_ms": 53660
     },
     {
       "speaker": "Anna",
       "text": "Excuse me, Phone?",
       "translation_ar": "عفوًا أيها الهاتف؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 55280,
+      "end_ms": 55980
     },
     {
       "speaker": "Phone",
       "text": "Yes, Anna.",
       "translation_ar": "نعم يا آنا.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 56140,
+      "end_ms": 57700
     },
     {
       "speaker": "Anna",
       "text": "Is it snowy today?",
       "translation_ar": "هل تتساقط الثلوج اليوم؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 58540,
+      "end_ms": 59940
     },
     {
       "speaker": "Phone",
       "text": "No, Anna. It is not snowy.",
       "translation_ar": "لا يا آنا، لا تتساقط الثلوج.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 60920,
+      "end_ms": 63500
     },
     {
       "speaker": "Anna",
       "text": "Thank you, Phone!",
       "translation_ar": "شكرًا أيها الهاتف!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 65040,
+      "end_ms": 65600
     },
     {
       "speaker": "Anna",
       "text": "Today the weather is warm and sunny -- great for seeing Washington, D.C.",
       "translation_ar": "الطقس اليوم دافئ ومشمس، وهو رائع للتجول في واشنطن.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 66820,
+      "end_ms": 72560
     },
     {
       "speaker": "Anna",
       "text": "Phone! It is not warm and sunny! It is cold and windy and snowy!",
       "translation_ar": "أيها الهاتف! الجو ليس دافئًا ومشمسًا! إنه بارد وعاصف وتتساقط الثلوج!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 73720,
+      "end_ms": 82140
     },
     {
       "speaker": "Phone",
       "text": "Anna, it is not cold, windy, or snowy. It is warm and sunny … in Mexico City, Mexico.",
       "translation_ar": "آنا، الجو ليس باردًا ولا عاصفًا ولا مثلجًا. إنه دافئ ومشمس... في مكسيكو سيتي بالمكسيك.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 83020,
+      "end_ms": 92340
     },
     {
       "speaker": "Anna",
       "text": "Oh. I see. Mexico.",
       "translation_ar": "آه، فهمت. المكسيك!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 92340,
+      "end_ms": 97760
     },
     {
       "speaker": "Anna",
       "text": "Washington weather changes often. Remember to check the forecast -- the right forecast.",
       "translation_ar": "طقس واشنطن يتغير كثيرًا. تذكروا مراجعة التوقعات... الصحيحة!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 100200,
+      "end_ms": 107100
     },
     {
       "speaker": "Phone",
       "text": "Yes, Anna. Next time remember to check the right fore…",
       "translation_ar": "نعم يا آنا. في المرة القادمة تذكري مراجعة التوقعات الصحي...",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 107720,
+      "end_ms": 111840
     },
     {
       "speaker": "Anna",
       "text": "Okay, thank you Phone. Goodbye, Phone.",
       "translation_ar": "حسنًا، شكرًا أيها الهاتف. وداعًا.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 111880,
+      "end_ms": 114500
     },
     {
       "speaker": "Anna",
       "text": "Until next time!",
       "translation_ar": "إلى المرة القادمة!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 115880,
+      "end_ms": 117460
     }
   ],
   "vocabulary": [
@@ -201,5 +201,14 @@
     }
   ],
   "questions": [],
-  "backup_audio_url": "https://voa-audio.voanews.eu/vle/2016/04/01/fe67e651-87d0-4b62-9c68-749b2d3c2f21.mp3?download=1"
+  "backup_audio_url": "https://voa-audio.voanews.eu/vle/2016/04/01/fe67e651-87d0-4b62-9c68-749b2d3c2f21.mp3?download=1",
+  "sync_method": "audio_word_alignment_review_pending",
+  "sync_token_match_ratio": 0.941,
+  "sync_review_pending_lines": [
+    3,
+    4,
+    10,
+    18,
+    21
+  ]
 }

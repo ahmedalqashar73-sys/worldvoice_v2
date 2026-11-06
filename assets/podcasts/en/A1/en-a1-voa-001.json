@@ -15,73 +15,73 @@
   "voice_rights_verified": true,
   "source": "VOA Learning English",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-one/3111026.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 1. Original VOA conversation audio and dialogue. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 1. Original VOA conversation audio and dialogue. WorldVoice is not affiliated with VOA. Sentence cues are machine-aligned from the original VOA audio and are provisional pending listening review.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2016/02/08/49485bf8-4277-47f6-9abe-617ee2473f8c.mp3?download=1",
-  "duration_ms": 29000,
-  "sync_status": "unverified",
+  "duration_ms": 29558,
+  "sync_status": "provisional",
   "dialogue": [
     {
       "speaker": "Pete",
       "text": "Hi! Are you Anna?",
       "translation_ar": "مرحبًا! هل أنت آنا؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 0,
+      "end_ms": 2180
     },
     {
       "speaker": "Anna",
       "text": "Yes! Hi there! Are you Pete?",
       "translation_ar": "نعم! أهلًا! هل أنت بيت؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 2620,
+      "end_ms": 4100
     },
     {
       "speaker": "Pete",
       "text": "I am Pete.",
       "translation_ar": "أنا بيت.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 4320,
+      "end_ms": 5160
     },
     {
       "speaker": "Anna",
       "text": "Nice to meet you.",
       "translation_ar": "سعيدة بلقائك.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 5620,
+      "end_ms": 6400
     },
     {
       "speaker": "Anna",
       "text": "Let's try that again. I'm Anna. Nice to meet you.",
       "translation_ar": "لنحاول ذلك مجددًا. أنا آنا، سعيدة بلقائك.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 8700,
+      "end_ms": 12640
     },
     {
       "speaker": "Pete",
       "text": "I'm Pete. \"Anna\" Is that A-N-A?",
       "translation_ar": "أنا بيت. «آنا»، هل تُكتب A-N-A؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 13120,
+      "end_ms": 16860
     },
     {
       "speaker": "Anna",
       "text": "No. A-N-N-A",
       "translation_ar": "لا، تُكتب A-N-N-A.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 17260,
+      "end_ms": 19300
     },
     {
       "speaker": "Pete",
       "text": "Well, Anna with two \"n's\" ... Welcome to ... 1400 Irving Street!",
       "translation_ar": "حسنًا يا آنا بحرفَي N، أهلًا بك في 1400 شارع إرفينغ!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 20280,
+      "end_ms": 26020
     },
     {
       "speaker": "Anna",
       "text": "My new apartment! Yes!",
       "translation_ar": "شقتي الجديدة! نعم!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 27000,
+      "end_ms": 29280
     }
   ],
   "vocabulary": [
@@ -102,5 +102,10 @@
       "meaning_ar": "يقابل"
     }
   ],
-  "questions": []
+  "questions": [],
+  "sync_method": "audio_word_alignment_review_pending",
+  "sync_token_match_ratio": 0.948,
+  "sync_review_pending_lines": [
+    8
+  ]
 }

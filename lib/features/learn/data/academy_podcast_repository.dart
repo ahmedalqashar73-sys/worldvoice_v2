@@ -210,7 +210,8 @@ class AcademyPodcastEpisode {
       }
       previousEnd = end;
     }
-    return dialogue.first.startMs! <= 5000 &&
+    // Original VOA clips may include several seconds of intro before speech.
+    return dialogue.first.startMs! <= 12000 &&
         durationMs! - previousEnd <= 10000;
   }
 

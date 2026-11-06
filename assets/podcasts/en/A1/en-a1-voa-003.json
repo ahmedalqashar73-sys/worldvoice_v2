@@ -17,164 +17,164 @@
   "voice_rights_verified": true,
   "source": "VOA Learning English",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-3-i-am-here/3126527.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 3. Original VOA conversation audio and dialogue. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 3. Original VOA conversation audio and dialogue. WorldVoice is not affiliated with VOA. Sentence cues are machine-aligned from the original VOA audio and are provisional pending listening review.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2016/02/18/a82baaf4-0a91-4d43-8ab6-78f72cef8fce.mp3?download=1",
-  "duration_ms": 120000,
-  "sync_status": "unverified",
+  "duration_ms": 120307,
+  "sync_status": "provisional",
   "dialogue": [
     {
       "speaker": "Anna",
       "text": "I am in my new apartment! Great!",
       "translation_ar": "أنا في شقتي الجديدة! رائع!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 8040,
+      "end_ms": 11240
     },
     {
       "speaker": "Anna",
       "text": "I live with Marsha. We’re roommates.",
       "translation_ar": "أعيش مع مارشا. نحن شريكتان في السكن.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 11300,
+      "end_ms": 15020
     },
     {
       "speaker": "Anna",
       "text": "I want to cook dinner. Oh! Hmmm. Is there a supermarket near here?",
       "translation_ar": "أريد إعداد العشاء. هممم، هل يوجد سوبرماركت قريب من هنا؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 16680,
+      "end_ms": 28900
     },
     {
       "speaker": "Anna",
       "text": "Marsha knows. Marsha's work number is 555-8986.",
       "translation_ar": "مارشا تعرف. رقم عملها هو 555-8986.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 30340,
+      "end_ms": 39040
     },
     {
       "speaker": "Man",
       "text": "Hello.",
       "translation_ar": "مرحبًا.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 39580,
+      "end_ms": 40180
     },
     {
       "speaker": "Anna",
       "text": "Hello. Is this Marsha? It is Anna.",
       "translation_ar": "مرحبًا. هل أنت مارشا؟ أنا آنا.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 40180,
+      "end_ms": 42600
     },
     {
       "speaker": "Man",
       "text": "I am sorry. You have the wrong number.",
       "translation_ar": "آسف. لقد اتصلت بالرقم الخطأ.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 42660,
+      "end_ms": 46860
     },
     {
       "speaker": "Anna",
       "text": "Oh. Is this 555-8986?",
       "translation_ar": "أوه، أليس هذا الرقم 555-8986؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 46860,
+      "end_ms": 47180
     },
     {
       "speaker": "Man",
       "text": "No. This is 555-8689.",
       "translation_ar": "لا، هذا الرقم 555-8689.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 50280,
+      "end_ms": 51690
     },
     {
       "speaker": "Anna",
       "text": "Oh. Excuse me!",
       "translation_ar": "أوه، المعذرة!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 51690,
+      "end_ms": 55700
     },
     {
       "speaker": "Man",
       "text": "Okay. 'Bye.",
       "translation_ar": "حسنًا، وداعًا.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 61480,
+      "end_ms": 62220
     },
     {
       "speaker": "Anna",
       "text": "One more time. 555-8986. Please be Marsha.",
       "translation_ar": "مرة أخرى، 555-8986. أرجوك أن تكون مارشا.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 64120,
+      "end_ms": 72170
     },
     {
       "speaker": "Marsha",
       "text": "Hello. This is Marsha.",
       "translation_ar": "مرحبًا، معك مارشا.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 72170,
+      "end_ms": 77280
     },
     {
       "speaker": "Anna",
       "text": "Yes, Marsha. I want to cook dinner.",
       "translation_ar": "نعم يا مارشا، أريد إعداد العشاء.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 77280,
+      "end_ms": 80200
     },
     {
       "speaker": "Marsha",
       "text": "Excuse me? Anna? Is that you?",
       "translation_ar": "عفوًا؟ آنا؟ هل هذه أنت؟",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 80600,
+      "end_ms": 83180
     },
     {
       "speaker": "Anna",
       "text": "Oh, yes. I am here!",
       "translation_ar": "أوه، نعم. لقد وصلت!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 83560,
+      "end_ms": 84860
     },
     {
       "speaker": "Marsha",
       "text": "Good. You are there.",
       "translation_ar": "جيد. أنت هناك.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 85100,
+      "end_ms": 86900
     },
     {
       "speaker": "Anna",
       "text": "I want to find a supermarket.",
       "translation_ar": "أريد العثور على سوبرماركت.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 87100,
+      "end_ms": 89820
     },
     {
       "speaker": "Marsha",
       "text": "Oh, okay. The supermarket is at 1500 Irving Street. It is near the apartment.",
       "translation_ar": "حسنًا، السوبرماركت في 1500 شارع إرفينغ، بالقرب من الشقة.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 90100,
+      "end_ms": 98160
     },
     {
       "speaker": "Anna",
       "text": "Great! Goodbye!",
       "translation_ar": "رائع! إلى اللقاء!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 98160,
+      "end_ms": 100120
     },
     {
       "speaker": "Marsha",
       "text": "Goodbye, Anna.",
       "translation_ar": "إلى اللقاء يا آنا.",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 100640,
+      "end_ms": 101400
     },
     {
       "speaker": "Anna",
       "text": "There is a big supermarket on our street. And Marsha says I am a good cook! Until next time! Bye!",
       "translation_ar": "يوجد سوبرماركت كبير في شارعنا. وتقول مارشا إنني طباخة ماهرة! إلى المرة القادمة، وداعًا!",
-      "start_ms": null,
-      "end_ms": null
+      "start_ms": 104300,
+      "end_ms": 114920
     }
   ],
   "vocabulary": [
@@ -195,5 +195,11 @@
       "meaning_ar": "بالقرب من"
     }
   ],
-  "questions": []
+  "questions": [],
+  "sync_method": "audio_word_alignment_review_pending",
+  "sync_token_match_ratio": 0.959,
+  "sync_review_pending_lines": [
+    3,
+    8
+  ]
 }

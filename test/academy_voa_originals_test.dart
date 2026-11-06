@@ -32,8 +32,15 @@ void main() {
       final episode = await repository.load(entry);
       expect(episode.canStream, isTrue, reason: lesson.id);
       expect(episode.canReadAloud, isFalse, reason: lesson.id);
-      expect(episode.isPlayable, isFalse,
-          reason: 'No invented word timings for ${lesson.id}');
+      const provisionalLessons = {1, 3, 8, 9, 11};
+      final hasMeasuredCues = provisionalLessons.contains(lesson.number);
+      expect(episode.isPlayable, hasMeasuredCues,
+          reason: 'Provisional original-audio alignment for ${lesson.id}');
+      if (hasMeasuredCues) {
+        expect(episode.syncStatus, 'provisional');
+      } else {
+        expect(episode.syncStatus, 'unverified');
+      }
       expect(episode.audioUrl, lesson.audioUrl, reason: lesson.id);
       if ({2, 4, 5, 6, 7, 8, 9, 10, 11, 12}
           .contains(lesson.number)) {
@@ -43,15 +50,18 @@ void main() {
         expect(episode.backupAudioUrl, isNot(episode.audioUrl));
       }
       expect(episode.sourceUrl, lesson.sourceUrl, reason: lesson.id);
-      expect(episode.durationMs, lesson.durationSec * 1000,
-          reason: lesson.id);
+      // The player uses actual ffprobe duration with sub-second precision.
+      expect((episode.durationMs! - lesson.durationSec * 1000).abs(),
+          lessThan(1000), reason: lesson.id);
       expect(episode.dialogue, isNotEmpty, reason: lesson.id);
       expect(episode.dialogue.every((line) =>
           line.text.trim().isNotEmpty &&
           line.translationAr.trim().isNotEmpty), isTrue,
           reason: lesson.id);
       expect(episode.dialogue.every((line) =>
-          line.startMs == null && line.endMs == null), isTrue,
+          hasMeasuredCues
+              ? line.startMs != null && line.endMs != null
+              : line.startMs == null && line.endMs == null), isTrue,
           reason: lesson.id);
     }
   });

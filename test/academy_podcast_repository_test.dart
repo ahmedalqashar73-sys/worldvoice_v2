@@ -113,7 +113,7 @@ void main() {
         line.startMs != null && line.endMs != null), isTrue);
   });
 
-  test('VOA Lesson 30 offers real human audio but no fabricated line cues',
+  test('VOA Lesson 30 has provisional cues measured from genuine audio',
       () async {
     final entries = await repo.allEpisodes();
     final item = entries.singleWhere((e) => e.id == 'en-a1-voa-030');
@@ -124,10 +124,11 @@ void main() {
     expect(episode.dialogue, hasLength(37));
     expect(episode.sourceUrl, contains('learningenglish.voanews.com'));
     expect(episode.audioUrl, contains('voa-audio.voanews.eu'));
-    expect(episode.durationMs, 199000);
+    expect(episode.durationMs, 199275);
     expect(episode.canStream, isTrue);
-    expect(episode.isPlayable, isFalse);
-    expect(episode.lineAt(const Duration(seconds: 40)), isNull);
+    expect(episode.syncStatus, 'provisional');
+    expect(episode.isPlayable, isTrue);
+    expect(episode.lineAt(const Duration(seconds: 40)), isNotNull);
   });
 
   test('VOA Lesson 47 has original audio and all speaker names',
@@ -164,8 +165,8 @@ void main() {
     expect(lesson.canStream, isTrue);
     expect(lesson.isPlayable, isTrue);
     expect(lesson.lineAt(const Duration(seconds: 8)), 1);
-    // Until their cues are reviewed, the existing 001–012 files still
-    // have null start_ms/end_ms and will not pretend to follow the audio.
+    // Only clips with audio-derived, monotonic cues receive provisional
+    // highlighting. Other originals remain without karaoke timestamps.
   });
 
   test('sentence stays selected through silence and advances at next voice',
