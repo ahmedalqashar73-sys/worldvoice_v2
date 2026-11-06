@@ -14,7 +14,7 @@ void main() {
     expect(list.every((e) => e.isOfficialSource), isTrue);
     expect(list.where((e) => e.petePresent), hasLength(7));
     expect(list.where((e) => e.syncStatus == 'provisional'), hasLength(7));
-    expect(list.where((e) => e.syncStatus == 'unverified'), isEmpty);
+    expect(list.where((e) => e.syncStatus == 'unverified'), hasLength(8));
     expect(list.every((e) => e.existingEpisodeId == e.id), isTrue);
     expect(list.map((e) => e.number).toList(),
         [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 20, 30, 47]);
@@ -29,7 +29,7 @@ void main() {
     expect(list.every((e) => e.syncStatus == 'unverified'), isTrue);
     expect(list.where((e) => e.transcriptScope == 'full').map((e) => e.number),
         [1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16]);
-    expect(list.where((e) => e.transcriptScope == 'excerpt'), hasLength(8));
+    expect(list.where((e) => e.transcriptScope == 'excerpt'), isEmpty);
     expect(list.every((e) => e.existingEpisodeId == e.id), isTrue);
   });
 
@@ -103,7 +103,7 @@ void main() {
     expect(find.byKey(const ValueKey('podcast-original-en-a1-voa-020')),
         findsOneWidget);
     expect(find.text('VOA human audio · provisional sync'),
-        findsNWidgets(15));
+        findsNWidgets(7));
   });
   testWidgets('A2 VOA audio library distinguishes full bilingual texts from excerpts',
       (tester) async {
@@ -123,7 +123,7 @@ void main() {
     ));
     await tester.pump();
     expect(find.text('VOA index unavailable.'), findsNothing);
-    expect(find.textContaining('full bilingual text'), findsNWidgets(7));
+    expect(find.textContaining('full bilingual text'), findsNWidgets(15));
     expect(find.textContaining('translated excerpt'), findsNothing);
     expect(find.byKey(const ValueKey('podcast-original-en-a2-voa-001')),
         findsOneWidget);

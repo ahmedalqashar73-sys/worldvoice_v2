@@ -138,10 +138,10 @@ class _VoaOriginalsSectionState extends State<VoaOriginalsSection> {
       const SizedBox(height: 5),
       Text(ar
           ? (widget.level == 'A2'
-              ? '15 تسجيلًا بشريًا من VOA Level 2. الدروس المكتملة تعرض المحادثة مترجمة داخل التطبيق؛ والبقية تعرض مقتطفات مترجمة مع رابط النص الأصلي الكامل. لم تُعتمد مزامنة الجمل بعد.'
+              ? '15 تسجيلًا بشريًا من VOA Level 2، مع نص الحوار كاملًا بالإنجليزية والعربية داخل التطبيق. لم تُعتمد مزامنة الجمل آليًا بعد.'
               : 'جميع التسجيلات من VOA. آنا صوت رئيسي متكرر، ويشارك بيت وشخصيات أخرى حسب الحلقة. لا توجد أصوات آلية في هذه القائمة.')
           : (widget.level == 'A2'
-              ? '15 original VOA Level 2 recordings. Complete bilingual dialogues are shown for finished lessons; remaining lessons have excerpts and links to VOA. Sentence sync is pending.'
+              ? '15 original VOA Level 2 recordings with full English and Arabic conversations in the app. Sentence-by-sentence sync is pending.'
               : 'Every recording is from VOA. Anna is a recurring voice; Pete and other characters appear when they are part of the original lesson. No synthetic voices here.'),
           style: TextStyle(fontSize: 12, height: 1.5,
               color: scheme.onSurfaceVariant)),

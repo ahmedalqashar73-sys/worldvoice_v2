@@ -30,7 +30,7 @@ void main() {
     expect(list.where((e) => e.status == 'planned'), hasLength(689));
   });
 
-  test('English A2 contains 15 official VOA voices and translated excerpts', () async {
+  test('English A2 has fifteen original human VOA audio tracks and full bilingual dialogue', () async {
     final entries = (await repo.allEpisodes()).where(
       (e) => e.language == 'en' && e.level == 'A2').toList();
     expect(entries, hasLength(15));

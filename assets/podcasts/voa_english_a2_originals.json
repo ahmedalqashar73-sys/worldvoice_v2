@@ -2,7 +2,7 @@
   "schema": 1,
   "source": "VOA Learning English — Let's Learn English Level 2",
   "worldvoice_track": "English A2",
-  "notes": "Fifteen original human VOA Level 2 conversations with source-linked 128-kbps MP3 audio and bilingual, accurately-labelled partial transcript excerpts. Original VOA Lesson 8 lacks a separately confirmed MP3 at its canonical page, so it is not substituted with unrelated audio. Level 2 is designed for intermediate learners and is not a formal CEFR A2 alignment. Original recordings have no verified sentence cues yet.",
+  "notes": "Fifteen genuine original VOA Level 2 English lessons, each with a matching human VOA recording, complete English dialogue and WorldVoice Arabic translation. Exact cue timings are not yet verified. Original VOA Lesson 8 has no confirmed standalone MP3 so is not substituted. VOA Level 2 is intermediate, not formally calibrated to CEFR A2.",
   "excluded_voa_lesson": {
     "number": 8,
     "title": "The Best Barbecue",
