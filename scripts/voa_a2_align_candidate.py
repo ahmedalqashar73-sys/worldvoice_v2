@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Produce *review-only* line timing proposals from approved VOA English MP3s.
+"""Produce *review-only* line timing proposals from original VOA recordings.
 
 This does not change any podcast episode metadata or falsely publish cues.
 Requires: ffmpeg/ffprobe, whisper-timestamped, Internet access.
@@ -21,16 +21,15 @@ import urllib.request
 
 from urllib.parse import urlparse
 
-# Only known original, attributed VOA English A2 recordings.
+# All thirty documented VOA Level 2 lessons. Lesson 8 has original MP4 audio.
 # Results are review candidates; source identity alone never approves timing.
 APPROVED_EPISODES = frozenset(
-    f"en-a2-voa-{number:03d}" for number in
-    (1, 2, 3, 4, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16)
+    f"en-a2-voa-{number:03d}" for number in range(1, 31)
 )
 
 
 def approved_source(record: dict) -> str:
-    """Restrict ASR to the fifteen credited original VOA A2 recordings."""
+    """Restrict ASR to the thirty credited original VOA A2 recordings."""
     if (record.get("id") not in APPROVED_EPISODES or
             record.get("language") != "en" or
             record.get("level") != "A2" or
@@ -42,12 +41,21 @@ def approved_source(record: dict) -> str:
     if not isinstance(source, str):
         raise ValueError("Missing VOA audio URL")
     url = urlparse(source)
+    official_mp3 = (
+        url.hostname == "voa-audio.voanews.eu" and
+        url.path.startswith("/vle/") and
+        url.path.lower().endswith(".mp3")
+    )
+    official_lesson8_video = (
+        record["id"] == "en-a2-voa-008" and
+        url.hostname == "voa-video-ns.akamaized.net" and
+        url.path.startswith("/pangeavideo/") and
+        url.path.lower().endswith("_240p.mp4")
+    )
     if (url.scheme != "https" or
-            url.hostname != "voa-audio.voanews.eu" or
             url.username is not None or url.password is not None or
-            not url.path.startswith("/vle/") or
-            not url.path.lower().endswith(".mp3")):
-        raise ValueError("Unapproved VOA audio URL")
+            not (official_mp3 or official_lesson8_video)):
+        raise ValueError("Unapproved VOA recording URL")
     return source
 
 
@@ -83,7 +91,8 @@ def main() -> int:
     if len(record["dialogue"]) < 5:
         raise ValueError("Unexpectedly short VOA transcript")
     expected_duration = int(record["duration_ms"])
-    audio_file = args.audio or Path(f"/tmp/{record['id']}_original.mp3")
+    extension = ".mp4" if record["id"] == "en-a2-voa-008" else ".mp3"
+    audio_file = args.audio or Path(f"/tmp/{record['id']}_original{extension}")
     output_file = args.output or Path(f"/tmp/{record['id']}_cues_proposed.json")
 
     if not audio_file.exists():
@@ -99,7 +108,7 @@ def main() -> int:
     # ~230 KB; a single 800 KB cutoff incorrectly rejects lesson 1.
     expected_min_bytes = max(30000, int(expected_duration / 1000 * 5500))
     if audio_file.stat().st_size < expected_min_bytes:
-        raise ValueError("Downloaded MP3 was suspiciously small")
+        raise ValueError("Downloaded VOA recording was suspiciously small")
     duration = read_duration(audio_file)
     if abs(duration - expected_duration) > 12000:
         raise ValueError(f"Unexpected VOA recording duration: {duration}ms")
@@ -185,7 +194,7 @@ def main() -> int:
         json.dumps(summary, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
-    print("VOA original MP3 actual duration:", duration, "ms")
+    print("VOA original recording actual duration:", duration, "ms")
     print("Aligned tokens:", matched_count, "of", len(expected))
     print("Cue rows requiring review:", summary["needs_manual_review"])
     print("Only a manual review may activate karaoke-style highlighting.")

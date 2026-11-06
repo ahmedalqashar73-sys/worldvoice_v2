@@ -54,10 +54,18 @@ def extract_dialogue(html: str) -> list[dict[str, str]]:
     and append unlabelled continuation paragraphs to the current voice.
     """
     soup = BeautifulSoup(html, "html.parser")
+    article = soup.find("article") or soup
+    # Some official VOA lessons omit the Conversation heading (e.g. 30).
+    # In that case start only at a speaker-labelled paragraph, not at a
+    # title, download link or other page text.
+    has_conversation_heading = any(
+        norm(h.get_text(" ", strip=True)) == "conversation"
+        for h in article.find_all(["h2", "h3", "h4"])
+    )
     start = False
     rows: list[dict[str, str]] = []
     pending = ""
-    for tag in soup.find_all(["h2", "h3", "h4", "p", "li"]):
+    for tag in article.find_all(["h2", "h3", "h4", "p", "li"]):
         heading = tag.name in ("h2", "h3", "h4")
         value = tag.get_text(" ", strip=True)
         if heading:
@@ -67,8 +75,12 @@ def extract_dialogue(html: str) -> list[dict[str, str]]:
             if start and any(norm(value).startswith(h) for h in STOP_HEADINGS):
                 break
             continue
-        if not start or not value:
+        if not value:
             continue
+        if not start:
+            if has_conversation_heading or not SPEAKER.match(value):
+                continue
+            start = True
         # Text nodes can contain inline formatting and speaker-labelled <br>s.
         # Keep line separators to avoid joining two people into one turn.
         segments = [x.strip() for x in tag.get_text("\n", strip=True).split("\n") if x.strip()]
@@ -78,7 +90,12 @@ def extract_dialogue(html: str) -> list[dict[str, str]]:
             if pending:
                 piece = pending + " " + piece
                 pending = ""
-            # VOA Level 2 Lesson 30 prints "Nurse Well," and "Pete Oh."\n            # without the usual colon. Recover ONLY these verified speaker\n            # labels; otherwise two actors incorrectly become one turn.\n            piece = re.sub(r"^(Nurse)(?=\\s+Well,)", r"\\1:", piece)\n            piece = re.sub(r"^(Pete)(?=\\s+Oh\\.)", r"\\1:", piece)\n            matched = SPEAKER.match(piece)
+            # VOA Level 2 Lesson 30 prints "Nurse Well," and "Pete Oh."
+            # without the usual colon. Recover ONLY these verified speaker
+            # labels; otherwise two actors incorrectly become one turn.
+            piece = re.sub(r"^(Nurse)(?=\s+Well,)", r"\1:", piece)
+            piece = re.sub(r"^(Pete)(?=\s+Oh\.)", r"\1:", piece)
+            matched = SPEAKER.match(piece)
             if matched:
                 who, spoken = matched.groups()
                 if not spoken:
@@ -119,11 +136,16 @@ def read_html(url: str) -> str:
 
 def update_one(item: dict, translator, dry_run: bool) -> dict:
     number = int(item["voa_lesson_number"])
-    is_machine_recheck = (number in RECHECK_MACHINE_DRAFT and\n                          item.get("translation_status") == "machine_draft")\n    if number not in ALLOWED or (item.get("transcript_scope") == "full" and\n                                  not is_machine_recheck):\n        return {"lesson": number, "skipped": True}
+    is_machine_recheck = (number in RECHECK_MACHINE_DRAFT and
+                          item.get("translation_status") == "machine_draft")
+    if number not in ALLOWED or (item.get("transcript_scope") == "full" and
+                                  not is_machine_recheck):
+        return {"lesson": number, "skipped": True}
     path = BASE / "en" / "A2" / item["id"]
     file_path = path.with_suffix(".json")
     episode = json.loads(file_path.read_text(encoding="utf-8"))
-    if episode.get("transcript_scope") not in ({"excerpt", "full"} if is_machine_recheck else {"excerpt"}):\n        raise ValueError(f"Unexpected transcript scope: {number}")
+    if episode.get("transcript_scope") not in ({"excerpt", "full"} if is_machine_recheck else {"excerpt"}):
+        raise ValueError(f"Unexpected transcript scope: {number}")
     if episode["source_url"] != item["source_url"] or episode["audio_url"] != item["audio_url"]:
         raise ValueError(f"Source and recording mismatch: {number}")
     spoken = extract_dialogue(read_html(item["source_url"]))
@@ -177,7 +199,9 @@ def main():
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     targets = [x for x in catalog["lessons"]
                if x["voa_lesson_number"] in ALLOWED
-               and (x.get("transcript_scope") == "excerpt" or\n                    (x["voa_lesson_number"] in RECHECK_MACHINE_DRAFT and\n                     x.get("translation_status") == "machine_draft"))]
+               and (x.get("transcript_scope") == "excerpt" or
+                    (x["voa_lesson_number"] in RECHECK_MACHINE_DRAFT and
+                     x.get("translation_status") == "machine_draft"))]
     if not targets:
         print("All eligible VOA Level 2 transcripts are already full.")
         return 0

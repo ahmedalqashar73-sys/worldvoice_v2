@@ -20,6 +20,19 @@ class VoaA2CompleteSourceTests(unittest.TestCase):
                          ["Anna", "Professor Bot", "Pete"])
         self.assertEqual(spoken[1]["text"],
                          "Please listen. Here's what you should learn.")
+    def test_30_without_conversation_heading_and_missing_colons(self):
+        html = """<article><h2>Download Lesson 30</h2>
+          <p>Lesson material, not spoken.</p>
+          <p>Ashley: Where are you going?</p>
+          <p>Nurse Well, life is short.</p>
+          <p>Pete Oh. I have a dream!</p>
+          <h2>Listening Quiz</h2><p>Anna: Exclude this.</p></article>"""
+        lines = module.extract_dialogue(html)
+        self.assertEqual([x["speaker"] for x in lines],
+                         ["Ashley", "Nurse", "Pete"])
+        self.assertEqual(lines[1]["text"], "Well, life is short.")
+        self.assertEqual(lines[2]["text"], "Oh. I have a dream!")
+
     def test_only_explicit_source_lessons(self):
         self.assertIn(8, module.ALLOWED)
         self.assertIn(30, module.ALLOWED)
