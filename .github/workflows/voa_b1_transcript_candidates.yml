@@ -1,48 +1,97 @@
-name: VOA B1 original full-audio transcript review candidates
+name: Build 30 original VOA B1 bilingual transcript drafts
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/voa_b1_transcript_candidates.yml'
+      - 'scripts/voa_b1_transcript_candidate.py'
+      - 'scripts/merge_voa_b1_captions.py'
+      - 'scripts/tests/test_merge_voa_b1_captions.py'
   workflow_dispatch:
-    inputs:
-      episode_number:
-        description: 'One original B1 recording, 1 to 30'
-        required: true
-        default: '1'
-        type: string
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: b1-full-original-captions-main
+  cancel-in-progress: false
 
 jobs:
-  transcribe-for-review:
+  full-original-english-arabic:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 110
+    strategy:
+      fail-fast: false
+      max-parallel: 8
+      matrix:
+        episode: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                  16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Validate original sources and script offline
+      - name: Check original VOA URL and transcript code offline
         run: |
           python -m py_compile scripts/voa_b1_transcript_candidate.py
           python -m unittest discover -s scripts/tests -p 'test_voa_b1_transcript_candidate.py'
-      - name: Install local speech recognition for original English MP3
+      - name: Install CPU English transcription and Arabic machine translation
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y ffmpeg
-          python -m pip install --no-cache-dir 'whisper-timestamped==1.15.9' 'argostranslate>=1.9,<2'
-      - name: Produce one full English source transcript with draft timings
+          python -m pip install --no-cache-dir \
+            'whisper-timestamped==1.15.9' 'argostranslate>=1.9,<2'
+      - name: Transcribe complete authentic original, then translate its sentences
         env:
-          EPISODE: ${{ inputs.episode_number }}
+          EPISODE: ${{ matrix.episode }}
+          ARGOS_DEVICE_TYPE: cpu
         run: |
+          printf -v N '%03d' "$EPISODE"
           python scripts/voa_b1_transcript_candidate.py \
             --episode-number "$EPISODE" \
             --draft-arabic \
-            --output /tmp/voa_b1_transcript_REVIEW_ONLY.json
-      - name: Keep transcripts as review-only artifacts, not published content
-        if: always()
+            --output "/tmp/b1-voa-$N.json"
+      - name: Archive full English-Arabic draft from this recording
         uses: actions/upload-artifact@v4
         with:
-          name: voa-b1-original-English-review-required
-          path: /tmp/voa_b1_transcript_REVIEW_ONLY.json
-          if-no-files-found: ignore
+          name: b1-captions-${{ matrix.episode }}
+          path: /tmp/b1-voa-*.json
+          if-no-files-found: error
           retention-days: 14
+
+  aggregate-original-recordings:
+    needs: full-original-english-arabic
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: b1-captions-*
+          path: /tmp/worldvoice-b1-captions
+          merge-multiple: true
+      - name: Verify all 30 long original recordings and Arabic line drafts
+        run: |
+          python -m unittest discover -s scripts/tests -p 'test_merge_voa_b1_captions.py'
+          python scripts/merge_voa_b1_captions.py \
+            --input /tmp/worldvoice-b1-captions \
+            --output assets/podcasts/voa_english_b1_transcripts.json
+      - name: Commit bilingual draft captions directly to original main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/podcasts/voa_english_b1_transcripts.json
+          if git diff --cached --quiet; then
+            echo "Existing B1 machine caption drafts are current."
+            exit 0
+          fi
+          git commit -m "content(podcast): add 30 full original VOA B1 English-Arabic caption drafts"
+          git pull --rebase origin main
+          git push origin HEAD:main
