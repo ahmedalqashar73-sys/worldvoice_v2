@@ -11,9 +11,9 @@
   "voice_rights_verified": true,
   "recording_format": "original_mp3",
   "sync_status": "unverified",
-  "transcript_scope": "excerpt",
+  "transcript_scope": "full",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-19/4242927.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 19. Original VOA MP3 with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2 Lesson 19. Complete original VOA spoken English transcript with Arabic translation drafted by Argos Translate and pending editorial review. Human original audio; sentence timings still unverified. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2018/02/08/aa7b1559-adea-4534-8d4f-649785319a21_hq.mp3?download=1",
   "duration_ms": 287000,
   "hosts": [
@@ -21,7 +21,11 @@
     "Pete"
   ],
   "other_speakers": [
-    "Audience Member"
+    "Professor Bot",
+    "as Anna does",
+    "Many indirect questions begin with",
+    "Person in audience",
+    "Security guard"
   ],
   "dialogue": [
     {
@@ -40,8 +44,8 @@
     },
     {
       "speaker": "Anna",
-      "text": "Hi, Pete! Thanks for the movie invitation.",
-      "translation_ar": "مرحبًا يا بيت! شكرًا على دعوتك إلى السينما.",
+      "text": "Hi, Pete! Thanks for the movie invitation .",
+      "translation_ar": "مرحبا، بيت! شكراً على دعوة الفيلم",
       "start_ms": null,
       "end_ms": null
     },
@@ -54,15 +58,15 @@
     },
     {
       "speaker": "Anna",
-      "text": "I love movies. I love the plot! I love the set design! I love the costumes! I love -",
-      "translation_ar": "أحب الأفلام! أحب الحبكة وتصميم الديكور والأزياء! أحب...",
+      "text": "I love movies. I love the plot ! I love the set design ! I love the costumes! I love -",
+      "translation_ar": "أحب الأفلام أنا أحب المؤامرة! أحب التصميم أحب الأزياء! أنا أحب",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Pete",
-      "text": "Anna, I take movies very seriously. You're not one of those people who talks during a movie, are you?",
-      "translation_ar": "آنا، أنا آخذ الأفلام بجدية شديدة. لست من الأشخاص الذين يتحدثون أثناء الفيلم، صحيح؟",
+      "text": "Anna , I take movies very seriously . You're not one of those people who talks during a movie, are you?",
+      "translation_ar": "(آنا)، أنا آخذ الأفلام بجدية أنت لست أحد أولئك الناس الذين يتحدثون خلال فيلم، أليس كذلك؟",
       "start_ms": null,
       "end_ms": null
     },
@@ -81,9 +85,30 @@
       "end_ms": null
     },
     {
+      "speaker": "Professor Bot",
+      "text": "Anna loves movies. And.. she loves talking about movies. And Pete doesn’t sound happy about that. But he’s trying to be polite. He can do that with Indirect Questions . We can ask a question directly : Where is your movie theater? or indirectly",
+      "translation_ar": "(آنا) تحب الأفلام و تحب التحدث عن الأفلام وبيت لا يبدو سعيدا بذلك. ولكنه يحاول أن يكون مهذبا. يمكنه فعل ذلك بالأسئلة غير المباشرة يمكننا أن نطرح سؤالاً مباشرة أين مسرح أفلامك؟ أو بصورة غير مباشرة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "as Anna does",
+      "text": "Anna: Can you tell me how to get to your movie theater? They have the same meaning. But indirect questions are more polite and a little more formal .",
+      "translation_ar": "هل يمكنك إخباري كيف أصل إلى مسرح السينما؟ لديهم نفس المعنى لكن الأسئلة غير المباشرة أكثر مهذبة وأكثر رسمية",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Many indirect questions begin with",
+      "text": "Can/Could you tell me… Would/Do you mind… Would it be possible… or Do you know… Hmm, do you know if Anna will stop talking? I sure don’t. Keep watching. And, this time look for indirect questions that begin with: Would you mind …",
+      "translation_ar": "هل يمكنك ان تخبرني هل تمانع هل من الممكن... أو هل تعرف... هل تعرف إن كانت (آنا) ستتوقف عن الكلام؟ وبالتأكيد لا. استمر بالمشاهدة و هذه المره ابحث عن اسئله غير مباشره تبدأ",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
       "speaker": "Anna",
-      "text": "I love the smell of popcorn. I love seats that rock.",
-      "translation_ar": "أحب رائحة الفشار والمقاعد المتحركة.",
+      "text": "I love the smell of popcorn. I love seats that rock .",
+      "translation_ar": "أحب رائحة الفشار أحب مقاعد تلك الصخرة",
       "start_ms": null,
       "end_ms": null
     },
@@ -103,15 +128,15 @@
     },
     {
       "speaker": "Pete",
-      "text": "Anna, the previews are part of the movie experience. So, would you mind not talking?",
-      "translation_ar": "آنا، الإعلانات جزء من تجربة الفيلم. هل تمانعين عدم الكلام؟",
+      "text": "Anna, the previews are part of the movie experience. So, would you mind not talking ?",
+      "translation_ar": "(آنا)، العروض التمهيدية جزء من تجربة الفيلم هل تمانعين عدم التحدث؟",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
-      "text": "Oh, sure, sure.",
-      "translation_ar": "بالتأكيد.",
+      "text": "Oh, sure, sure. milkshake loudly.)",
+      "translation_ar": "بالتأكيد مخفوق الحليب عالياً",
       "start_ms": null,
       "end_ms": null
     },
@@ -138,8 +163,8 @@
     },
     {
       "speaker": "Anna",
-      "text": "I'll try. But it's really thick.",
-      "translation_ar": "سأحاول، لكنه كثيف جدًا.",
+      "text": "I'll try. But it's really thick . straw around and makes even more noise.)",
+      "translation_ar": "سأحاول لكنّه سميك جداً، قشّ حوله ويصدر ضوضاء أكثر",
       "start_ms": null,
       "end_ms": null
     },
@@ -151,23 +176,37 @@
       "end_ms": null
     },
     {
-      "speaker": "Audience Member",
+      "speaker": "Person in audience",
       "text": "Shh!",
       "translation_ar": "شش!",
       "start_ms": null,
       "end_ms": null
     },
     {
+      "speaker": "Pete",
+      "text": "I’m not the one making all the noise.",
+      "translation_ar": "أنا لست من يصدر كل الضوضاء.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Person in audience",
+      "text": "Shhh!",
+      "translation_ar": "صه!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
       "speaker": "Anna",
-      "text": "I’m done now.",
-      "translation_ar": "انتهيت الآن.",
+      "text": "I’m done now. candy bar .)",
+      "translation_ar": "لقد انتهيت الآن. حلوى",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Pete",
-      "text": "Anna, would you mind opening that a little bit more quietly?",
-      "translation_ar": "آنا، هل يمكنك فتح ذلك بهدوء أكثر قليلًا؟",
+      "text": "Anna, would you mind opening that a little bit more quietly ?",
+      "translation_ar": "(آنا)، أتمانعين أن تفتحي هذا بهدوء؟",
       "start_ms": null,
       "end_ms": null
     },
@@ -186,6 +225,34 @@
       "end_ms": null
     },
     {
+      "speaker": "Person in audience",
+      "text": "Shhh!",
+      "translation_ar": "صه!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "It's not mine. I'm opening it for her. Here.",
+      "translation_ar": "انها ليست لي. سأفتحه لها هنا",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Person in audience",
+      "text": "Shhhhhh!!",
+      "translation_ar": "صه!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Here!",
+      "translation_ar": "هنا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
       "speaker": "Anna",
       "text": "Thanks, Pete.",
       "translation_ar": "شكرًا يا بيت.",
@@ -196,6 +263,90 @@
       "speaker": "Pete",
       "text": "Now, would you mind being more quiet?",
       "translation_ar": "والآن هل يمكنك أن تكوني أكثر هدوءًا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Excuse me, would you mind turning down your phone light?",
+      "translation_ar": "المعذرة، هل تمانعين أن تخفضي ضوء هاتفك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh, sorry! I forgot to turn my phone off.",
+      "translation_ar": "آسف! نسيت أن أطفئ هاتفي",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh no! I dropped it. Where is it?",
+      "translation_ar": "لا! لقد أسقطته أين هو؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Anna, can you please turn off your phone?",
+      "translation_ar": "(آنا)، هلاّ أغلقتِ هاتفكِ رجاءً؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Excuse me, would you mind lending me your phone light for a minute?",
+      "translation_ar": "عذراً، هل تمانع أن تعطيني ضوء هاتفك لدقيقة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "No! I’ll get it!",
+      "translation_ar": "لا! سوف أحصل عليه!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Person in audience",
+      "text": "Shhhhh! shush Pete again. He finally has had enough.)",
+      "translation_ar": "صه! أسكت (بيت) مجدداً لقد اكتفي أخيراً",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Look, people, I’m not the noisy one here! So, you all need to shush the right person. And I should know about shushing! I shush people all the time!!",
+      "translation_ar": "انظروا، الناس، أنا لست المزعجة هنا! لذا، أنتم جميعاً بحاجة إلى سحق الشخص المناسب. وعلي أن أعرف عن الإصطياد أنا أضرب الناس طوال الوقت",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Security guard",
+      "text": "Excuse me, sir. You can’t yell in a movie theater. Would you mind coming with me ?",
+      "translation_ar": "المعذرة يا سيدي لا يمكنك الصراخ في مسرح سينمائي. هل تمانع أن تأتي معي؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "You're kicking me out ? Me? But I’m always the quiet one in the movie!",
+      "translation_ar": "أنت تطردني؟ أنا؟ ولكنى دائما هادئ فى الفيلم",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Pete should know better. You have to be quiet in a movie theater. Shh, the movie’s starting!",
+      "translation_ar": "يجب أن يعرف بيت أفضل. يجب أن تكون هادئاً في السينما صه، الفيلم بدأ!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Well, that’s a surprise! I thought Anna would be the noisy one. Well, she was … with her food. But Pete did all of the talking. At least he tried to be polite by using indirect questions.",
+      "translation_ar": "هذه مفاجأة ظننت أن (آنا) ستكون المزعجة حسنا، كانت... مع طعامها. لكن (بيت) فعل كل الكلام على الأقل حاول أن يكون مهذباً باستخدام أسئلة غير مباشرة",
       "start_ms": null,
       "end_ms": null
     }
@@ -210,5 +361,7 @@
       "meaning_ar": "غير مباشر"
     }
   ],
-  "questions": []
+  "questions": [],
+  "translation_status": "machine_draft",
+  "translation_engine": "argos-en-ar"
 }

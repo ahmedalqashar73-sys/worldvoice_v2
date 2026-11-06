@@ -11,9 +11,9 @@
   "voice_rights_verified": true,
   "recording_format": "original_mp3",
   "sync_status": "unverified",
-  "transcript_scope": "excerpt",
+  "transcript_scope": "full",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-27/4374632.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 27. Original VOA MP3 with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2 Lesson 27. Complete original VOA spoken English transcript with Arabic translation drafted by Argos Translate and pending editorial review. Human original audio; sentence timings still unverified. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2018/05/03/198277fc-1de6-487a-8196-dc808623e1b6_hq.mp3?download=1",
   "duration_ms": 265000,
   "hosts": [
@@ -22,7 +22,8 @@
   ],
   "other_speakers": [
     "Professor Bot",
-    "Fanny"
+    "Fanny",
+    "Phoenix"
   ],
   "dialogue": [
     {
@@ -41,15 +42,15 @@
     },
     {
       "speaker": "Ms. Weaver",
-      "text": "Why don’t you join us? My treat.",
-      "translation_ar": "لماذا لا تنضمين إلينا؟ العشاء على حسابي.",
+      "text": "Why don’t you join us? My treat .",
+      "translation_ar": "لماذا لا تنضم إلينا؟ على حسابي",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
-      "text": "Thanks, Ms. Weaver. But I already have plans. My friend has invited me to her houseboat.",
-      "translation_ar": "شكرًا يا سيدة ويفر، لكن لدي خطط بالفعل. دعتني صديقتي إلى منزلها العائم.",
+      "text": "Thanks, Ms. Weaver. But I already have plans. My friend has invited me to her houseboat .",
+      "translation_ar": "(شكراً سيدة (ويفر لكن لدي خطط بالفعل صديقتي دعتني إلى قارب منزلها",
       "start_ms": null,
       "end_ms": null
     },
@@ -62,8 +63,8 @@
     },
     {
       "speaker": "Anna",
-      "text": "Yes, it is. In fact, I’m thinking of living on a houseboat.",
-      "translation_ar": "بالفعل، حتى أنني أفكر في العيش على منزل عائم.",
+      "text": "Yes, it is. In fact , I’m thinking of living on a houseboat.",
+      "translation_ar": "نعم، هو. وفي الواقع، أفكر في العيش في قارب منزلي.",
       "start_ms": null,
       "end_ms": null
     },
@@ -76,8 +77,8 @@
     },
     {
       "speaker": "Anna",
-      "text": "I am not too tall!",
-      "translation_ar": "لست طويلة أكثر من اللازم!",
+      "text": "I am not too tall! display board .)",
+      "translation_ar": "أنا لست طويلة جدا! لوحة العرض",
       "start_ms": null,
       "end_ms": null
     },
@@ -96,6 +97,20 @@
       "end_ms": null
     },
     {
+      "speaker": "Professor Bot",
+      "text": "For example, Ms. Weaver said, “Why don’t you join us? My treat!” That’s: Why don’t plus the subject plus the simple form of the verb.",
+      "translation_ar": "وعلى سبيل المثال، قالت السيدة ويفر &quot; لماذا لا تنضم إلينا؟ ! ذلك: فلماذا لا يضاف إلى هذا الموضوع إضافة إلى الشكل البسيط للفظ.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Anna responded to the invitation by saying, “Thanks, but I already have plans.” Keep watching for more examples of informal invitations!",
+      "translation_ar": "وردّت آنا على الدعوة بقولها &quot; شكرا، ولكن لدي خطط بالفعل &quot; . واصلوا مشاهدة المزيد من الأمثلة على الدعوات غير الرسمية!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
       "speaker": "Fanny",
       "text": "Anna, I’m so glad you could come!",
       "translation_ar": "آنا، أنا سعيدة جدًا بمجيئك!",
@@ -106,6 +121,300 @@
       "speaker": "Anna",
       "text": "Hi, Fanny!",
       "translation_ar": "مرحبًا يا فاني!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Fanny",
+      "text": "Hi, this is my son, Phoenix.",
+      "translation_ar": "(مرحباً، هذا ابني (فينكس",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Hi, Phoenix.",
+      "translation_ar": "(مرحباً (فينكس",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Fanny",
+      "text": "How about you give Anna a tour and I will make some lunch?",
+      "translation_ar": "ماذا عن أن تعطي (آنا) جولة وأنا سأعد بعض الغداء؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Phoenix",
+      "text": "Aye, aye, captain !",
+      "translation_ar": "نعم يا كابتن",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Fanny",
+      "text": "Great!",
+      "translation_ar": "عظيم!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Do you really call her “captain”?",
+      "translation_ar": "هل تدعوها حقاً &quot; كبش &quot; ؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Phoenix",
+      "text": "I kind of have to.",
+      "translation_ar": "يجب أن أفعل",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "So, Phoenix, I think I’d like to live on a houseboat. Do you like living here?",
+      "translation_ar": "لذلك، فينيكس، أعتقد أنني أود أن أعيش على قارب منزل. هل تحب العيش هنا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Phoenix",
+      "text": "I love it! It’s much different than living in a house.",
+      "translation_ar": "أنا أحب ذلك! وهو يختلف كثيرا عن العيش في منزل.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh, I bet. I bet you had to get rid of a lot of stuff, didn’t you?",
+      "translation_ar": "أراهن أراهن أنه كان عليك التخلص من الكثير من الأشياء، أليس كذلك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Phoenix",
+      "text": "No way! We moved from a 3- story house to a boat! So, we really had to downsize!",
+      "translation_ar": "مستحيل انتقلنا من منزل ثلاث قصص إلى قارب لذا، نحن حقاً كان لا بُدَّ أنْ نُقلّصَ!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I’d have to get rid of a lot of stuff. I have a rock collection and I have some really big rocks.",
+      "translation_ar": "وأود أن أتخلص من الكثير من الأشياء. لدي مجموعة من الصخور ولدي بعض الصخور الكبيرة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Can you stop this boat from rocking for a minute?",
+      "translation_ar": "هل يمكنك إيقاف هذا القارب من الصخور لدقيقة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Phoenix",
+      "text": "No. We’re floating on water. I can’t do that.",
+      "translation_ar": "لا ونحن نعوم على المياه. لا أستطيع أن أفعل ذلك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Well, since you live on the water, aren’t you afraid of great white sharks ?",
+      "translation_ar": "حسنا، بما أنك تعيش على المياه، ألست خائفا من أسماك القرش البيضاء الكبيرة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Phoenix",
+      "text": "No, not really. They don’t live in these waters.",
+      "translation_ar": "لا، ليس حقا. ولا يعيشون في هذه المياه.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "… that you know of. What about killer whales ?",
+      "translation_ar": "أنك تعرف ماذا عن الحيتان القاتلة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Phoenix",
+      "text": "No.",
+      "translation_ar": "لا",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Electric eels ?",
+      "translation_ar": "كهرباء؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Phoenix",
+      "text": "No.",
+      "translation_ar": "لا",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Barracudas?",
+      "translation_ar": "(باراكودا)؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Phoenix",
+      "text": "No.",
+      "translation_ar": "لا",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Piranhas?",
+      "translation_ar": "بيرانهاس؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Phoenix",
+      "text": "Uh-uh.",
+      "translation_ar": "اه اه اه.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Fanny",
+      "text": "You know, Anna, if you’re afraid of sea life, maybe you shouldn’t live on a houseboat. Do you have any boating experience?",
+      "translation_ar": "تعلمون، آنا، إذا كنت خائفا من الحياة البحرية، ربما لا ينبغي أن تعيش على قارب منزل. هل لديك خبرة في المركب؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh, oh yeah, Fanny. I have battled the great waters before -- once on a swan boat and once in a duck boat ... bus. It was a boat that turned into a bus.",
+      "translation_ar": "أوه، أوه نعم، فاني. لقد حاربت المياه العظيمة من قبل... مرة واحدة على قارب البجعة ومرة في قارب البط... حافلة. كان قارباً تحول إلى حافلة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Fanny",
+      "text": "Yeah, I don’t think that counts .",
+      "translation_ar": "نعم، لا أعتقد أن ذلك يهم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Fanny, does this rocking ever bother you?",
+      "translation_ar": "(فاني)، هل هذا الصخر يزعجك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Fanny",
+      "text": "No, I love it. It goes up and down and side to side and up and down. Anna, I love it! seasick .)",
+      "translation_ar": "لا، أنا أحب ذلك. يرتفع وينزل و ينحى جانباً و ينزل (آنا)، أنا أحبه! بحار",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Fanny",
+      "text": "Anna, are you feeling okay?",
+      "translation_ar": "(آنا)، هل تشعرين بخير؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Yeah, yeah. You know, I just need some fresh air.",
+      "translation_ar": "نعم، نعم. أنا فقط بحاجة إلى بعض الهواء النقي",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Fanny",
+      "text": "Let me open a window for you.",
+      "translation_ar": "دعني أفتح لك نافذة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No, I need some fresh land air. I mean, I need to breathe air on land. Oh, is that the time? I should really be going.",
+      "translation_ar": "لا، أحتاج بعض الهواء النقي أريد أن أتنفس الهواء على الأرض هل هذا هو الوقت؟ يجب أن أذهب",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Thanks for lunch, Fanny, and a tour of your houseboat. It’s given me a great idea!",
+      "translation_ar": "شكراً على الغداء يا (فاني) وجولة في قارب منزلك لقد أعطتني فكرة عظيمة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Fanny",
+      "text": "You’re going to live on a houseboat?",
+      "translation_ar": "هل ستعيش على قارب منزل؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Sort of . Thanks again!",
+      "translation_ar": "نوعاً ما شكراً مجدداً",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Hi! How would you like to hang out on my boat ? Great! See you then! and Anna sit in a boat on land.)",
+      "translation_ar": "مرحبا! ما رأيك أن تتسكع على قاربي؟ عظيم! أراك حينها و (آنا) تجلس في قارب على الأرض",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "…and this is my shark net.",
+      "translation_ar": "وهذا هو شبكة قرش بلدي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "Thank you for the invitation, Anna.",
+      "translation_ar": "(شكراً على الدعوة يا (آنا",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Of course, would you like more orange juice ?",
+      "translation_ar": "بالطبع، هل تريد المزيد من عصير البرتقال؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ms. Weaver",
+      "text": "Uh..",
+      "translation_ar": "اه.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Ahoy!",
+      "translation_ar": "!",
       "start_ms": null,
       "end_ms": null
     }
@@ -120,5 +429,7 @@
       "meaning_ar": "دعوة"
     }
   ],
-  "questions": []
+  "questions": [],
+  "translation_status": "machine_draft",
+  "translation_engine": "argos-en-ar"
 }

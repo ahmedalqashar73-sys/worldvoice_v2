@@ -11,9 +11,9 @@
   "voice_rights_verified": true,
   "recording_format": "original_mp3",
   "sync_status": "unverified",
-  "transcript_scope": "excerpt",
+  "transcript_scope": "full",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-29/4423736.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 29. Original VOA MP3 with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2 Lesson 29. Complete original VOA spoken English transcript with Arabic translation drafted by Argos Translate and pending editorial review. Human original audio; sentence timings still unverified. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2018/06/08/c954b93d-aacb-40b2-8c20-423d8c100045_hq.mp3?download=1",
   "duration_ms": 274000,
   "hosts": [
@@ -22,7 +22,10 @@
   ],
   "other_speakers": [
     "Professor Bot",
-    "Firefighter Jones"
+    "Firefighter Jones",
+    "Firefighter Hatcher",
+    "Ff H",
+    "Ff J"
   ],
   "dialogue": [
     {
@@ -34,29 +37,29 @@
     },
     {
       "speaker": "Anna",
-      "text": "I’m reading about fire safety. Ms. Weaver named me fire safety monitor.",
-      "translation_ar": "أقرأ عن السلامة من الحرائق. عينتني السيدة ويفر مسؤولة مراقبة السلامة من الحريق.",
+      "text": "I’m reading about fire safety . Ms. Weaver named me fire safety monitor .",
+      "translation_ar": "أنا أقرأ عن السلامة من الحرائق. السيدة (ويفر) سمتني مراقب السلامة",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Penelope",
-      "text": "But the only time we have a fire emergency is when someone burns a piece of toast.",
-      "translation_ar": "لكن حالة الحريق الوحيدة لدينا تكون عندما يحرق أحدهم قطعة خبز محمص.",
+      "text": "But the only time we have a fire emergency is when someone burns a piece of toast .",
+      "translation_ar": "لكن الوقت الوحيد لدينا حالة طوارئ الحريق هو عندما يحرق أحدهم قطعة من الخبز المحمص",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
-      "text": "That is true. But fire safety is very serious – very serious. If there is a fire emergency, I have to help everyone out of the building.",
-      "translation_ar": "هذا صحيح، لكن السلامة من الحرائق أمر بالغ الجدية. إذا نشب حريق فعليّ مساعدتهم جميعًا على الخروج من المبنى.",
+      "text": "That is true. But fire safety is very serious – very serious. If there is a fire emergency , I have to help everyone out of the building .",
+      "translation_ar": "هذا صحيح لكن سلامة الحريق خطيرة جداً جداً إذا كان هناك طارئ حريق يجب أن أساعد الجميع خارج المبنى",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Penelope",
-      "text": "Well then, if I were you, I’d learn as much as possible.",
-      "translation_ar": "لو كنت مكانك لتعلمت أكبر قدر ممكن.",
+      "text": "Well then, if I were you, I’d learn as much as possible .",
+      "translation_ar": "وإذا كنت مكانك، سأتعلم قدر الإمكان.",
       "start_ms": null,
       "end_ms": null
     },
@@ -71,6 +74,20 @@
       "speaker": "Professor Bot",
       "text": "Hmm, I wonder where Anna’s going. Today we are reviewing conditionals and learning helpful language for emergencies.",
       "translation_ar": "أتساءل إلى أين تذهب آنا. سنراجع اليوم الجمل الشرطية والعبارات المفيدة في حالات الطوارئ.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "If Anna studies hard, she’ll be a great fire safety monitor! That’s a conditional. It uses “if” to show that something is true only when something else is true.",
+      "translation_ar": "إذا درست (آنا) بجد، ستكون مراقباً عظيماً لسلامة النار! وهذا شرط. وهي تستخدم &quot; إذا &quot; لإظهار أن شيئا ما لا يكون صحيحا إلا عندما يكون هناك شيء آخر صحيحا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Let’s find out where Anna is going. And if you want to learn fire emergency language, keep watching! firehouse .)",
+      "translation_ar": "لنكتشف إلى أين ستذهب (آنا). و إذا كنت تريد تعلم لغة الطواريء الناري استمر بالمشاهدة محطة إطفاء",
       "start_ms": null,
       "end_ms": null
     },
@@ -94,6 +111,279 @@
       "translation_ar": "أنا بخير شكرًا. كيف حالك؟ مرحبًا أيها الإطفائي هاتشر.",
       "start_ms": null,
       "end_ms": null
+    },
+    {
+      "speaker": "Firefighter Hatcher",
+      "text": "Hi, Anna. How are you?",
+      "translation_ar": "(مرحباً (آنا كيف حالك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I’m well, thanks.",
+      "translation_ar": "أنا بخير، شكرا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ff H",
+      "text": "Welcome to our firehouse.",
+      "translation_ar": "مرحباً بكم في بيتنا",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Thank you.",
+      "translation_ar": "شكراً لك",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ff H",
+      "text": "Come on in.",
+      "translation_ar": "ادخل",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Thanks.",
+      "translation_ar": "شكراً",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ff H",
+      "text": "This is where the firefighters eat. This is where we rest. This is where we exercise. This is where the firetrucks are parked and maintained .",
+      "translation_ar": "هذا هو المكان الذي يأكل فيه محاربو الحرائق. هنا نرتاح هنا نتدرب هذا هو المكان الذي تركن فيه سيارات الإطفاء وتصان",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "This place is beautiful.",
+      "translation_ar": "هذا المكان جميل",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ff H",
+      "text": "You know, the firehouse is a firefighter’s second home.",
+      "translation_ar": "كما تعلمون، دار الإطفاء هو البيت الثاني لمحاربي الحرائق.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Firefighter Jones, Firefighter Hatcher: Can you tell me some ways to prepare for a fire emergency?",
+      "translation_ar": "محارب إطفاء (جونز)، محارب الإطفاء (هاتشر) هل يمكنك إخباري ببعض الطرق للتحضير لطوارئ الحريق؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ff H",
+      "text": "Sure, Anna. There’s one really important thing you can do: Install a fire alarm. Test it monthly and make sure the batteries are fully charged.",
+      "translation_ar": "(بالتأكيد يا (آنا وهناك شيء هام جدا يمكن أن تقوم به: تركيب إنذار الحريق. إختبرها شهرياً وتأكد من أن البطاريات محملة بالكامل",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Let’s talk about those emergency exits .",
+      "translation_ar": "فلنتحدث عن تلك المخارج الطارئة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ff J",
+      "text": "In your home, office and schools, know where your emergency exits are located .",
+      "translation_ar": "في منزلك، مكتبك ومدرستك، أعرف أين تقع مخارجك الطارئة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "What about fire extinguishers ?",
+      "translation_ar": "ماذا عن إطفاء الحريق؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ff J",
+      "text": "Everyone should know how to use a fire extinguisher. Have one handy and practice using it.",
+      "translation_ar": "يجب أن يعرف الجميع كيفية استخدام إطفاء الحريق. خذوا واحده وتدربوا على استخدامها",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "What if we need to get out?",
+      "translation_ar": "ماذا لو أردنا الخروج؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ff J",
+      "text": "You should have an evacuation plan. And practice getting out safely with fire drills .",
+      "translation_ar": "يجب أن يكون لديك خطة إخلاء وتدرب على الخروج بسلام مع تدريبات الحريق",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "If I am in a building and it’s on fire, should I use the elevator ?",
+      "translation_ar": "واذا كنت في مبنى وكان مشتعلا، هل ينبغي أن أستخدم المصعد؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ff H",
+      "text": "No. Always use the stairs .",
+      "translation_ar": "لا دائما استخدم السلالم",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "What other safety tips should I know?",
+      "translation_ar": "أي نصائح أمان أخرى يجب أن أعرف؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ff J",
+      "text": "Stay low . Smoke rises . The air is clearer close to the ground.",
+      "translation_ar": "إبقوا منخفضين الدخان يرتفع الهواء أكثر وضوحاً قرب الأرض",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Stay low. Anything else?",
+      "translation_ar": "إبقوا منخفضين أي شيء آخر؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ff H",
+      "text": "If you touch a door and it’s hot, don’t open it . There might be a fire on the other side.",
+      "translation_ar": "وإذا لمست بابا وهو ساخن، لا تفتحه. قد يكون هناك حريق على الجانب الآخر",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "What do I do if my clothes catch on fire ?",
+      "translation_ar": "ماذا أفعل لو أحترقت ملابسي؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ff H",
+      "text": "Do not run. If you run, the fire will burn faster . You must stop, drop and roll.",
+      "translation_ar": "لا تهرب إذا هربت، النار ستحترق بسرعة يجب أن تتوقّف، تسقط وتدحرج.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Thanks so much! I’ve learned a lot. And I can’t wait to share this information with others.",
+      "translation_ar": "شكراً جزيلاً وقد تعلمت الكثير. ولا يسعني الانتظار لتقاسم هذه المعلومات مع الآخرين.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ff H",
+      "text": "Thanks for coming, Anna.",
+      "translation_ar": "(شكراً لمجيئك يا (آنا",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Ff J",
+      "text": "It’s been a pleasure meeting you.",
+      "translation_ar": "وكان من دواعي سروري أن ألتقي بكم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "So, Anna, how was the visit to the fire station ?",
+      "translation_ar": "إذاً، (آنا)، كيف كانت الزيارة إلى محطة الإطفاء؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I learned a lot! And firefighters have a very difficult job.",
+      "translation_ar": "لقد تعلمت الكثير ورجال الإطفاء لديهم عمل صعب",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Do you smell smoke?",
+      "translation_ar": "هل تشم رائحة الدخان؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No. So, like I was saying, I learned how to …",
+      "translation_ar": "لا لذا، كما كنت أقول، تعلمت كيف...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Anna, I smell smoke .",
+      "translation_ar": "(آنا)، أشم رائحة الدخان",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "If you smell smoke, call the fire department!",
+      "translation_ar": "إذا رائحتك للدخان اتصل بقسم الإطفاء",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "If you smell smoke, get out of the building . Come on people, we have a fire emergency! Leave your things and evacuate calmly and quickly. Very good. Very good.",
+      "translation_ar": "إذا رائحتك للدخان أخرج من المبنى هيا أيها الناس، لدينا حالة حريق! إتركْ أشيائكَ وإخلاء بهدوء وبسرعة. جيد جداً جيد جداً",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "We have a fire emergency. No, take the stairs Let’s get out. Let’s get out safely.",
+      "translation_ar": "لدينا حالة طوارئ لا، خذ السلالم لنخرج فلنخرج بأمان.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "We got out in less than 6 minutes! Good job, people! Wait. Where’s Pete?",
+      "translation_ar": "خرجنا في أقل من 6 دقائق عمل جيد، ناس! انتظر أين بيت؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "I know where he is. I’ll go get him.",
+      "translation_ar": "أعرف أين هو سأذهب لإحضاره",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No! Never go back into a burning building! The fire department is coming. Stay calm, Pete. Help is on the way! Help is on the way! Today, you learned important language to use for fire emergencies. Study and remember them. How many can you remember? Helpful Language Helpful Phrases emergency exit/s evacuation plan firefighter fire extinguisher fire truck firehouse fire station fire department fire drill/s catch fire / catch on fire Install fire alarms. I smell smoke. Do you smell smoke? There’s a fire! Call the fire department! The building is on fire! Stop, drop and roll.",
+      "translation_ar": "لا! لا تعود أبداً إلى مبنى محترق قسم الحريق قادم ابق هادئاً يا (بيت) النجدة في الطريق النجدة في الطريق اليوم، تعلمت لغة مهمة لاستخدامها في حالات الطوارئ ادرس وتذكرهم كم يمكن أن تتذكر؟ مخرج طارئ/خطة إجلاء مطفأة مطفأة مطفأة لقاذفات الشاحنات أشم رائحة الدخان هل تشم رائحة الدخان؟ هناك حريق اتصل بقسم الإطفاء المبنى مشتعل توقّفْ، يَسْقطُ ويَدحرجُ.",
+      "start_ms": null,
+      "end_ms": null
     }
   ],
   "vocabulary": [
@@ -106,5 +396,7 @@
       "meaning_ar": "السلامة من الحريق"
     }
   ],
-  "questions": []
+  "questions": [],
+  "translation_status": "machine_draft",
+  "translation_engine": "argos-en-ar"
 }

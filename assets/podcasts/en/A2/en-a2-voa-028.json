@@ -11,16 +11,19 @@
   "voice_rights_verified": true,
   "recording_format": "original_mp3",
   "sync_status": "unverified",
-  "transcript_scope": "excerpt",
+  "transcript_scope": "full",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-28/4396849.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 28. Original VOA MP3 with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2 Lesson 28. Complete original VOA spoken English transcript with Arabic translation drafted by Argos Translate and pending editorial review. Human original audio; sentence timings still unverified. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2018/05/17/48003699-cb0b-4cb7-8002-27bb38944ebf_hq.mp3?download=1",
   "duration_ms": 294000,
   "hosts": [
     "Kelly",
     "Anna"
   ],
-  "other_speakers": [],
+  "other_speakers": [
+    "Professor Bot",
+    "Man"
+  ],
   "dialogue": [
     {
       "speaker": "Kelly",
@@ -38,8 +41,8 @@
     },
     {
       "speaker": "Kelly",
-      "text": "I’m sensing a little disappointment.",
-      "translation_ar": "أشعر ببعض الإحباط في صوتك.",
+      "text": "I’m sensing a little disappointment .",
+      "translation_ar": "أشعر بخيبة أمل صغيرة.",
       "start_ms": null,
       "end_ms": null
     },
@@ -66,8 +69,8 @@
     },
     {
       "speaker": "Kelly",
-      "text": "Did you find a bird's nest?!",
-      "translation_ar": "هل عثرت على عش طيور؟",
+      "text": "Did you find a bird's nest ?!",
+      "translation_ar": "هل وجدت عش الطيور؟",
       "start_ms": null,
       "end_ms": null
     },
@@ -80,15 +83,15 @@
     },
     {
       "speaker": "Anna",
-      "text": "I found 10 ice cream trucks in this five-block area. Their music seems to follow me everywhere.",
-      "translation_ar": "وجدت عشر شاحنات آيس كريم في نطاق خمسة شوارع، ويبدو أن موسيقاها تلاحقني في كل مكان!",
+      "text": "I found 10 ice cream trucks in this five- block area.​ Their music seems to follow me everywhere.",
+      "translation_ar": "وجدت 10 شاحنات الآيس كريم في هذه المنطقة الخمس يبدو أن موسيقاهم تتبعني في كل مكان",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Kelly",
-      "text": "We're supposed to be counting birds, not ice cream trucks. This is important scientific work!",
-      "translation_ar": "يفترض بنا إحصاء الطيور لا شاحنات المثلجات. هذا عمل علمي مهم!",
+      "text": "We' re supposed to be counting birds, not ice cream trucks. This is important scientific work!",
+      "translation_ar": "من المفترض أن نعد الطيور وليس شاحنات الآيس كريم هذا عمل علمي مهم",
       "start_ms": null,
       "end_ms": null
     },
@@ -101,8 +104,260 @@
     },
     {
       "speaker": "Kelly",
-      "text": "Anna, birds are everywhere! I’m sure you’ll find something. Use your imagination!",
-      "translation_ar": "آنا، الطيور في كل مكان! أنا متأكدة أنك ستجدين شيئًا. استخدمي خيالك!",
+      "text": "Anna, birds are everywhere! I’m sure you’ll find something. Use your imagination ! But, make sure that you put it on the official form.",
+      "translation_ar": "(آنا) الطيور في كل مكان وأنا على يقين من أنكم ستجدون شيئا. استخدم خيالك! ولكن، تأكد من وضعه على الشكل الرسمي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Anna was supposed to find birds, but she didn’t.",
+      "translation_ar": "وكان من المفترض أن تجد آنا الطيور، ولكنها لم تفعل.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Kelly says, “We' re supposed to be counting birds, not ice cream trucks.” To be supposed to means you are expected to do something.",
+      "translation_ar": "وتقول كيلي: &quot; من المفترض أن نعد الطيور وليس شاحنات الآيس كريم &quot; . من المفترض أن يعني أنك من المتوقع أن تفعل شيئا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "It’s different from have to and ought to . Have to means you must do something. And ought to means you should do it but you don’t have to.",
+      "translation_ar": "وهو يختلف عن الحاجة إلى ذلك وينبغي أن يكون. يجب أن يعني أنك يجب أن تفعل شيئا. وينبغي أن يعني ذلك أنه ينبغي أن تفعل ذلك، ولكن ليس عليك ذلك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Keep watching for have to and ought to ! binoculars but doesn't see birds. She talks to herself.)",
+      "translation_ar": "استمري بالمشاهدة و يجب عليكِ ذلك لكن لا ترى الطيور إنها تتحدث لنفسها",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No birds. Oh wait, there’s another ice cream truck! Anna, focus on birds. Aw, but that truck has my favorite flavor ... banana!",
+      "translation_ar": "لا طيور انتظر، هناك شاحنة آيس كريم أخرى! (آنا) ركزي على الطيور لكن تلك الشاحنة لديها نكهتي المفضلة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "That man is in the way . I can’t see the price . I wonder what flavor he's getting.",
+      "translation_ar": "هذا الرجل في الطريق لا أستطيع أن أرى الثمن. أتسائل ما النكهة التي يحصل عليها",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Strawberry? He doesn't seem like a strawberry kind of guy .",
+      "translation_ar": "الفراولة؟ إنه لا يبدو كنوع من الفراولة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "In fact, he doesn't seem like an ice cream truck kind of guy. That suit looks expensive.",
+      "translation_ar": "في الحقيقة، هو لا يَبْدو مثل a شاحنة مثلجاتِ نوع من الرجلِ. هذه البدلة تبدو مكلفة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Maybe he's a spy! You know what that means: The ice cream truck driver is a spy, too!",
+      "translation_ar": "ربما هو جاسوس تَعْرفُ ما الذي يَعْني: سائق شاحنة الآيس كريم جاسوس أيضاً",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Genius ! It’s a perfect disguise .",
+      "translation_ar": "عبقري! إنه تنكر مثالي",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "What?! The man in the suit left his briefcase at the ice cream truck!",
+      "translation_ar": "ماذا؟ الرجل ذو البدلة ترك حقيبته في شاحنة الآيس كريم",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I was right! He is a spy! And, he just dropped off top-secret information! I ought to do something. Something needs to be done! I need to do something.",
+      "translation_ar": "كنت على حق! إنه جاسوس و لقد سقط للتو من معلومات سرية للغاية يجب أن أفعل شيئاً شيء ما يجب القيام به! يجب أن أفعل شيئاً",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I did it! I took the spy’s briefcase!",
+      "translation_ar": "لقد فعلتها أخذت حقيبة الجاسوس!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "What’s that?! The ice cream truck -- it’s following me! It wants the case back! I have to hide .",
+      "translation_ar": "ما هذا؟ شاحنة الآيس كريم إنها تتبعني إنه يريد إستعادة القضية يجب أن أختبئ",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "This is my life now -- running, scared, alone.",
+      "translation_ar": "هذه حياتي الآن... ركض، خائف، لوحده.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "That awful music -- it’s following me everywhere!",
+      "translation_ar": "تلك الموسيقى الفظيعة... إنها تتبعني في كل مكان!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Man",
+      "text": "Hey! You found my briefcase.",
+      "translation_ar": "مهلا! لقد وجدت حقيبتي",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "You caught me! I mean, I caught you!",
+      "translation_ar": "لقد امسكت بي أعني، أمسكت بك!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Man",
+      "text": "Well, I just want my briefcase. All my poems are in there.",
+      "translation_ar": "حسنا، أنا فقط أريد حقيبتي. كل قصائدي هناك",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Poems? You’re a poet?",
+      "translation_ar": "قصائد؟ هل أنت شاعر؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Man",
+      "text": "Well, I'm a lawyer . But I write poems, too.",
+      "translation_ar": "أنا محامي لكنني أكتب القصائد أيضاً",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "So, you’re not a spy?",
+      "translation_ar": "إذن، أنت لست جاسوساً؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Man",
+      "text": "You look disappointed.",
+      "translation_ar": "تبدين محبطة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No, that’s okay. It’s not your fault . Poems are nice, too. I guess.",
+      "translation_ar": "لا، لا بأس. إنه ليس خطأك القصائد لطيفة أيضاً أعتقد.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Man",
+      "text": "Well, would you like me to read my latest one?",
+      "translation_ar": "حسنا، هل تريد مني أن أقرأ آخر واحد لي؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Why not ?",
+      "translation_ar": "لم لا؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Man",
+      "text": "On sunny day walks, my hand reaches for ice cream from fragaria .",
+      "translation_ar": "في النهار المشمس، يدي تصل إلى الآيس كريم من الفراغريا",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I love your poem!",
+      "translation_ar": "أحب قصائدك",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Man",
+      "text": "I love ice cream.",
+      "translation_ar": "أحب الآيس كريم",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Me too.",
+      "translation_ar": "وأنا أيضاً",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Man",
+      "text": "What's your favorite flavor?",
+      "translation_ar": "ما نكهتك المفضلة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Banana.",
+      "translation_ar": "بانانا",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Man",
+      "text": "Well, my favorite flavor is ...",
+      "translation_ar": "النكهة المفضلة لدي",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Strawberry !",
+      "translation_ar": "الفراولة!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Man",
+      "text": "How did you know that?",
+      "translation_ar": "كيف عرفت ذلك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "A little bird told me .",
+      "translation_ar": "طائر صغير أخبرني",
       "start_ms": null,
       "end_ms": null
     }
@@ -117,5 +372,7 @@
       "meaning_ar": "خيبة أمل"
     }
   ],
-  "questions": []
+  "questions": [],
+  "translation_status": "machine_draft",
+  "translation_engine": "argos-en-ar"
 }

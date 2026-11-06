@@ -11,9 +11,9 @@
   "voice_rights_verified": true,
   "recording_format": "original_video_mp4",
   "sync_status": "unverified",
-  "transcript_scope": "excerpt",
+  "transcript_scope": "full",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-8-best-barbecue/4073994.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 8. Original VOA video with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2 Lesson 8. Complete original VOA spoken English transcript with Arabic translation drafted by Argos Translate and pending editorial review. Human original audio; sentence timings still unverified. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-video-ns.akamaized.net/pangeavideo/2021/02/6/6a/6a264ff8-5d3a-4460-8d09-b56daf6ebe65_240p.mp4?cb=edc3e79b1&download=1",
   "duration_ms": 300000,
   "hosts": [
@@ -21,8 +21,7 @@
     "Kelly"
   ],
   "other_speakers": [
-    "Professor Bot",
-    "Chef 1"
+    "Professor Bot"
   ],
   "dialogue": [
     {
@@ -48,8 +47,8 @@
     },
     {
       "speaker": "Kelly",
-      "text": "Of course. I heard you were sent to cover a big food festival that has all kinds of barbecue. So, how did it go?",
-      "translation_ar": "بالتأكيد. سمعت أنك أُرسلت لتغطية مهرجان طعام كبير يضم أنواعًا مختلفة من الشواء. كيف سارت الأمور؟",
+      "text": "Of course. I heard you were sent to cover a big food festival that has all kinds of barbecue . So, how did it go?",
+      "translation_ar": "بالطبع سمعت أنّك أرسلت لتغطية مهرجان غذائي كبير يحتوي على جميع أنواع الشواء كيف سار الأمر؟",
       "start_ms": null,
       "end_ms": null
     },
@@ -62,36 +61,22 @@
     },
     {
       "speaker": "Professor Bot",
-      "text": "Hi English learners! Your lesson today is about my favorite food -- barbecue! Your assignment is to find passive sentences.",
-      "translation_ar": "مرحبًا يا متعلمي الإنجليزية! درس اليوم عن طعامي المفضل: الشواء. مهمتكم العثور على جمل مبنية للمجهول.",
+      "text": "Hi English learners! Your lesson today is about my favorite food -- barbecue! Your assignment is to find passive sentences. What are those, you might ask? In passive sentences the subject receives the action! For example, “Anna was sent to cover a food festival.” Passive sentences have a form of the BE verb + the past participle of the main verb. This lesson is LOADED with passive sentences. Hey! That’s a passive sentence, too! Okay, now, it’s Barbecue Time!",
+      "translation_ar": "مرحباً أيها المتعلمون الانجليزيون درسك اليوم عن طعامي المفضل الشواء مهمتك هي إيجاد عقوبات سلبية ما هذه، قد تسأل؟ في جمل سلبية يحصل هذا الموضوع على العمل فعلى سبيل المثال، &quot; أرسلت آنا لتغطية مهرجان غذائي &quot; . الجمل السلبية لها شكل من أشكال شفرة الـ(بي بي) + الجزء السابق من الفعل الرئيسي هذا الدرس مأخوذ بعقوبات سلبية مهلا! وهذا حكم سلبي أيضا! حسناً، الآن حان وقت الشواء",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
-      "text": "Today, a Barbecue Battle is being held in Washington, D.C.",
-      "translation_ar": "اليوم تقام مسابقة شواء في واشنطن العاصمة.",
+      "text": "Today, a Barbecue Battle is being held in Washington, D.C. This festival, which is known as one of the biggest food festivals in the United States, brings together barbecue lovers from all over the country! Barbecue is meat that is cooked over an open fire or on a grill. Chicken, pork and beef are all common meats to grill on a barbecue! No matter which meat you like to barbecue, the sauce is very important. Sauces are taken very seriously by chefs. Most ingredients are kept secret! So, can you tell us what is in your barbecue sauce? Chef 1: No, I can’t tell you.",
+      "translation_ar": "اليوم، معركة (باربيكو) في (واشنطن) العاصمة هذا المهرجان، الذي يعرف بأكبر مهرجانات غذائية في الولايات المتحدة، يجمع بين عشاق الشواء من جميع أنحاء البلاد! الشواء هو اللحم الذي يطهو على النار المفتوحة أو على الشواء. الدجاج، لحم الخنزير و لحم البقر كلّهم لحوم شائعة لشرب الشواء مهما كانت اللحوم التي تحب شواء الصلصة مهمة جداً الصلصة تأخذ على محمل الجد من قبل الطهاة. معظم المكونات سرية لذا، هل يمكنك أن تخبرنا ما هو في صلصة الشواء الخاصة بك؟ Chef 1: No, I can’t tell you.",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
-      "text": "So, can you tell us what is in your barbecue sauce?",
-      "translation_ar": "هل يمكنك أن تخبرنا بمكونات صلصة الشواء الخاصة بك؟",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Chef 1",
-      "text": "No, I can’t tell you.",
-      "translation_ar": "لا، لا أستطيع إخبارك.",
-      "start_ms": null,
-      "end_ms": null
-    },
-    {
-      "speaker": "Anna",
-      "text": "So, tell us, what is the secret ingredient in your barbecue sauce?",
-      "translation_ar": "إذًا، ما المكون السري في صلصة الشواء؟",
+      "text": "So, tell us, what is the secret ingredient in your barbecue sauce? Chef 2:",
+      "translation_ar": "إذاً، أخبرنا، ما المكون السري في صلصة الشواء؟ Chef 2:",
       "start_ms": null,
       "end_ms": null
     },
@@ -103,6 +88,20 @@
       "end_ms": null
     },
     {
+      "speaker": "Professor Bot",
+      "text": "How many passive sentences did you find? Here is one I found: Today, a Barbecue Battle is being held on the National Mall in Washington, D.C. Now you try. Turn this sentence from active to passive. Professor Bot loves Barbecue! Barbecue is loved by Prof. Bot. Good job! And yes, I do.",
+      "translation_ar": "كم عدد الأحكام السلبية التي وجدتها؟ هنا واحد وجدته: اليوم، معركة \"باربيكو\" مُحتجزة على المركز الوطني في \"واشنطن العاصمة\". الآن تحاول حوّلْ هذه الجملةِ مِنْ نشط إلى سلبيِ. الأستاذ (بوت) يحب (باربيكيو) (الباربيكيو) يحبه البروفيسور (بوت) عمل جيد! وأجل، لدي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "There are some areas of the U.S. that are known for their tasty barbecue. The states of Texas, North and South Carolina and the cities of Memphis and Kansas City are known as the Barbecue Belt. People who are loyal to barbecue are really loyal to their favorite barbecue. That is why this festival is called a battle! Let’s ask a couple of people which barbecue is best. Person 1: Texas, of course! Person 2: Carolina barbecue is the very best. Person 3: Kansas City! Person 4: Memphis style! Person 3: Kansas City! Person 5: Texas! Person 3: Kansas! Person 5: Texas! Person 3: Kansas! Person 5: Texas! Person 3: I say Kansas. Person 5: Texas! Person 3: She keeps saying Texas, I say Kansas.",
+      "translation_ar": "هناك بعض المناطق في الولايات المتحدة معروفة بحفل شواء لذيذ The states of Texas, North and South Carolina and the cities of Memphis and Kansas City are known as the Barbecue Belt. الناس المخلصون للشواء مخلصون جداً لحفلهم المفضل لهذا السبب هذا المهرجان يسمى معركة دعونا نسأل اثنين من الأشخاص الذين يفضلون الشواء. الشخص 1: تكساس، بالطبع! شواء (كارولينا) هو الأفضل (كانساس سيتي)، (كانساس)، (تكساس) \"الشخص الثالث، أقول \"كانساس (الشخص الثالث) تقول (تكساس) وأنا أقول (كانساس)",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
       "speaker": "Anna",
       "text": "This is Anna Matteo reporting.",
       "translation_ar": "كانت معكم آنا ماتيو في هذا التقرير.",
@@ -110,9 +109,23 @@
       "end_ms": null
     },
     {
+      "speaker": "Anna",
+      "text": "Kelly, people feel so strongly about barbecue. Unbelievable! So, what do you think of my project?",
+      "translation_ar": "كيلي، الناس يشعرون بقوة حول الشواء. لا يصدق! ما رأيك في مشروعي؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
       "speaker": "Kelly",
-      "text": "I am from Kansas City and we have THE best barbecue in the whole country.",
-      "translation_ar": "أنا من كانساس سيتي، ولدينا أفضل شواء في البلاد كلها.",
+      "text": "This is what I think. There is no way that Texas has the best barbecue. I am from Kansas City and we have THE best barbecue in the whole country. My mother and father owned a barbecue restaurant, which was really famous! So, I know barbecue! Anna, I know barbecue! I know barbecue! I know barbecue!",
+      "translation_ar": "هذا ما أعتقده من المستحيل أن يكون لدى (تكساس) أفضل حفل شواء أنا من مدينة كانساس ولدينا أفضل حفل شواء في كل البلاد أمّي وأبي إمتلكا مطعم شواء، الذي كان مشهوراً حقاً! لذا، أنا أعرف الشواء! (آنا)، أعرف الشواء! أعرف الشواء أعرف الشواء",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Oh my. Kelly knows a lot about barbecue! And you know more about passive sentences! Be sure you go to the website to learn even more! Ah! Now, if you'll excuse me .. I'm hungry",
+      "translation_ar": "يا إلهي كيلي تعرف الكثير عن الشواء وأنت تعرف المزيد عن الأحكام السلبية! تأكد من أن تذهب إلى الموقع لتتعلم المزيد آه! الآن، إذا سمحت لي... أنا جائع",
       "start_ms": null,
       "end_ms": null
     }
@@ -127,5 +140,7 @@
       "meaning_ar": "صلصة"
     }
   ],
-  "questions": []
+  "questions": [],
+  "translation_status": "machine_draft",
+  "translation_engine": "argos-en-ar"
 }

@@ -2,7 +2,7 @@
   "schema": 1,
   "source": "VOA Learning English — Let's Learn English Level 2",
   "worldvoice_track": "English A2",
-  "notes": "30 original VOA Level 2 lessons listed in WorldVoice English A2. Existing Lessons 1–7 and 9–16 have full English and Arabic dialogue. Lesson 8 uses the official 240p VOA video recording as an audio source (no independently verified MP3); lessons 17–30 currently contain verified English dialogue excerpts with Arabic translation and a link to VOA's complete transcript. Do not label those as full bilingual transcripts. Automatic line timings are unverified. VOA Level 2 is an intermediate course, not formally equivalent to CEFR A2.",
+  "notes": "VOA Level 2 has 30 recordings, with English conversations from the official VOA lesson pages and Arabic translations. New translations marked machine_draft require editorial review; no unverified line timings are enabled. Lesson 8 uses the official video audio because standalone MP3 is unavailable. VOA Level 2 is intermediate, not formally equivalent to CEFR A2.",
   "lessons": [
     {
       "id": "en-a2-voa-001",
@@ -121,9 +121,10 @@
       "anna_present": true,
       "pete_present": false,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
+      "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-008",
-      "recording_format": "original_video_mp4"
+      "recording_format": "original_video_mp4",
+      "translation_status": "machine_draft"
     },
     {
       "id": "en-a2-voa-009",
@@ -291,9 +292,10 @@
       "anna_present": true,
       "pete_present": true,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
+      "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-019",
-      "recording_format": "original_mp3"
+      "recording_format": "original_mp3",
+      "translation_status": "machine_draft"
     },
     {
       "id": "en-a2-voa-020",
@@ -307,9 +309,10 @@
       "anna_present": true,
       "pete_present": false,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
+      "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-020",
-      "recording_format": "original_mp3"
+      "recording_format": "original_mp3",
+      "translation_status": "machine_draft"
     },
     {
       "id": "en-a2-voa-021",
@@ -323,9 +326,10 @@
       "anna_present": true,
       "pete_present": false,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
+      "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-021",
-      "recording_format": "original_mp3"
+      "recording_format": "original_mp3",
+      "translation_status": "machine_draft"
     },
     {
       "id": "en-a2-voa-022",
@@ -339,9 +343,10 @@
       "anna_present": true,
       "pete_present": false,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
+      "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-022",
-      "recording_format": "original_mp3"
+      "recording_format": "original_mp3",
+      "translation_status": "machine_draft"
     },
     {
       "id": "en-a2-voa-023",
@@ -355,9 +360,10 @@
       "anna_present": true,
       "pete_present": false,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
+      "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-023",
-      "recording_format": "original_mp3"
+      "recording_format": "original_mp3",
+      "translation_status": "machine_draft"
     },
     {
       "id": "en-a2-voa-024",
@@ -371,9 +377,10 @@
       "anna_present": true,
       "pete_present": false,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
+      "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-024",
-      "recording_format": "original_mp3"
+      "recording_format": "original_mp3",
+      "translation_status": "machine_draft"
     },
     {
       "id": "en-a2-voa-025",
@@ -387,9 +394,10 @@
       "anna_present": true,
       "pete_present": false,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
+      "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-025",
-      "recording_format": "original_mp3"
+      "recording_format": "original_mp3",
+      "translation_status": "machine_draft"
     },
     {
       "id": "en-a2-voa-026",
@@ -403,9 +411,10 @@
       "anna_present": true,
       "pete_present": true,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
+      "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-026",
-      "recording_format": "original_mp3"
+      "recording_format": "original_mp3",
+      "translation_status": "machine_draft"
     },
     {
       "id": "en-a2-voa-027",
@@ -419,9 +428,10 @@
       "anna_present": true,
       "pete_present": false,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
+      "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-027",
-      "recording_format": "original_mp3"
+      "recording_format": "original_mp3",
+      "translation_status": "machine_draft"
     },
     {
       "id": "en-a2-voa-028",
@@ -435,9 +445,10 @@
       "anna_present": true,
       "pete_present": false,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
+      "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-028",
-      "recording_format": "original_mp3"
+      "recording_format": "original_mp3",
+      "translation_status": "machine_draft"
     },
     {
       "id": "en-a2-voa-029",
@@ -451,9 +462,10 @@
       "anna_present": true,
       "pete_present": false,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
+      "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-029",
-      "recording_format": "original_mp3"
+      "recording_format": "original_mp3",
+      "translation_status": "machine_draft"
     },
     {
       "id": "en-a2-voa-030",
@@ -467,9 +479,10 @@
       "anna_present": true,
       "pete_present": false,
       "sync_status": "unverified",
-      "transcript_scope": "excerpt",
+      "transcript_scope": "full",
       "existing_episode_id": "en-a2-voa-030",
-      "recording_format": "original_mp3"
+      "recording_format": "original_mp3",
+      "translation_status": "machine_draft"
     }
   ]
 }

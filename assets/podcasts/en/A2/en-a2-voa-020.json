@@ -11,9 +11,9 @@
   "voice_rights_verified": true,
   "recording_format": "original_mp3",
   "sync_status": "unverified",
-  "transcript_scope": "excerpt",
+  "transcript_scope": "full",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-20/4254704.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 20. Original VOA MP3 with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2 Lesson 20. Complete original VOA spoken English transcript with Arabic translation drafted by Argos Translate and pending editorial review. Human original audio; sentence timings still unverified. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2018/02/15/8b42c321-07ea-4eb1-a1f9-e7cc6019606e_hq.mp3?download=1",
   "duration_ms": 281000,
   "hosts": [
@@ -22,14 +22,15 @@
   ],
   "other_speakers": [
     "Professor Bot",
+    "Anna tells Penelope",
     "Robot",
     "Kurt"
   ],
   "dialogue": [
     {
       "speaker": "Anna",
-      "text": "Rick, I think we should use this as the opening shot.",
-      "translation_ar": "ريك، أرى أن نستخدم هذه اللقطة في بداية التقرير.",
+      "text": "That’s a great idea. Rick, I think we should use this as the opening shot .",
+      "translation_ar": "هذه فكرة عظيمة. ريك، أعتقد أننا يجب أن نستخدم هذا كطلقة الافتتاح",
       "start_ms": null,
       "end_ms": null
     },
@@ -42,8 +43,8 @@
     },
     {
       "speaker": "Anna",
-      "text": "She did. She said that we need to show lots of cars. She said we need to interview people. And she also said that we should have fun.",
-      "translation_ar": "نعم. قالت إن علينا عرض سيارات كثيرة وإجراء مقابلات مع الناس، وقالت أيضًا أن نستمتع بوقتنا.",
+      "text": "She did. She said that we need to show lots of cars. She said we need to interview people . And she also said that we should have fun.",
+      "translation_ar": "لقد فعلت قالت أن علينا أن نري الكثير من السيارات قالت أن علينا مقابلة الناس وقالت أيضاً أنه يجب أن نستمتع",
       "start_ms": null,
       "end_ms": null
     },
@@ -63,29 +64,36 @@
     },
     {
       "speaker": "Anna",
-      "text": "Hello, I'm Anna Matteo. Welcome to the Washington Car Show!",
-      "translation_ar": "مرحبًا، أنا آنا ماتيو. أهلًا بكم في معرض سيارات واشنطن!",
+      "text": "Okay, Rick, are you - are you ready? OK. Hello, I'm Anna Matteo. Welcome to the Washington Car Show!",
+      "translation_ar": "حسنا، ريك، هل أنت مستعد؟ حسناً (مرحباً، أنا (آنا ماتيو مرحباً بكم في عرض سيارات واشنطن",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
-      "text": "People all over town are saying that if you like cars, this is the place to be!",
-      "translation_ar": "الجميع في المدينة يقولون: إذا كنت تحب السيارات فهذا هو المكان المناسب!",
+      "text": "People all over town are saying that if you like cars, this is the place to be ! So, let's see what people are talking about. How was that? Okay? Is that Good?",
+      "translation_ar": "الناس في جميع أنحاء المدينة يقولون إذا كنت تحب السيارات، هذا هو المكان ليكون! لذلك، دعونا نرى ما الناس يتحدثون عنه. كيف كان ذلك؟ حسناً؟ هل هذا جيد؟",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Professor Bot",
-      "text": "We often need to tell others what someone else said.",
-      "translation_ar": "كثيرًا ما نحتاج إلى نقل كلام شخص آخر.",
+      "text": "Anna, Penelope and Rick are making a news story about the Washington Car Show. Ms. Weaver gave them instructions. We often need to tell others what someone else said. There are two ways to do this. One is to use the person’s exact words and use quotation marks. We call this \"direct speech.\" For example, Ms. Weaver had said, “You need to show lots of cars.” The other way is to talk about what someone said. We call this \"reported speech.\"",
+      "translation_ar": "(آنا) و(بينيلوبي) و(ريك) يصنعون قصة إخبارية عن برنامج (واشنطن) للسيارات السيدة (ويفر) أعطتهم التعليمات غالباً ما نحتاج أن نخبر الآخرين ما قاله شخص آخر هناك طريقتان لفعل هذا ويتمثل أحدهما في استخدام كلمات الشخص بالضبط واستخدام علامات اقتباس. نسمي هذا \"خطاب مباشر\". وعلى سبيل المثال، قالت السيدة ويفر &quot; يجب أن تظهر الكثير من السيارات &quot; . الطريقة الأخرى هي التحدث عن ما قاله شخص ما نسمي هذا \"خطاب مُبلغ عنه\".",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna tells Penelope",
+      "text": "She said that we need to show lots of cars. In this sentence, \"she,\" is the subject, “said” is the reporting verb, “that” is the conjunction and “we need to show lots of cars” is the reporting clause. Keep watching, and listen for sentences where Anna talks about what someone else said!",
+      "translation_ar": "قالت أن علينا أن نري الكثير من السيارات وفي هذه الجملة، &quot; هي &quot; هي موضوع &quot; المساعدة &quot; هو الفعل المبلّغ، و &quot; ذلك &quot; هو الاقتران، و &quot; نحن بحاجة إلى إظهار الكثير من السيارات &quot; هو شرط الإبلاغ. استمري بالمشاهدة و استمعي إلى الأحكام التي تتحدث فيها (آنا) عن ما قاله شخص آخر",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Anna",
-      "text": "This car show has many styles of vehicles. There are utility vehicles, classic cars, trucks, sports cars, and everyday vehicles.",
-      "translation_ar": "يضم المعرض مركبات متعددة، منها سيارات الدفع العملي والكلاسيكية والشاحنات والرياضية والسيارات اليومية.",
+      "text": "This car show has many styles of vehicles . There are utility vehicles , classic cars , trucks, sports cars , and everyday vehicles.",
+      "translation_ar": "عرض السيارة هذا له العديد من أنواع المركبات هناك سيارات المرافق والسيارات الكلاسيكية والشاحنات والسيارات الرياضية والمركبات اليومية",
       "start_ms": null,
       "end_ms": null
     },
@@ -98,8 +106,8 @@
     },
     {
       "speaker": "Anna",
-      "text": "Me too! People had very different opinions. But they all said they loved cars.",
-      "translation_ar": "وأنا أيضًا! كانت آراؤهم مختلفة لكنهم اتفقوا على حب السيارات.",
+      "text": "Me too! People had very different opinions . But they all said they loved cars .",
+      "translation_ar": "أنا أيضاً كان لدى الناس آراء مختلفة لكنهم قالوا أنهم يحبون السيارات",
       "start_ms": null,
       "end_ms": null
     },
@@ -112,6 +120,13 @@
     },
     {
       "speaker": "Anna",
+      "text": "A robot!",
+      "translation_ar": "روبوت!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
       "text": "A robot!",
       "translation_ar": "روبوت!",
       "start_ms": null,
@@ -140,8 +155,8 @@
     },
     {
       "speaker": "Robot",
-      "text": "Anna, you know, what an effort. What an effort to robot dance. How about a round of applause for Anna! I’ve never seen anyone try so hard.",
-      "translation_ar": "آنا، يا له من مجهود كبير في رقصة الروبوت! تصفيق لآنا! لم أر شخصًا يحاول بهذه الجدية.",
+      "text": "Anna, you know, what an effort . What an effort to robot dance. How about a round of applause for Anna! I’ve never seen anyone try so hard.",
+      "translation_ar": "(آنا)، كما تعلم، يا له من مجهود يا له من جهد للرقص الآلي ما رأيك بجولة من التصفيق لـ(آنا)! ولم أرى من قبل أي شخص يحاول جاهدا.",
       "start_ms": null,
       "end_ms": null
     },
@@ -181,9 +196,44 @@
       "end_ms": null
     },
     {
+      "speaker": "Penelope",
+      "text": "Okay.",
+      "translation_ar": "حسناً",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "This course is smooth . So you can drive faster.",
+      "translation_ar": "هذا المسار سلس لذا يمكنك القيادة بسرعة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "He said...that I can’t drive, unfortunately . stunt driver , does the driving.)",
+      "translation_ar": "وقال... إنني لا أستطيع أن أقود، لسوء الحظ، سائق فاتح، يقود السيارة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh my gosh… reverse.",
+      "translation_ar": "يا إلهي... العكس.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "That was great. This is awesome.",
+      "translation_ar": "كان ذلك رائعاً هذا رائع",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
       "speaker": "Kurt",
-      "text": "Are you ready to go on the rollercoaster?",
-      "translation_ar": "هل أنت مستعدة لرحلة مثل الأفعوانية؟",
+      "text": "Are you ready to go on the rollercoaster ?",
+      "translation_ar": "هل أنتِ مستعدة للذهاب إلى \"لوريكركستر\"؟",
       "start_ms": null,
       "end_ms": null
     },
@@ -200,6 +250,83 @@
       "translation_ar": "ها نحن ننطلق!",
       "start_ms": null,
       "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "That’s awesome.",
+      "translation_ar": "هذا رائع",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "That was...That was awesome! I just want to go one more time. I promise. That’s it. Just one more time.",
+      "translation_ar": "كان ذلك... كان ذلك رائعاً أريد فقط أن أذهب مرة أخرى أعدك هذا هو فقط مرة أخرى",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "This course is bumpy and uneven . I was told that I could drive this course. So I am.",
+      "translation_ar": "هذا المسار مُعقد ومتفاوت قيل لي أنه يمكنني قيادة هذا المسار أنا كذلك",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Okay, Rick, are you rolling ? Awesome. Okay, this course is uneven. But I think the ride will be smooth.",
+      "translation_ar": "حسنا، ريك، هل أنت المتداول؟ رائع حسناً، هذا المسار متفاوت لكن أعتقد أن الرحلة ستكون سلسة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Ooh. This hill is really steep .",
+      "translation_ar": "أوه. هذا التل حاد جداً",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh my gosh. I can’t tell you how much fun this is.",
+      "translation_ar": "يا إلهي لا أستطيع أن أخبرك كم هذا ممتع",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Penelope, that was so much fun! I think I need to go again.",
+      "translation_ar": "(بينيلوبي)، كان ذلك ممتعاً للغاية! أعتقد أنني بحاجة للذهاب مرة أخرى.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Uh, Anna, I think we have enough test drive video.",
+      "translation_ar": "آه، آنا، أعتقد أن لدينا ما يكفي من فيديو قيادة الاختبار.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Ms. Weaver said to get a lot. So, I think I should go again. Rick, I’m going to go again. Until next time!",
+      "translation_ar": "السيدة (ويفر) قالت أن تحصل على الكثير لذا، أعتقد أنني يجب أن أذهب مرة أخرى. ريك، سأذهب مرة أخرى. حتى المرة القادمة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "But I want to get lunch, Anna!",
+      "translation_ar": "(لكنني أريد أن أتناول الغداء يا (آنا",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Penelope said she wants to go to lunch . But I don’t think that’s going to happen soon. Visit our website for more!",
+      "translation_ar": "(بينيلوبي) قالت أنها تريد الذهاب للغداء ولكنني لا أعتقد أن ذلك سيحدث قريبا. أزور موقعنا للزيارة",
+      "start_ms": null,
+      "end_ms": null
     }
   ],
   "vocabulary": [
@@ -212,5 +339,7 @@
       "meaning_ar": "تجربة قيادة"
     }
   ],
-  "questions": []
+  "questions": [],
+  "translation_status": "machine_draft",
+  "translation_engine": "argos-en-ar"
 }

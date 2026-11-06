@@ -11,9 +11,9 @@
   "voice_rights_verified": true,
   "recording_format": "original_mp3",
   "sync_status": "unverified",
-  "transcript_scope": "excerpt",
+  "transcript_scope": "full",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-24/4307612.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 24. Original VOA MP3 with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2 Lesson 24. Complete original VOA spoken English transcript with Arabic translation drafted by Argos Translate and pending editorial review. Human original audio; sentence timings still unverified. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2018/03/23/f1f4841a-c2cb-4ee3-9cbe-2a132ffb5c8e_hq.mp3?download=1",
   "duration_ms": 288000,
   "hosts": [
@@ -21,7 +21,9 @@
     "Young Man"
   ],
   "other_speakers": [
-    "Professor Bot"
+    "Professor Bot",
+    "theme song",
+    "Announcer"
   ],
   "dialogue": [
     {
@@ -61,15 +63,15 @@
     },
     {
       "speaker": "Anna",
-      "text": "Take your time. It’s a big question. I thought about it for days.",
-      "translation_ar": "خذ وقتك؛ إنه سؤال كبير. فكرت فيه لأيام.",
+      "text": "Take your time. It’s a big question. I thought about it for days –",
+      "translation_ar": "خذ وقتك وهو سؤال كبير. فكرت في ذلك لأيام",
       "start_ms": null,
       "end_ms": null
     },
     {
       "speaker": "Young Man",
-      "text": "Okay. If I had to choose, I’d rather be born a superhero.",
-      "translation_ar": "حسنًا، إذا كان عليّ الاختيار، أفضل أن أولد بقدرات خارقة.",
+      "text": "Okay. If I had to choose, I’ d rather be born a superhero.",
+      "translation_ar": "حسناً وإذا كان علي أن أختار، فإنني سأولد بطلا خارقا.",
       "start_ms": null,
       "end_ms": null
     },
@@ -103,8 +105,8 @@
     },
     {
       "speaker": "Anna",
-      "text": "I'm better than okay. I feel super!",
-      "translation_ar": "أنا أفضل من بخير؛ أشعر بأن لدي قوة خارقة!",
+      "text": "I'm better than okay. I feel super !",
+      "translation_ar": "أنا أفضل من بخير أشعر بالإثارة",
       "start_ms": null,
       "end_ms": null
     },
@@ -112,6 +114,251 @@
       "speaker": "Professor Bot",
       "text": "Oh No! Anna was just hit by lightning. She had better get help.",
       "translation_ar": "يا إلهي! لقد أصاب البرق آنا. من الأفضل أن تحصل على مساعدة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "We use had better to give advice. It is very informal and stronger than should and ought to . For example, Anna says: “ You'd better decide soon. Last year, it sold out.”",
+      "translation_ar": "كان من الأفضل أن نعطي النصائح وهو غير رسمي وأقوى مما ينبغي وينبغي. على سبيل المثال، آنا تقول: &quot; من الأفضل أن تقرر قريبا. وفي العام الماضي، باع &quot; .",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "When we use had better , we usually shorten the word had for personal pronouns.",
+      "translation_ar": "عندما كنا نستخدمها بشكل أفضل، عادة ما نختصر الكلمة التي كانت للمحترفين الشخصيين.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "We use would rather to say what we or someone else prefers to do or have. For example, the boy says: “Okay. If I had to choose, I’d rather be born a superhero.",
+      "translation_ar": "ونحن نستخدمه يفضل أن نقول ما نفضله نحن أو شخص آخر أن نفعل أو نمتلكه. وعلى سبيل المثال، يقول الصبي: &quot; حسنا. وإذا كان علي أن أختار، فإنني أفضل أن أولد بطلا خارقا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "With would rather , we also shorten the word would when used with personal pronouns. Keep watching and listen for had better and would rather.",
+      "translation_ar": "وبفضل ذلك، نختصر الكلمة أيضاً عندما تُستخدم بالمباراة الشخصية. استمر بالمشاهدة والاستماع لأفضل من ذلك",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Young Man",
+      "text": "You’d better see a doctor.",
+      "translation_ar": "ومن الأفضل أن ترى طبيبا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I’ve never felt better!",
+      "translation_ar": "لم أشعر أبداً بتحسن",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Young Man",
+      "text": "You were just struck by lightning !! And what happened to your hair and your clothes?",
+      "translation_ar": "لقد ضربك البرق وماذا حدث لشعرك وملابسك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I don't know. Wait, I do know. This is my super suit ! And this is my origin story .",
+      "translation_ar": "لا أعلم انتظر، أنا أعرف. هذه بدلتي الخارقة وهذه قصتي الأصلية",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Young Man",
+      "text": "What are you talking about?",
+      "translation_ar": "عن ماذا تتحدث؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "An origin story tells the beginning of a superhero. You should know that.",
+      "translation_ar": "قصة أصلية تقول بداية البطل الخارق يجب أن تعرف ذلك",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Young Man",
+      "text": "You're not making any sense , lady .",
+      "translation_ar": "أنت لا تجعل أي معنى، سيدة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I would rather be called Lightning Bolt Lady! It’ll sound great in a",
+      "translation_ar": "أفضّل أن يُدعى (لايتنج بولت ليدي) سيبدو رائعا في",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "theme song",
+      "text": "Lightning Bolt Lady!",
+      "translation_ar": "سيدة البرق",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Now, I need to find my superpowers --",
+      "translation_ar": "الآن، أريد أن أجد قوتي الخارقة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Young Man",
+      "text": "Um, I really think --",
+      "translation_ar": "أعتقد حقاً",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Wait. Don’t tell me. I’ll read your mind. You are thinking you’d like to be my super helper.",
+      "translation_ar": "انتظر لا تخبرني سأقرأ رأيك. وتظنون أنكم ترغبون في أن تكونوا مساعدي الخارق.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Young Man",
+      "text": "I was not thinking that.",
+      "translation_ar": "لم أكن أفكر بذلك",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "... that you’d like to live in a treehouse.",
+      "translation_ar": "... أنك ترغب في العيش في بيت شجرة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Young Man",
+      "text": "No.",
+      "translation_ar": "لا",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "… that you should eat more vegetables.",
+      "translation_ar": "يجب أن تأكل المزيد من الخضروات",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Young Man",
+      "text": "Please, stop talking. You really should get some help.",
+      "translation_ar": "أرجوك توقف عن الكلام يجب أن تحصل على بعض المساعدة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Mind reading is not my superpower. Maybe I can become invisible. I … am … invisible!",
+      "translation_ar": "قراءة العقل ليست قوتي الخارقة ربما يمكنني أن أكون غير مرئية أنا... غير مرئي!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "You can’t see me. Who am I? I’m not here. You can’t see me.",
+      "translation_ar": "لا يمكنك رؤيتي من أنا؟ أنا لست هنا. لا يمكنك رؤيتي",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Young Man",
+      "text": "I can see you and so can everybody else.",
+      "translation_ar": "أستطيع أن أراك، وكذلك الجميع.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No power of invisibility. Maybe I can create a force field . I feel it working. Nothing can hurt –",
+      "translation_ar": "لا قوة من العدم ربما أستطيع أن أخلق حقل قوة أشعر أنه يعمل لا شيء يمكن أن يؤذي...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Ow, that wasn’t very nice. I see I have a lot of work to do. Well, goodbye, non-super person!",
+      "translation_ar": "ذلك لم يكن لطيفاً جداً. أرى أن لدي الكثير من العمل لأقوم به حسنا، وداعا، شخص غير مقنع!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Young Man",
+      "text": "Wait. I’d better go with you. You might get worse…if that’s even possible.",
+      "translation_ar": "انتظر ومن الأفضل أن أذهب معك. وربما تزداد سوءا لو أمكن ذلك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "That's very nice of you, ordinary human . But I’ d rather go by myself. This is a quest.",
+      "translation_ar": "هذا لطيف جداً منك، إنسان عادي ولكنني أفضل أن أذهب لوحدي. هذا مسعى",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Young Man",
+      "text": "Every time you speak, I get more confused.",
+      "translation_ar": "في كل مرة تتكلمين فيها، أصبح مشوشاً أكثر",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "A quest is a part of all superhero stories. You really need to work on your superhero studies. Now, stand back. I’ve never flown before.",
+      "translation_ar": "السعي هو جزء من كل قصص البطل الخارق أنت حقا بحاجة للعمل على دراسات البطل الخارق. الآن، تراجع. ولم أحلق من قبل.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Young Man",
+      "text": "And you’re not flying now.",
+      "translation_ar": "وأنت لا تطير الآن.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Flying is also not my superpower. That’s too bad. It's going to be expensive to Uber everywhere. You know, I' d rather walk. It’s a nice day. Goodbye, non-super person.",
+      "translation_ar": "الطيران أيضاً ليس قوتي الخارقة وهذا أمر سيء للغاية. ستكون مكلفة لـ(أوبر) في كل مكان كما تعلمون، أنا أفضل المشي. إنه يوم جميل مع السلامة، شخص غير مقنع.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Young Man",
+      "text": "I am not talking to strangers again.",
+      "translation_ar": "أنا لا أتحدث إلى الغرباء مرة أخرى.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Announcer",
+      "text": "Will Lightning Bolt Lady find her superpowers … ever? Ouch! Did that brick wall hurt? Will the young man ever talk to a stranger again?",
+      "translation_ar": "هل سيّدة (ليتنج بولت) ستجد قوّتها الخارقة؟ ! هل تأذى هذا الجدار؟ هل سيتحدث الشاب مع غريب مرة أخرى؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Announcer",
+      "text": "Find out on the next episode of Let’s Learn English! ​",
+      "translation_ar": "اكتشفوا الحلقة القادمة من ليتعلموا الانجليزية",
       "start_ms": null,
       "end_ms": null
     }
@@ -126,5 +373,7 @@
       "meaning_ar": "مؤتمر"
     }
   ],
-  "questions": []
+  "questions": [],
+  "translation_status": "machine_draft",
+  "translation_engine": "argos-en-ar"
 }

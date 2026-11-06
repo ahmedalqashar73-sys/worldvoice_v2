@@ -11,9 +11,9 @@
   "voice_rights_verified": true,
   "recording_format": "original_mp3",
   "sync_status": "unverified",
-  "transcript_scope": "excerpt",
+  "transcript_scope": "full",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-21/4273059.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 21. Original VOA MP3 with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2 Lesson 21. Complete original VOA spoken English transcript with Arabic translation drafted by Argos Translate and pending editorial review. Human original audio; sentence timings still unverified. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2018/03/06/fabffd67-3af1-480c-925c-0b87e11fe82b_hq.mp3?download=1",
   "duration_ms": 246000,
   "hosts": [
@@ -22,13 +22,14 @@
   ],
   "other_speakers": [
     "Professor Bot",
+    "is usually used",
     "Sue"
   ],
   "dialogue": [
     {
       "speaker": "Anna",
-      "text": "Got it. Pete, I promise. I won’t tell anyone. Bye. He is so strange.",
-      "translation_ar": "فهمت يا بيت، أعدك ألا أخبر أحدًا. وداعًا. إنه غريب جدًا!",
+      "text": "Got it. Pete, I promise. I won’t tell anyone. Bye. He is so strange .",
+      "translation_ar": "فهمت (بيت)، أعدك. لن أخبر أحداً وداعاً إنه غريب جداً",
       "start_ms": null,
       "end_ms": null
     },
@@ -83,8 +84,8 @@
     },
     {
       "speaker": "Anna",
-      "text": "Well, from the way he was speaking, I don’t think he likes cake or presents or fun.",
-      "translation_ar": "من طريقة كلامه، لا أظنه يحب الكعك أو الهدايا أو المرح.",
+      "text": "Well, from the way he was speaking , I don’t think he likes cake or presents or fun.",
+      "translation_ar": "حسنا، من الطريقة التي كان يتكلم بها، لا أعتقد أنه يحب الكعكة أو الهدايا أو المرح.",
       "start_ms": null,
       "end_ms": null
     },
@@ -97,8 +98,8 @@
     },
     {
       "speaker": "Anna",
-      "text": "Well, I don’t care. I’m getting him a present. Do you know where I can buy something unique?",
-      "translation_ar": "لا يهمني؛ سأشتري له هدية. هل تعرفين مكانًا يبيع أشياء فريدة؟",
+      "text": "Well, I don’t care. I’m getting him a present. Do you know where I can buy something unique ?",
+      "translation_ar": "حسنا، لا يهمني. إنني أحضر له هدية. هل تعرف أين يمكنني شراء شيء فريد؟",
       "start_ms": null,
       "end_ms": null
     },
@@ -125,8 +126,22 @@
     },
     {
       "speaker": "Professor Bot",
-      "text": "Did you hear Ashley and Anna using the words talk and speak?",
-      "translation_ar": "هل سمعت استخدام آشلي وآنا لكلمتي talk وspeak؟",
+      "text": "Did you hear Ashley and Anna using the words talk and speak ? Talk and speak both mean “to say words.” And, many times, you can use either word without losing any meaning. But there are some differences in when we use these words. The word talk",
+      "translation_ar": "هل سمعت (آشلي) و(آنا) يستعملان الكلمات ويتحدثان؟ فالتحدث والتكلم يعنيان &quot; قول الكلمات &quot; . و عدة مرات، يمكنك استخدام أي كلمة دون فقدان أي معنى. لكن هناك بعض الاختلافات عندما نستخدم هذه الكلمات الكلمة تتكلم",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "is usually used",
+      "text": "for conversations between two or more people and informal situations, such as between friends or family For example, Ashley asks Anna: “Are you talking to yourself again?” Speak",
+      "translation_ar": "وفيما يتعلق بالمحادثات بين شخصين أو أكثر والأوضاع غير الرسمية، مثل بين الأصدقاء أو الأسرة، على سبيل المثال، تسأل أشلي آنا: &quot; هل تتحدث إلى نفسك مرة أخرى؟ &quot; . تكلم",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "is usually used",
+      "text": "for one-way communication, such as presentations formal situations , such as a boss speaking with her workers to talk about language ability and in polite requests Keep watching, and listen for the words talk and speak .",
+      "translation_ar": "من أجل التواصل في اتجاه واحد، مثل العروض الرسمية، مثل الرئيس الذي يتحدث مع عمالها للحديث عن القدرة اللغوية وفي الطلبات المهذبة",
       "start_ms": null,
       "end_ms": null
     },
@@ -146,8 +161,8 @@
     },
     {
       "speaker": "Sue",
-      "text": "We are! Here at Tanglewood Works, we focus on things that are handmade, reclaimed and recycled.",
-      "translation_ar": "نعم! نركز هنا على الأشياء المصنوعة يدويًا والمعاد استخدامها أو تدويرها.",
+      "text": "We are! Here at Tanglewood Works, we focus on things that are handmade , reclaimed and recycled .",
+      "translation_ar": "نحن! هنا في (تانجوود) نركز على أشياء مصنوعة يدوياً ومسترجعة ومعاد تدويرها",
       "start_ms": null,
       "end_ms": null
     },
@@ -160,8 +175,8 @@
     },
     {
       "speaker": "Sue",
-      "text": "It’s good for you too. Local artists made all of these one-of-a-kind pieces. And I paint most of the furniture.",
-      "translation_ar": "وهو مفيد لك أيضًا. صنع فنانون محليون هذه القطع الفريدة، وأنا ألوّن معظم الأثاث.",
+      "text": "It’s good for you too. Local artists made all of these one-of-a-kind pieces. And I paint most of the furniture .",
+      "translation_ar": "وهو مفيد لك أيضا. الفنانون المحليون صنعوا كل هذه القطع من نوع واحد وأرسم معظم الأثاث",
       "start_ms": null,
       "end_ms": null
     },
@@ -180,6 +195,34 @@
       "end_ms": null
     },
     {
+      "speaker": "Sue",
+      "text": "So, Anna, do you like to make things?",
+      "translation_ar": "إذاً يا (آنا)، أتحبين صنع الأشياء؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Me? Oh, no. Every time I try to make something, something goes wrong.",
+      "translation_ar": "أنا؟ لا في كل مرة أحاول أن أصنع شيئاً ما يحدث خطأ",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh, sorry. Sorry.",
+      "translation_ar": "آسف آسف",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Sue",
+      "text": "It’s okay. Anna, everybody can make something.",
+      "translation_ar": "لا بأس. (آنا)، الجميع يمكنهم صنع شيء.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
       "speaker": "Anna",
       "text": "Sue, this piece is very interesting!",
       "translation_ar": "سو، هذه القطعة مثيرة للاهتمام!",
@@ -188,8 +231,8 @@
     },
     {
       "speaker": "Sue",
-      "text": "When I found these pieces, they were broken and in a dumpster. But they spoke to me.",
-      "translation_ar": "عندما وجدت هذه القطع كانت مكسورة وملقاة في حاوية قمامة، لكنها تحدثت إليّ!",
+      "text": "You know, when I found these pieces, they were broken and in a dumpster . But they spoke to me. And they said, “Save me, Sue! Save me!”",
+      "translation_ar": "تعلمون، عندما وجدت هذه القطع، كانت مكسورة وفي القمامة. لكنهم تحدثوا معي وقالوا: &quot; أنقذني، سو! أنقذني",
       "start_ms": null,
       "end_ms": null
     },
@@ -202,8 +245,8 @@
     },
     {
       "speaker": "Sue",
-      "text": "When I see something special that someone has thrown away, I can almost hear it talk.",
-      "translation_ar": "عندما أرى شيئًا خاصًا تخلص منه شخص ما، أكاد أسمعه يتحدث.",
+      "text": "When I see something special that someone has thrown away, I can almost hear it talk .",
+      "translation_ar": "عندما أرى شيئا مميزا أن شخص ما قد رمي بعيدا، أستطيع تقريبا أن أسمع كلام.",
       "start_ms": null,
       "end_ms": null
     },
@@ -216,7 +259,7 @@
     },
     {
       "speaker": "Sue",
-      "text": "Anna, it’s not easy to see the treasure in trash.",
+      "text": "Anna, it’s not easy to see the treasure in trash .",
       "translation_ar": "آنا، ليس من السهل رؤية الكنز في القمامة.",
       "start_ms": null,
       "end_ms": null
@@ -236,9 +279,23 @@
       "end_ms": null
     },
     {
+      "speaker": "Sue",
+      "text": "Next week, bring in some trash and we’ll turn it into treasure. Just remember – pick some trash that “ speaks ” to you.",
+      "translation_ar": "وفي الأسبوع المقبل، نجلب بعض النفايات، وسنحولها إلى كنز. فقط تذكر - اختار بعض القمامة التي &quot; تتحدث &quot; إليك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
       "speaker": "Anna",
       "text": "Got it! I’ll see you next week!",
       "translation_ar": "فهمت! أراك الأسبوع القادم!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "Will Anna find trash that “ speaks ” to her? What will it say? We’ll find out next week!",
+      "translation_ar": "هل ستجد آنا نفايات &quot; تتحدث &quot; إليها؟ ماذا سيقول؟ سنكتشف الأسبوع القادم",
       "start_ms": null,
       "end_ms": null
     }
@@ -253,5 +310,7 @@
       "meaning_ar": "كنز"
     }
   ],
-  "questions": []
+  "questions": [],
+  "translation_status": "machine_draft",
+  "translation_engine": "argos-en-ar"
 }

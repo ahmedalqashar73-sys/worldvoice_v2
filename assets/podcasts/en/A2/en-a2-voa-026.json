@@ -11,16 +11,19 @@
   "voice_rights_verified": true,
   "recording_format": "original_mp3",
   "sync_status": "unverified",
-  "transcript_scope": "excerpt",
+  "transcript_scope": "full",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-26/4350607.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 26. Original VOA MP3 with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2 Lesson 26. Complete original VOA spoken English transcript with Arabic translation drafted by Argos Translate and pending editorial review. Human original audio; sentence timings still unverified. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2018/04/25/3b556bb7-8c37-4c22-a390-d79b9f34fd24_hq.mp3?download=1",
   "duration_ms": 300000,
   "hosts": [
     "Anna",
     "Pete"
   ],
-  "other_speakers": [],
+  "other_speakers": [
+    "Penelope",
+    "Evilana"
+  ],
   "dialogue": [
     {
       "speaker": "Anna",
@@ -119,6 +122,244 @@
       "translation_ar": "إيفيلينا أو شيء من هذا القبيل. من السهل التعرف عليها؛ فهي ترتدي قبعة دائمًا.",
       "start_ms": null,
       "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "So, Anna, have you met the new consultant yet?",
+      "translation_ar": "إذاً، (آنا)، هل قابلتِ المستشار الجديد بعد؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No. But I’ve already heard. We look alike, don’t we?",
+      "translation_ar": "لا ولكنني سمعت بالفعل. ونحن نشبه، أليس كذلك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Yeah, but you don’t act alike. You’re much nicer than she is.",
+      "translation_ar": "نعم، لكنك لا تتصرف على حد سواء. أنت ألطف بكثير منها.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Maybe she gets nervous at new jobs. Or maybe she’s shy. Let’s not judge, Penelope.",
+      "translation_ar": "ربما تتوتر في وظائف جديدة أو ربما تكون خجولة دعونا لا نحكم، بينلوبي.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "She’s not nervous or shy. She’s mean.",
+      "translation_ar": "وهي ليست عصبية أو خجولة. إنها لئيمة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "You know, we should get to know her better. Let’s invite her to lunch!",
+      "translation_ar": "يجب أن نعرفها بشكل أفضل دعونا ندعوها للغداء!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Sorry but I’m busy that day.",
+      "translation_ar": "آسف ولكني مشغول في ذلك اليوم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh, that’s too bad. Hey, I haven’t picked a day yet!",
+      "translation_ar": "هذا سيء للغاية مهلا، لم أختر يوما بعد!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "This is going to be so much fun. Boy, I can’t wait to play this game.",
+      "translation_ar": "هذا سيكون ممتعاً لا أطيق الانتظار حتى ألعب هذه اللعبة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Evilana",
+      "text": "How much longer are you going to be?",
+      "translation_ar": "كم من الوقت ستكون؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "We’ll be just a minute …",
+      "translation_ar": "سنستغرق دقيقة واحدة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "You must be Evelana. I’m Anna. We are look-alikes!",
+      "translation_ar": "(لابد أنك (إيفيلانا أنا آنا. نحن نبدو مغفلين",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Evilana",
+      "text": "No, we’re not. And my name is pronounced “Evil-ana.”",
+      "translation_ar": "كلا، لسنا كذلك. وينطق اسمي &quot; إيفل آنا &quot; .",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Oh. This is going to be fun.",
+      "translation_ar": "أوه. هذا سيكون ممتعاً",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Evilana",
+      "text": "You had better hurry up. I need this room for a lecture. It’s called: “If You Want to Win, Others Must Lose.” What is all this stuff, anyway?",
+      "translation_ar": "من الأفضل أن تسرع أحتاج هذه الغرفة لمحاضرة وهي تسمى: &quot; إذا أردت الفوز، فلابد أن يخسر آخرون &quot; . ما كل هذه الأشياء؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "It’s a game. We’re going to play at lunch.",
+      "translation_ar": "إنها لعبة وسنلعب في الغداء.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Evilana",
+      "text": "It’s a stupid child’s game!",
+      "translation_ar": "إنها لعبة طفلة غبية",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "It’s a fun game. But yes, it is for children.",
+      "translation_ar": "إنها لعبة ممتعة ولكن نعم، هو للأطفال.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Evilana",
+      "text": "Well, you may be childish but I’m not. And you look stupid with that thing on your head.",
+      "translation_ar": "حسنا، قد تكونين طفولية لكنني لست كذلك. وتبدو غبياً مع ذلك الشيء على رأسك",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Well, you look serious with that look on your face. Come on, Pete. Let’s play somewhere else.",
+      "translation_ar": "حسنا، تبدو جادا مع تلك النظرة على وجهك. هيا، بيت. فلنلعب في مكان آخر.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Actually, I’m going to stay for Evilana’s lecture.",
+      "translation_ar": "وفي الواقع، سأبقى في محاضرة إيفيلا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Fine. You can learn new ways to beat people.",
+      "translation_ar": "حسناً يمكنك تعلم طرق جديدة لضرب الناس",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Evilana",
+      "text": "He will. He will.",
+      "translation_ar": "سيفعل سيفعل",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Okay. Am I a food?",
+      "translation_ar": "حسناً هل أنا طعام؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Nope.",
+      "translation_ar": "لا",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Hey, do you guys have room for one more?",
+      "translation_ar": "هل لديكم مكان لواحد آخر؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "Sure, Pete! Come on over. What happened to your eye?",
+      "translation_ar": "بالتأكيد، بيت! هيا ماذا حدث لعينك؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Pete",
+      "text": "Evilana “accidentally” hit me. And she didn’t even say sorry. She’s so mean!",
+      "translation_ar": "وضربني إيفيلانا &quot; عرضيا &quot; . ولم تعتذر حتى. انها لئيمة جدا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "I told you so.",
+      "translation_ar": "أخبرتك بذلك",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Here, Pete. Put on this headband. You’ll feel better. Penelope, you’re right. Evilana is an awful person!",
+      "translation_ar": "هنا، بيت. ضع على هذا النطاق الرأسي وستشعرين بتحسن. بينلوبي، أنت على حق. (إفيلانا) شخص فظيع!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "And violent. And now we have to work with her!",
+      "translation_ar": "وعنيف والآن علينا العمل معها",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Haven’t you heard? She’s gone! She was given another assignment.",
+      "translation_ar": "ألم تسمع؟ لقد رحلت لقد تم منحها مهمة أخرى",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Penelope",
+      "text": "What assignment?",
+      "translation_ar": "أي مهمة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I’m not sure. I think it has something to do with outdoors. Anyway, let’s play! Pete it’s your turn.",
+      "translation_ar": "لست متأكدا. أعتقد أن له علاقة بالخارج على أي حال، فلنلعب بيت حان دورك",
+      "start_ms": null,
+      "end_ms": null
     }
   ],
   "vocabulary": [
@@ -131,5 +372,7 @@
       "meaning_ar": "مستشار"
     }
   ],
-  "questions": []
+  "questions": [],
+  "translation_status": "machine_draft",
+  "translation_engine": "argos-en-ar"
 }

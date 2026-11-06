@@ -11,16 +11,23 @@
   "voice_rights_verified": true,
   "recording_format": "original_mp3",
   "sync_status": "unverified",
-  "transcript_scope": "excerpt",
+  "transcript_scope": "full",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-25/4322773.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 25. Original VOA MP3 with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2 Lesson 25. Complete original VOA spoken English transcript with Arabic translation drafted by Argos Translate and pending editorial review. Human original audio; sentence timings still unverified. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2018/03/30/a591e14e-e65c-4370-91fb-06e8f9cad590_hq.mp3?download=1",
   "duration_ms": 285000,
   "hosts": [
     "Announcer",
     "Lightning Bolt Lady"
   ],
-  "other_speakers": [],
+  "other_speakers": [
+    "Woman",
+    "Parent",
+    "Child",
+    "Young Man",
+    "Children",
+    "Anna"
+  ],
   "dialogue": [
     {
       "speaker": "Announcer",
@@ -38,8 +45,8 @@
     },
     {
       "speaker": "Announcer",
-      "text": "She can’t fly, become invisible or create a force field. And she really cannot walk through walls.",
-      "translation_ar": "إنها لا تستطيع الطيران أو الاختفاء أو إنشاء مجال حماية، ولا تستطيع المرور عبر الجدران.",
+      "text": "She can’t fly, become invisible or create a force field. And she really cannot walk through walls. Ouch, Lightning Bolt Lady.",
+      "translation_ar": "ولا يمكنها الطيران أو أن تصبح غير مرئية أو أن تخلق مجالا للقوة. وهي حقاً لا تستطيع المشي عبر الجدران يا سيدة (لايتنج بولت)",
       "start_ms": null,
       "end_ms": null
     },
@@ -80,8 +87,295 @@
     },
     {
       "speaker": "Announcer",
-      "text": "Had been walking is the past perfect continuous of the verb walk.",
-      "translation_ar": "عبارة had been walking هي صيغة الماضي التام المستمر من الفعل walk.",
+      "text": "For example, I said, “She had been walking into that wall for about 15 minutes when she had a great idea.”",
+      "translation_ar": "وعلى سبيل المثال، قلت: &quot; كانت تسير في ذلك الجدار لمدة 15 دقيقة عندما كانت لديها فكرة عظيمة &quot; .",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Announcer",
+      "text": "Had been walking is the past perfect continuous of the verb walk . It’s had been plus the -ing form of the verb.",
+      "translation_ar": "كان يمشي في الماضي مُستمر تماماً في المشي وكان ذلك بالإضافة إلى شكل الفعل.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Announcer",
+      "text": "You’ll hear me use this verb tense a few more times today.",
+      "translation_ar": "وستسمعونني أستخدم هذا الفظ المتوتر عدة مرات أخرى اليوم.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Announcer",
+      "text": "Now, what am I forgetting? Oh right! Lightning Bolt Lady’s great idea.",
+      "translation_ar": "الآن، ماذا أنسى؟ صحيح! فكرة الليدي البرقية العظيمة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lightning Bolt Lady",
+      "text": "If I want to know my superpowers, I’ll need to learn about lightning!",
+      "translation_ar": "إذا أردت أن أعرف قدراتي الخارقة، سأحتاج أن أتعلم عن البرق!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Announcer",
+      "text": "So, she read many books about lightning.",
+      "translation_ar": "لذا، قرأت العديد من الكتب عن البرق",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lightning Bolt Lady",
+      "text": "Wow. A lightning strike usually lasts less than a second .",
+      "translation_ar": "رائع إضراب البرق يدوم عادة أقل من ثانية",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lightning Bolt Lady",
+      "text": "Lightning is really fast and I like speed walking. So, maybe one of my superpowers is super-speed walking! Bye!",
+      "translation_ar": "البرق سريع جداً وأنا أحب المشي السريع لذا، لَرُبَّمَا واحد مِنْ قوَّتي الخارقةِ يَمْشي سريع جداً! وداعا!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lightning Bolt Lady",
+      "text": "Check! Super-speed walking is definitely one of my superpowers.",
+      "translation_ar": "! المشي السريع هو بالتأكيد واحد من قوتي الخارقة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lightning Bolt Lady",
+      "text": "Lightning has millions of volts of electricity . Amazing!",
+      "translation_ar": "البرق لديه ملايين فولت من الكهرباء مذهل!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lightning Bolt Lady",
+      "text": "Wow! I can charge a lot of batteries with this superpower!",
+      "translation_ar": "رائع! يمكنني شحن الكثير من البطاريات بهذه القوة الخارقة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Announcer",
+      "text": "She had been looking for hours for someone to help when she found her chance.",
+      "translation_ar": "هي كَانتْ تَبْحثُ عن ساعاتِ لشخص ما للمُسَاعَدَة عندما وَجدتْ فرصتها.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Woman",
+      "text": "Hello? Hello? I’m sorry. I’m going to have to call you back. My phone is dying.",
+      "translation_ar": "مرحباً؟ مرحباً؟ أنا آسف. وسأعاود الاتصال بك. هاتفي يحتضر",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lightning Bolt Lady",
+      "text": "Excuse me, I can charge your phone.",
+      "translation_ar": "اعذرني، يمكنني شحن هاتفك",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Woman",
+      "text": "Really? Thanks!",
+      "translation_ar": "حقاً؟ شكراً",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lightning Bolt Lady",
+      "text": "I’m Lightning Bolt Lady! ashes . Then, she gives the woman lots of money and smiles and says goodbye.)",
+      "translation_ar": "أنا سيدة (لايتنج بولت) رماد ثم تعطي المرأة الكثير من المال وتبتسم وتقول وداعاً",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Announcer",
+      "text": "She had been practicing her superpowers all day. Suddenly, she heard a terrible sound – a child’s disappointment .",
+      "translation_ar": "كانت تتدرب على قوتها الخارقة طوال اليوم وفجأة، سمعت صوتا فظيعا - خيبة أمل الطفل.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Announcer",
+      "text": "These children tried to light a fire for over an hour. But then, they gave up .",
+      "translation_ar": "حاول هؤلاء الأطفال إطفاء الحريق لأكثر من ساعة ولكن بعد ذلك، لقد استسلموا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Parent",
+      "text": "Hey kids, that wood will never burn. It’is too wet.",
+      "translation_ar": "يا أطفال، هذا الخشب لن يحترق أبدا. وهو مبلل جدا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lightning Bolt Lady",
+      "text": "Small humans, what is wrong?",
+      "translation_ar": "البشر الصغار، ما الخطب؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Child",
+      "text": "Stranger danger!",
+      "translation_ar": "خطر غريب!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lightning Bolt Lady",
+      "text": "I’m Lightning Bolt Lady!",
+      "translation_ar": "أنا سيدة (لايتنج بولت)",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Young Man",
+      "text": "Oh no. It’s you.",
+      "translation_ar": "لا إنه أنت",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lightning Bolt Lady",
+      "text": "We meet again. And guess what: I found my superpowers.",
+      "translation_ar": "نلتقي مجدداً واحزر ماذا وجدت قوتي الخارقة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Child",
+      "text": "Well, we need a fire to toast the marshmallows to make S’mores .",
+      "translation_ar": "حسنا، نحن بحاجة إلى حريق لنخب المارشملوف لنصنع سمور",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lightning Bolt Lady",
+      "text": "I can help.",
+      "translation_ar": "يمكنني المساعدة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Young Man",
+      "text": "We don’t need a super-speed walker but thanks!",
+      "translation_ar": "نحن لا نحتاج الى ممشى سريع جدا ولكن شكرا",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lightning Bolt Lady",
+      "text": "Super-speed walking is just one of my superpowers. I can also do this!",
+      "translation_ar": "المشي السريع هو واحد من قوتي الخارقة يمكنني فعل هذا أيضاً",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lightning Bolt Lady",
+      "text": "Sorry! Let me do it again.",
+      "translation_ar": "آسف! دعني أفعلها مجدداً",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Children",
+      "text": "Thanks, Lightning Bolt Lady!",
+      "translation_ar": "(شكراً يا سيدة (لايتنج بولت",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Young Man",
+      "text": "Lightning Bolt Lady",
+      "translation_ar": "ليدي البرق",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lightning Bolt Lady",
+      "text": "You’re welcome. But you don’t have enough firewood . Using my super-speed walking, I will get more.",
+      "translation_ar": "العفو. ولكن ليس لديك ما يكفي من الحطب. بإستخدام سرعتي الخارقة سأصبح أكثر",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Parent",
+      "text": "Lightning Bolt Lady, come back! A lightning storm is coming!",
+      "translation_ar": "ليدي البرق، عودي! عاصفة البرق قادمة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Lightning Bolt Lady",
+      "text": "Not a chance ! There’s not a cloud in the …",
+      "translation_ar": "لا فرصة! لا توجد سحابة في ...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Child",
+      "text": "Lightning Bolt Lady, are you okay?",
+      "translation_ar": "سيدة \"البرق\"، هل أنتِ بخير؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Child",
+      "text": "Where's your super-suit?",
+      "translation_ar": "أين بدلتك الخارقة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Oh no! I've lost my superpowers!",
+      "translation_ar": "لا! لقد فقدت قوتي الخارقة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Young Man",
+      "text": "It's starting to rain. Do you want to go inside and eat some S’mores?",
+      "translation_ar": "بدأت تمطر هل تريد أن تدخل وتأكل بعض الـ(سمور)؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "You read my mind.",
+      "translation_ar": "لقد قرأت أفكاري",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "You know, I thought mind reading would be one of my superpowers. But it wasn’t.",
+      "translation_ar": "كما تعلم، ظننت أن قراءة الأفكار ستكون واحدة من قوتي الخارقة ولكنه لم يكن كذلك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Child",
+      "text": "That’d be a cool superpower.",
+      "translation_ar": "وسيكون ذلك قوة خارقة رائعة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Child",
+      "text": "But I’d rather be able to talk to animals.",
+      "translation_ar": "ولكنني أفضل أن أكون قادرا على التحدث مع الحيوانات.",
       "start_ms": null,
       "end_ms": null
     }
@@ -96,5 +390,7 @@
       "meaning_ar": "غير مرئي"
     }
   ],
-  "questions": []
+  "questions": [],
+  "translation_status": "machine_draft",
+  "translation_engine": "argos-en-ar"
 }

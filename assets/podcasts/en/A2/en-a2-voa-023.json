@@ -11,9 +11,9 @@
   "voice_rights_verified": true,
   "recording_format": "original_mp3",
   "sync_status": "unverified",
-  "transcript_scope": "excerpt",
+  "transcript_scope": "full",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-level-2-lesson-23/4287922.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 2, Lesson 23. Original VOA MP3 with selected exact original English dialogue and WorldVoice Arabic translation. Full VOA transcript at the source; this in-app excerpt is not the complete text. No sentence-level timestamps have been reviewed. WorldVoice is not affiliated with VOA.",
+  "source_credit": "VOA Learning English — Let's Learn English Level 2 Lesson 23. Complete original VOA spoken English transcript with Arabic translation drafted by Argos Translate and pending editorial review. Human original audio; sentence timings still unverified. WorldVoice is not affiliated with VOA.",
   "audio_url": "https://voa-audio.voanews.eu/vle/2018/03/15/b53a7e2c-2dd1-4623-b4d0-92efba982191_hq.mp3?download=1",
   "duration_ms": 294000,
   "hosts": [
@@ -48,8 +48,8 @@
     },
     {
       "speaker": "Ms. Weaver",
-      "text": "Tomorrow, you’ll be interviewing musician Emma G.",
-      "translation_ar": "غدًا ستجرين مقابلة مع الموسيقية إيما جي.",
+      "text": "Tomorrow, you ’ll be interviewing musician Emma G.",
+      "translation_ar": "غداً، ستقابلين الموسيقية (إيما جي)",
       "start_ms": null,
       "end_ms": null
     },
@@ -71,6 +71,34 @@
       "speaker": "Professor Bot",
       "text": "Anna and Ms. Weaver used the future continuous verb tense to talk about the interview.",
       "translation_ar": "استخدمت آنا والسيدة ويفر زمن المستقبل المستمر للحديث عن المقابلة.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "We use future continuous to talk about actions that will be in progress at or around a time in the future.",
+      "translation_ar": "ونستخدم في المستقبل بشكل مستمر للحديث عن الإجراءات التي ستسير في المستقبل أو حوله.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "For example, Ms. Weaver says, “Tomorrow, you ’ll be interviewing musician Emma G.”",
+      "translation_ar": "وعلى سبيل المثال، تقول السيدة ويفر &quot; تومورو، سوف تجري مقابلة مع موسيقي إيما ج. &quot; .",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "There are two options for future continuous. The first is: will be + the - ing form of the verb",
+      "translation_ar": "وهناك خياران لمواصلة المستقبل. الأول هو: سوف يكون + الشكل -",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Professor Bot",
+      "text": "And the second is: be + going to be + the - ing form of the verb. Keep watching for more!",
+      "translation_ar": "والثانية هي: أن يكون + سيكون + - شكل من الفعل. استمروا بالمشاهدة أكثر!",
       "start_ms": null,
       "end_ms": null
     },
@@ -101,6 +129,223 @@
       "translation_ar": "بكل سرور، من الرائع أن أكون هنا.",
       "start_ms": null,
       "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Well, we can’t wait to hear you sing. I listen to your music a lot. So, I feel like I know you. Is that strange?",
+      "translation_ar": "حسنا، لا يمكننا الانتظار حتى نسمعك تغني. أنا أستمع إلى موسيقاك كثيراً لذا، أشعر وكأنني أعرفك هل هذا غريب؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Emma G",
+      "text": "Anna, listening to music can be a very personal experience. So, no, that’s not strange.",
+      "translation_ar": "آنا، الاستماع إلى الموسيقى يمكن أن يكون تجربة شخصية جدا. لذلك، لا، هذا ليس غريبا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Good because I made something for you -- a video scrapbook of our friendship.",
+      "translation_ar": "جيد لأنني صنعت شيئاً من أجلك دفتر فيديو لصداقتنا",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I took photos of you and added myself. I worked on it all weekend.",
+      "translation_ar": "أخذت صوراً لك وأضفت نفسي عملت على ذلك طوال عطلة نهاية الأسبوع.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Emma G",
+      "text": "Well, that -- that’s strange. Is that even -- is that even legal ?",
+      "translation_ar": "حسنا، ذلك - هذا غريب. هل هذا حتى قانوني؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Now, Emma, let’s talk about your schedule . Tell me ... I mean, tell us exactly where you will be and when. Exactly.",
+      "translation_ar": "الآن، إيما، دعونا نتحدث عن جدولك. أخبرني... أعني، أخبرنا بالضبط أين ستكون ومتى بالضبط",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Emma G",
+      "text": "Sure. Well, in early June, I ’ll be performing at several venues across Austin, Texas.",
+      "translation_ar": "بالتأكيد وفي أوائل حزيران/يونيه، سأؤدي في عدة أماكن عبر أوستن، تكساس.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "That’s my vacation week. I can meet you there! We can tour the city. We can have lunch.",
+      "translation_ar": "هذا أسبوع إجازتي أستطيع مقابلتك هناك يمكننا جولة المدينة يمكننا تناول الغداء",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Emma G",
+      "text": "Um, yeah maybe. Then in mid-July, I’ m going to be teaching at a music camp in Chicago.",
+      "translation_ar": "نعم ربما ثم في منتصف تموز/يوليه، سأدرس في مخيم موسيقي في شيكاغو.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I’ ll be visiting my sister then. She only lives about six hours from Chicago! I could drive over. We could hang out.",
+      "translation_ar": "وعندئذ سأزور أختي. إنها تعيش فقط حوالي 6 ساعات من شيكاغو يمكنني القيادة يمكننا الخروج",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Emma G",
+      "text": "Yeah, uh maybe. You know, maybe now is a good time for some music.",
+      "translation_ar": "أجل، ربما ربما الآن وقت مناسب لبعض الموسيقى",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "That’s a great idea. Now, let's hear a song from Emma G.!",
+      "translation_ar": "هذه فكرة عظيمة. الآن، دعونا نسمع أغنية من (إيما جي)",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Emma G",
+      "text": "I wrote this song a couple of years ago. It’s called “ Wary .”",
+      "translation_ar": "لقد كتبت هذه الأغنية منذ سنتين وهي تسمى &quot; واري &quot; .",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Emma G",
+      "text": "Do you believe in happy endings?",
+      "translation_ar": "هل تؤمن بالنهايات السعيدة؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Endings...",
+      "translation_ar": "النهاية...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Emma G",
+      "text": "Do you really believe that we could be…",
+      "translation_ar": "هل تعتقد حقا أننا يمكن أن يكون...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Be...",
+      "translation_ar": "كن...",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Emma G",
+      "text": "I think something is wrong. I hear a voice in the background .",
+      "translation_ar": "أعتقد أن هناك خطب ما أسمع صوت في الخلفية",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Sorry. Sorry, Emma. That was me. I’m just so excited.",
+      "translation_ar": "آسف آسف، إيما. كان هذا أنا أنا فقط متحمس جدا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Emma G",
+      "text": "No problem. I'm glad you like the song.",
+      "translation_ar": "لا مشكلة أنا سعيد أنك تحب الأغنية",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "You go ahead. You go ahead.",
+      "translation_ar": "تفضل تفضل",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Emma G",
+      "text": "Okay. Do you believe in happy endings? tambourine playing and looks at Anna.)",
+      "translation_ar": "حسناً هل تؤمن بالنهايات السعيدة؟ (تامبورين) يلعب وينظر إلى (آنا)",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Emma G",
+      "text": "Anna, there’s no tambourine in this.",
+      "translation_ar": "آنا، ليس هناك طمر في هذا.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "I’m so sorry. I’m so sorry, Emma. See, I’ve always wanted to sing with you.",
+      "translation_ar": "أنا آسف جدا. أنا آسف جدا، إيما. لقد أردت دائما الغناء معك.",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Emma G",
+      "text": "Well, come on over then and we can sing a song together first.",
+      "translation_ar": "حسناً، هيا، يمكننا أن نغني أغنية معاً أولاً",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "No, I couldn't.",
+      "translation_ar": "لا، لم أستطع",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Emma G",
+      "text": "Come on. It’ll be fun.",
+      "translation_ar": "هيا ستكون ممتعة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Okay! Here. I brought my favorite song.",
+      "translation_ar": "حسناً هنا أحضرت أغنيتي المفضلة",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Emma G",
+      "text": "Oh, uh okay. Actually, I like this song. Um, are you ready?",
+      "translation_ar": "حسناً في الواقع، أحب هذه الأغنية. أم، هل أنت مستعد؟",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Anna",
+      "text": "Yes! Yes!",
+      "translation_ar": "نعم! نعم!",
+      "start_ms": null,
+      "end_ms": null
+    },
+    {
+      "speaker": "Emma G",
+      "text": "Okay. Emma G / Anna together: Every breath you take* Every move you make Every bond you break Every step you take I' ll be watching you … I’ ll be watching you ... I’ ll be watching you ... *From \"Every Breath You Take\" by The Police And now, here's a song by Emma G called \"Just Drive.\" Click here to read the words. This song is not part of the lesson but just a little something for you to enjoy! No media source currently available",
+      "translation_ar": "حسناً إيما جي آنا معا: كل نفس تأخذه كل خطوة تقومون بها تكسرون كل خطوة تخطوونها، سأراقبكم... سأراقبكم... والآن، إليك أغنية من (إيما جي) تُدعى \"فقط قُد\". انقر هنا لقراءة الكلمات. هذه الأغنية ليست جزءاً من الدرس لكن مجرد شيء صغير لتستمتع به No media source currently available",
+      "start_ms": null,
+      "end_ms": null
     }
   ],
   "vocabulary": [
@@ -113,5 +358,7 @@
       "meaning_ar": "مقابلة"
     }
   ],
-  "questions": []
+  "questions": [],
+  "translation_status": "machine_draft",
+  "translation_engine": "argos-en-ar"
 }
