@@ -29,13 +29,14 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y ffmpeg
-          python -m pip install --no-cache-dir whisper-timestamped==1.15.9
+          python -m pip install --no-cache-dir 'whisper-timestamped==1.15.9' 'argostranslate>=1.9,<2'
       - name: Produce one full English source transcript with draft timings
         env:
           EPISODE: ${{ inputs.episode_number }}
         run: |
           python scripts/voa_b1_transcript_candidate.py \
             --episode-number "$EPISODE" \
+            --draft-arabic \
             --output /tmp/voa_b1_transcript_REVIEW_ONLY.json
       - name: Keep transcripts as review-only artifacts, not published content
         if: always()

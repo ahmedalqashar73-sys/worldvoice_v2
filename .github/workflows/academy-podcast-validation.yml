@@ -9,6 +9,8 @@ on:
       - 'lib/features/learn/presentation/voa_originals_section.dart'
       - 'lib/features/learn/presentation/a2_long_listening_section.dart'
       - 'lib/features/learn/presentation/b1_voa_long_form_section.dart'
+      - 'scripts/voa_b1_transcript_candidate.py'
+      - 'scripts/tests/test_voa_b1_transcript_candidate.py'
       - 'lib/features/learn/presentation/learn_screen.dart'
       - 'assets/podcasts/**'
       - 'test/academy_podcast_*.dart'
@@ -30,6 +32,10 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
+      - name: Guard B1 original-source audio and review-only captions
+        run: |
+          python -m py_compile scripts/voa_b1_transcript_candidate.py
+          python -m unittest discover -s scripts/tests -p 'test_voa_b1_transcript_candidate.py'
       - name: Analyze podcast modules
         run: flutter analyze
       - name: Verify eight languages, dialogue transcript, reader and controls

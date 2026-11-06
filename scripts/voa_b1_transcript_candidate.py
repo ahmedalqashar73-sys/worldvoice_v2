@@ -40,7 +40,7 @@ def approved_source(item):
     return item["audio_url"]
 
 
-def process_episode(number, target):
+def process_episode(number, target, translate_arabic=False):
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     items = catalog["episodes"]
     if catalog.get("level") != "B1" or len(items) != 30 or not 1 <= number <= 30:
@@ -96,6 +96,23 @@ def process_episode(number, target):
         if len(rows) < 20:
             raise ValueError("Not enough original speech segments")
 
+    # Translations are optional machine drafts, never approved captions.
+    if translate_arabic:
+        import argostranslate.package
+        import argostranslate.translate
+        argostranslate.package.update_package_index()
+        packages = argostranslate.package.get_available_packages()
+        model = next((m for m in packages
+                      if m.from_code == "en" and m.to_code == "ar"), None)
+        if model is None:
+            raise RuntimeError("Offline English-Arabic model unavailable")
+        argostranslate.package.install_from_path(model.download())
+        for row in rows:
+            text_ar = argostranslate.translate.translate(
+                row["text"], "en", "ar"
+            ).strip()
+            row["translation_ar"] = text_ar or None
+
     proposal = {
         "id": item["id"], "level": "B1",
         "source_url": item["source_url"],
@@ -103,7 +120,10 @@ def process_episode(number, target):
         "audio_sha256": hash_value.hexdigest(),
         "measured_duration_ms": duration,
         "transcript_status": "machine_draft_review_required",
-        "translation_status": "pending_editorial_translation",
+        "translation_status": (
+            "machine_draft_review_required" if translate_arabic
+            else "pending_editorial_translation"
+        ),
         "sync_status": "unverified",
         "approved_for_publication": False,
         "warning": "Review with original sound and check third-party media rights before publication.",
@@ -118,7 +138,9 @@ def process_episode(number, target):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--episode-number", type=int, default=1)
+    parser.add_argument("--draft-arabic", action="store_true")
     parser.add_argument("--output", type=Path,
                         default=Path("/tmp/voa_b1_transcript_REVIEW_ONLY.json"))
     args = parser.parse_args()
-    process_episode(args.episode_number, args.output)
+    process_episode(args.episode_number, args.output,
+                    translate_arabic=args.draft_arabic)
