@@ -67,9 +67,10 @@ void main() {
     // Both the original recordings and all thirty bilingual assets must
     // exist. The visible readiness labels depend on an async FutureBuilder,
     // so assert the model's verified availability, not frame scheduling.
-    expect(available.toSet(), hasLength(30));
+    final availableIds = available!;
+    expect(availableIds, hasLength(30));
     expect(recordings.every((recording) =>
-        available.contains(recording.id)), isTrue);
+        availableIds.contains(recording.id)), isTrue);
   });
 
   testWidgets('English B1 tab exposes the official long podcast catalog',
