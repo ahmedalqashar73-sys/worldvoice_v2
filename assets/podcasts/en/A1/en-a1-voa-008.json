@@ -20,213 +20,213 @@
   "voice_rights_verified": true,
   "source": "VOA Learning English",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-8-are-you-busy/3253185.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 8. Original VOA conversation audio and dialogue. WorldVoice is not affiliated with VOA. Sentence cues are machine-aligned from the original VOA audio and are provisional pending listening review.",
-  "audio_url": "https://voa-audio.voanews.eu/vle/2016/03/25/ae6c5055-13ae-485b-995d-b347125ecf10_hq.mp3?download=1",
-  "duration_ms": 118557,
-  "sync_status": "provisional",
+  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 8. The authentic ~5-minute full VOA lesson video is used as audio. English dialogue and WorldVoice Arabic translation cover only the conversation segment, not all teaching/narration in the complete lesson. Full-lesson line cues are unverified. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-video-ns.akamaized.net/pangeavideo/2016/05/e/ee/ee277d1c-017b-4b98-9491-8de08a76122e_mobile.mp4?cb=ecfb9e192&download=1",
+  "duration_ms": 300000,
+  "sync_status": "unverified",
   "dialogue": [
     {
       "speaker": "Anna",
       "text": "Hello, everyone. Here I am at my new job! Yesterday at my first day of work … Well, let’s not talk about yesterday. Today is a new day! Today I want to apologize to my co-workers.",
       "translation_ar": "مرحبًا بالجميع. ها أنا في عملي الجديد! بالأمس كان أول يوم عمل... دعونا لا نتحدث عن الأمس. اليوم يوم جديد! أريد الاعتذار لزملائي.",
-      "start_ms": 0,
-      "end_ms": 15680
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Hi, Anne. Are you busy?",
       "translation_ar": "مرحبًا يا آن، هل أنت مشغولة؟",
-      "start_ms": 18820,
-      "end_ms": 20580
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anne",
       "text": "Hi, Anna. Yes. At 10 a.m. I am writing. Every day I do my morning show. Sorry!",
       "translation_ar": "مرحبًا يا آنا. نعم. الساعة العاشرة صباحًا أكتب. أقدم برنامجي الصباحي كل يوم. آسفة!",
-      "start_ms": 20980,
-      "end_ms": 29720
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Okay. See you later, maybe.",
       "translation_ar": "حسنًا، ربما أراك لاحقًا.",
-      "start_ms": 29720,
-      "end_ms": 34420
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anne",
       "text": "Maybe I’ll see you later.",
       "translation_ar": "ربما أراك لاحقًا.",
-      "start_ms": 34900,
-      "end_ms": 36940
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Hi, Jonathan. Are you busy?",
       "translation_ar": "مرحبًا يا جوناثان، هل أنت مشغول؟",
-      "start_ms": 38340,
-      "end_ms": 40300
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Jonathan",
       "text": "Yes, I’m busy. When the studio light is on, I am recording my evening show.",
       "translation_ar": "نعم، أنا مشغول. عندما يضيء مصباح الاستوديو أكون أسجل برنامجي المسائي.",
-      "start_ms": 40640,
-      "end_ms": 46340
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Right. Sorry about yesterday.",
       "translation_ar": "حسنًا. آسفة بشأن الأمس.",
-      "start_ms": 46700,
-      "end_ms": 48680
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Jonathan",
       "text": "No worries.",
       "translation_ar": "لا تقلقي.",
-      "start_ms": 49360,
-      "end_ms": 49920
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "May I see the studio?",
       "translation_ar": "هل يمكنني رؤية الاستوديو؟",
-      "start_ms": 50260,
-      "end_ms": 51620
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Jonathan",
       "text": "Um, maybe another time? Right now I am busy.",
       "translation_ar": "ربما في وقت آخر؟ أنا مشغول الآن.",
-      "start_ms": 51820,
-      "end_ms": 54960
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Sure. Okay, ’bye.",
       "translation_ar": "بالتأكيد. حسنًا، وداعًا.",
-      "start_ms": 55000,
-      "end_ms": 58340
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Jonathan",
       "text": "‘Bye.",
       "translation_ar": "وداعًا.",
-      "start_ms": 58680,
-      "end_ms": 59060
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Hi, Amelia! Are you busy?",
       "translation_ar": "مرحبًا يا أميليا! هل أنت مشغولة؟",
-      "start_ms": 59300,
-      "end_ms": 61600
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Amelia",
       "text": "I’m a little busy.",
       "translation_ar": "أنا مشغولة قليلًا.",
-      "start_ms": 62020,
-      "end_ms": 62980
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "I want to say I’m sorry for yesterday.",
       "translation_ar": "أريد أن أعتذر عن الأمس.",
-      "start_ms": 63280,
-      "end_ms": 66900
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Amelia",
       "text": "It’s okay, Anna.",
       "translation_ar": "لا بأس يا آنا.",
-      "start_ms": 67880,
-      "end_ms": 68680
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Well, I am sorry.",
       "translation_ar": "حسنًا، أنا آسفة.",
-      "start_ms": 69160,
-      "end_ms": 70240
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Amelia",
       "text": "It’s okay, Anna. Come by this afternoon.",
       "translation_ar": "لا بأس يا آنا. تعالي بعد الظهر.",
-      "start_ms": 70820,
-      "end_ms": 73080
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Okay.",
       "translation_ar": "حسنًا.",
-      "start_ms": 73720,
-      "end_ms": 74340
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Caty",
       "text": "Anna.",
       "translation_ar": "آنا.",
-      "start_ms": 75820,
-      "end_ms": 76020
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Yes, Ms. Weaver.",
       "translation_ar": "نعم يا سيدة ويفر.",
-      "start_ms": 76440,
-      "end_ms": 78240
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Caty",
       "text": "Are you busy?",
       "translation_ar": "هل أنت مشغولة؟",
-      "start_ms": 78620,
-      "end_ms": 79200
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "Yes, Ms. Weaver. I am busy.",
       "translation_ar": "نعم يا سيدة ويفر. أنا مشغولة.",
-      "start_ms": 79540,
-      "end_ms": 81500
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Caty",
       "text": "My office. 5:00 p.m.",
       "translation_ar": "مكتبي، الساعة الخامسة مساءً.",
-      "start_ms": 81920,
-      "end_ms": 83680
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "5:00 p.m.",
       "translation_ar": "الخامسة مساءً.",
-      "start_ms": 86260,
-      "end_ms": 86980
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Caty",
       "text": "Come in.",
       "translation_ar": "تفضلوا بالدخول.",
-      "start_ms": 88500,
-      "end_ms": 94320
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Co-Workers",
       "text": "Surprise!",
       "translation_ar": "مفاجأة!",
-      "start_ms": 99160,
-      "end_ms": 99580
+      "start_ms": null,
+      "end_ms": null
     },
     {
       "speaker": "Anna",
       "text": "A party! Awesome! And I still have my job! Phew! Until next time!",
       "translation_ar": "حفلة! رائع! وما زال لدي عملي! يا للراحة! إلى اللقاء!",
-      "start_ms": 101460,
-      "end_ms": 109480
+      "start_ms": null,
+      "end_ms": null
     }
   ],
   "vocabulary": [
@@ -248,14 +248,9 @@
     }
   ],
   "questions": [],
-  "backup_audio_url": "https://voa-audio.voanews.eu/vle/2016/03/25/ae6c5055-13ae-485b-995d-b347125ecf10.mp3?download=1",
-  "sync_method": "audio_word_alignment_review_pending",
-  "sync_token_match_ratio": 0.948,
-  "sync_review_pending_lines": [
-    2,
-    22,
-    24,
-    25,
-    26
-  ]
+  "conversation_audio_url": "https://voa-audio.voanews.eu/vle/2016/03/25/ae6c5055-13ae-485b-995d-b347125ecf10_hq.mp3?download=1",
+  "conversation_duration_ms": 118557,
+  "conversation_backup_audio_url": "https://voa-audio.voanews.eu/vle/2016/03/25/ae6c5055-13ae-485b-995d-b347125ecf10.mp3?download=1",
+  "recording_format": "original_full_lesson_video_mp4",
+  "transcript_scope": "excerpt"
 }

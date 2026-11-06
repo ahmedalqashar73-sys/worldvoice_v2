@@ -15,9 +15,9 @@
   "voice_rights_verified": true,
   "source": "VOA Learning English",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-5-where-are-you/3168971.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 5. Original VOA conversation audio and dialogue. WorldVoice is not affiliated with VOA.",
-  "audio_url": "https://voa-audio.voanews.eu/vle/2016/03/01/ab9c2944-eddc-4806-9296-290bfa8c6ff2_hq.mp3?download=1",
-  "duration_ms": 60000,
+  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 5. The authentic ~5-minute full VOA lesson video is used as audio. English dialogue and WorldVoice Arabic translation cover only the conversation segment, not all teaching/narration in the complete lesson. Full-lesson line cues are unverified. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-video-ns.akamaized.net/pangeavideo/2016/05/c/ce/ce630bdd-1ffd-4c63-aca7-4bdff50fc7ba_mobile.mp4?cb=ed0a575e6&download=1",
+  "duration_ms": 300000,
   "sync_status": "unverified",
   "dialogue": [
     {
@@ -110,5 +110,9 @@
     }
   ],
   "questions": [],
-  "backup_audio_url": "https://voa-audio.voanews.eu/vle/2016/03/01/ab9c2944-eddc-4806-9296-290bfa8c6ff2.mp3?download=1"
+  "conversation_audio_url": "https://voa-audio.voanews.eu/vle/2016/03/01/ab9c2944-eddc-4806-9296-290bfa8c6ff2_hq.mp3?download=1",
+  "conversation_duration_ms": 60000,
+  "conversation_backup_audio_url": "https://voa-audio.voanews.eu/vle/2016/03/01/ab9c2944-eddc-4806-9296-290bfa8c6ff2.mp3?download=1",
+  "recording_format": "original_full_lesson_video_mp4",
+  "transcript_scope": "excerpt"
 }

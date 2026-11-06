@@ -17,9 +17,9 @@
   "voice_rights_verified": true,
   "source": "VOA Learning English",
   "source_url": "https://learningenglish.voanews.com/a/lets-learn-english-lesson-2-hello/3113733.html",
-  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 2. Original VOA conversation audio and dialogue. WorldVoice is not affiliated with VOA.",
-  "audio_url": "https://voa-audio.voanews.eu/vle/2016/02/10/56246d7b-5fa4-42d2-90b0-d403e6b46227_hq.mp3?download=1",
-  "duration_ms": 48000,
+  "source_credit": "VOA Learning English — Let's Learn English Level 1 Lesson 2. The authentic ~5-minute full VOA lesson video is used as audio. English dialogue and WorldVoice Arabic translation cover only the conversation segment, not all teaching/narration in the complete lesson. Full-lesson line cues are unverified. WorldVoice is not affiliated with VOA.",
+  "audio_url": "https://voa-video-ns.akamaized.net/pangeavideo/2021/02/4/42/4298a2ba-d665-4b1c-aaa1-502bbcb9b88d_240p.mp4?cb=edc3e6218&download=1",
+  "duration_ms": 300000,
   "sync_status": "unverified",
   "dialogue": [
     {
@@ -147,5 +147,9 @@
     }
   ],
   "questions": [],
-  "backup_audio_url": "https://voa-audio.voanews.eu/vle/2016/02/10/56246d7b-5fa4-42d2-90b0-d403e6b46227.mp3?download=1"
+  "conversation_audio_url": "https://voa-audio.voanews.eu/vle/2016/02/10/56246d7b-5fa4-42d2-90b0-d403e6b46227_hq.mp3?download=1",
+  "conversation_duration_ms": 48000,
+  "conversation_backup_audio_url": "https://voa-audio.voanews.eu/vle/2016/02/10/56246d7b-5fa4-42d2-90b0-d403e6b46227.mp3?download=1",
+  "recording_format": "original_full_lesson_video_mp4",
+  "transcript_scope": "excerpt"
 }
