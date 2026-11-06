@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../data/academy_podcast_repository.dart';
 import 'voa_originals_section.dart';
 import 'a2_long_listening_section.dart';
+import 'b1_voa_long_form_section.dart';
 
 /// Separate CEFR/language paths; never represent unrecorded plans as audio.
 class PodcastLibrarySection extends StatefulWidget {
@@ -35,7 +36,9 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
 
   Widget _hero(bool ar) {
     final voaPilot = _selectedLanguage == 'en' &&
-        (_selectedLevel == 'A1' || _selectedLevel == 'A2');
+        (_selectedLevel == 'A1' ||
+            _selectedLevel == 'A2' ||
+            _selectedLevel == 'B1');
     return Container(
         key: const ValueKey('podcast-hero'),
         padding: const EdgeInsets.all(19),
@@ -99,7 +102,9 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
             const Icon(Icons.schedule_rounded,
                 color: Color(0xFFF1D98F), size: 16),
             const SizedBox(width: 4),
-            Text(voaPilot ? (_selectedLevel == 'A2' ? '30 VOA' : '15 VOA') : '≈ 05:00',
+            Text(voaPilot
+                ? (_selectedLevel == 'A1' ? '15 VOA' : '30 VOA')
+                : '≈ 05:00',
                 style: TextStyle(color: Color(0xFFF1D98F),
                     fontWeight: FontWeight.w800, fontSize: 13)),
           ]),
@@ -293,6 +298,7 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
     final scheme = Theme.of(context).colorScheme;
     final voaOnly = _selectedLanguage == 'en' && _selectedLevel == 'A1';
     final voaA2 = _selectedLanguage == 'en' && _selectedLevel == 'A2';
+    final voaB1 = _selectedLanguage == 'en' && _selectedLevel == 'B1';
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       _hero(ar),
       const SizedBox(height: 20),
@@ -481,6 +487,8 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
             ],
           ),
         ),
+      ] else if (voaB1) ...[
+        const B1VoaLongSection(),
       ] else
       FutureBuilder<List<AcademyPodcastEntry>>(
         future: _episodes,

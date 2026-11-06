@@ -8,11 +8,13 @@ on:
       - 'lib/features/learn/presentation/podcast_library_section.dart'
       - 'lib/features/learn/presentation/voa_originals_section.dart'
       - 'lib/features/learn/presentation/a2_long_listening_section.dart'
+      - 'lib/features/learn/presentation/b1_voa_long_form_section.dart'
       - 'lib/features/learn/presentation/learn_screen.dart'
       - 'assets/podcasts/**'
       - 'test/academy_podcast_*.dart'
       - 'test/academy_voa_originals_test.dart'
       - 'test/academy_a2_long_listening_test.dart'
+      - 'test/academy_b1_voa_long_form_test.dart'
       - 'pubspec.yaml'
       - '.github/workflows/academy-podcast-validation.yml'
   workflow_dispatch:
@@ -31,4 +33,4 @@ jobs:
       - name: Analyze podcast modules
         run: flutter analyze
       - name: Verify eight languages, dialogue transcript, reader and controls
-        run: flutter test test/academy_podcast_repository_test.dart test/academy_podcast_reader_test.dart test/academy_voa_originals_test.dart test/academy_a2_long_listening_test.dart
+        run: flutter test test/academy_podcast_repository_test.dart test/academy_podcast_reader_test.dart test/academy_voa_originals_test.dart test/academy_a2_long_listening_test.dart test/academy_b1_voa_long_form_test.dart
