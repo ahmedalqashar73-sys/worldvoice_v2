@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../data/academy_podcast_repository.dart';
 import 'voa_originals_section.dart';
+import 'a2_long_listening_section.dart';
 
 /// Separate CEFR/language paths; never represent unrecorded plans as audio.
 class PodcastLibrarySection extends StatefulWidget {
@@ -362,6 +363,7 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
       ),
       const SizedBox(height: 20),
       if (voaA2) ...[
+        A2LongListeningSection(initialLessons: widget.initialA2Lessons),
         VoaOriginalsSection(
           level: 'A2',
           initialLessons: widget.initialA2Lessons,
