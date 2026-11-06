@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'b1_voa_transcript_section.dart';
+
 /// Curated real VOA broadcasts. None of these episodes has an approved
 /// full-length bilingual transcript or sentence cue file yet.
 class B1VoaLongEpisode {
@@ -230,11 +232,16 @@ class _B1VoaLongPlayerState extends State<B1VoaLongPlayer> {
   String? _error;
   double _speed = 1;
   int _token = 0;
+  late Future<B1VoaTranscript?> _captions;
 
   @override
   void initState() {
     super.initState();
     _index = widget.startIndex;
+    _captions = const B1VoaTranscriptRepository().loadFor(
+      episodeId: widget.episodes[_index].id,
+      audioUrl: widget.episodes[_index].audioUrl,
+    );
     _stateSubscription = _player.playerStateStream.listen((state) {
       if (!mounted) return;
       final nowPlaying = state.playing &&
@@ -267,6 +274,10 @@ class _B1VoaLongPlayerState extends State<B1VoaLongPlayer> {
     _changing = true;
     final token = ++_token;
     final episode = widget.episodes[next];
+    _captions = const B1VoaTranscriptRepository().loadFor(
+      episodeId: episode.id,
+      audioUrl: episode.audioUrl,
+    );
     setState(() {
       _index = next;
       _loading = true;
@@ -461,16 +472,40 @@ class _B1VoaLongPlayerState extends State<B1VoaLongPlayer> {
               padding: const EdgeInsets.all(16),
               child: Column(crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                Text(ar ? 'النص الإنجليزي والترجمة العربية'
-                    : 'English transcript and Arabic translation',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w900, fontSize: 16)),
-                const SizedBox(height: 8),
-                Text(ar
-                    ? 'ما زال تفريغ التسجيل الكامل ومراجعته وترجمته قيد الإعداد. لن نعرض نصًا غير مطابق للصوت، ولن نفعّل تمييز الجمل قبل ضبط التوقيت.'
-                    : 'The full transcript, editorial review and Arabic translation are still in preparation. We will not display text mismatched to the recording or enable unverified sentence cues.',
-                  style: TextStyle(
-                      color: scheme.onSurfaceVariant, height: 1.5)),
+                FutureBuilder<B1VoaTranscript?>(
+                  future: _captions,
+                  builder: (context, snapshot) {
+                    final captions = snapshot.data;
+                    if (captions != null &&
+                        captions.id == episode.id &&
+                        captions.audioUrl == episode.audioUrl) {
+                      return B1VoaCaptionPanel(
+                        key: ValueKey('b1-captions-${episode.id}'),
+                        transcript: captions,
+                        position: _position,
+                        onSeek: (position) =>
+                            unawaited(_player.seek(position)),
+                      );
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(ar ? 'النص الإنجليزي والترجمة العربية'
+                            : 'English transcript and Arabic translation',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16)),
+                        const SizedBox(height: 8),
+                        Text(ar
+                            ? 'النص الكامل والترجمة غير متاحين لهذه الحلقة بعد. نستمع فقط للصوت الأصلي حتى تكتمل المراجعة، دون عرض كلمات غير مطابقة.'
+                            : 'Full English and Arabic captions are not yet available for this episode. Original audio continues; no fabricated transcript is shown.',
+                          style: TextStyle(
+                              color: scheme.onSurfaceVariant,
+                              height: 1.5)),
+                      ],
+                    );
+                  },
+                ),
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
                   key: const ValueKey('b1-voa-long-source'),
