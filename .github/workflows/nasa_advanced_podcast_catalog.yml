@@ -1,0 +1,51 @@
+name: Curate original long NASA podcasts for WorldVoice B2 C1 C2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/nasa_advanced_podcast_catalog.yml'
+      - 'scripts/import_nasa_advanced_catalog.py'
+      - 'scripts/tests/test_nasa_advanced_catalog.py'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nasa-advanced-original-catalog-main
+  cancel-in-progress: false
+
+jobs:
+  verify-and-curate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Python source and editorial source verification tests
+        run: |
+          python -m pip install --no-cache-dir requests beautifulsoup4
+          python -m py_compile scripts/import_nasa_advanced_catalog.py
+          python -m unittest discover -s scripts/tests -p 'test_nasa_advanced_catalog.py'
+      - name: Curate only official NASA RSS originals with English transcript pages
+        run: |
+          python scripts/import_nasa_advanced_catalog.py \
+            --output assets/podcasts/nasa_advanced_long_form.json
+      - name: Commit only rigorously verified 90-source catalog to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/podcasts/nasa_advanced_long_form.json
+          if git diff --cached --quiet; then
+            echo "NASA catalog unchanged."
+            exit 0
+          fi
+          git commit -m "content(podcast): curate 30 official NASA long episodes each for B2 C1 C2"
+          git pull --rebase origin main
+          git push origin HEAD:main
