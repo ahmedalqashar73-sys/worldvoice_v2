@@ -1,0 +1,41 @@
+{
+  "id": "ccby-0156",
+  "language": "en",
+  "level": "A1",
+  "title": "The Hungry Crocodile",
+  "title_ar": "التمساح الجائع",
+  "author": "Christian G.",
+  "illustrator": "Wiehan de Jager",
+  "reader": "Darshan Soni",
+  "source_text_url": "https://www.storybookscanada.ca/stories/en/0156/",
+  "source_audio_url": "https://www.storybookscanada.ca/stories/en/0156/",
+  "license_url": "https://creativecommons.org/licenses/by/3.0/",
+  "license_name": "CC BY 3.0",
+  "rights_status": "cc_by_3_0",
+  "cefr_status": "worldvoice_editorial_provisional",
+  "translation_status": "on_demand_only",
+  "audio_sync_status": "not_verified",
+  "content_note": "Unabridged original reading from Storybooks Canada Level 1. Not Oxford Bookworms. WorldVoice CEFR A1 label is provisional.",
+  "chapters": [
+    {
+      "number": 1,
+      "title": "The Hungry Crocodile",
+      "duration_seconds": 0,
+      "audio_url": "https://www.storybookscanada.ca/audio/en/0156/en-0156_hungry.mp3",
+      "paragraphs": [
+        "Once there was a very hungry crocodile.",
+        "He searched for food slowly and quietly. And then…",
+        "POW!!! The crocodile strikes!",
+        "After that he is no longer hungry, and he is happy.",
+        "Until he gets hungry again."
+      ],
+      "image_urls": [
+        "https://www.storybookscanada.ca/images/0156/02.jpg",
+        "https://www.storybookscanada.ca/images/0156/03.jpg",
+        "https://www.storybookscanada.ca/images/0156/04.jpg",
+        "https://www.storybookscanada.ca/images/0156/05.jpg",
+        "https://www.storybookscanada.ca/images/0156/06.jpg"
+      ]
+    }
+  ]
+}
