@@ -101,6 +101,9 @@ flutter:
     - assets/frames/
     - assets/castles/
     - assets/stories/index.json
+    - assets/stories/graded/
+    - assets/stories/graded/en/A1/
+    - assets/stories/graded/en/C1/
     - assets/stories/en/A1/
     - assets/stories/en/A1/illustrations/
     - assets/stories/en/A2/
