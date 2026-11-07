@@ -8,6 +8,17 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../rooms/data/room_backend_config.dart';
 
+/// Keep the original words intact while exposing a separate translate
+/// action for each sentence, even when one transcript cue contains several.
+List<String> podcastReadingSentences(String text) {
+  final sentences = text.trim()
+      .split(RegExp(r'(?<=[.!?。！？])\s+'))
+      .where((part) => part.trim().isNotEmpty)
+      .map((part) => part.trim())
+      .toList(growable: false);
+  return sentences.isEmpty ? <String>[text] : sentences;
+}
+
 /// A single, opt-in translation for a podcast sentence. Never translates
 /// the entire episode, controls playback, or claims approved audio alignment.
 class PodcastSentenceTranslation extends StatefulWidget {
