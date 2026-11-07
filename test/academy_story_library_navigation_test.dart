@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:worldvoice/features/learn/presentation/story_library_section.dart';
 import 'package:worldvoice/features/learn/presentation/graded_story_reader_screen.dart';
+import 'package:worldvoice/features/learn/data/graded_story_repository.dart';
 
 void main() {
   testWidgets('English A1 shows only five licensed graded storybooks',
@@ -24,12 +25,18 @@ void main() {
 
   testWidgets('A1 opens original human-narrated reader, without old textbook',
       (tester) async {
+    // Load assets outside fake-async before creating FutureBuilder readers.
+    final repository = GradedStoryRepository();
+    final entries = await tester.runAsync(() => repository.loadIndex());
+    final first = entries!.firstWhere((entry) => entry.id == 'ccby-0087');
+    await tester.runAsync(() => repository.loadBook(first));
     await tester.pumpWidget(const MaterialApp(
       home: Scaffold(
         body: SingleChildScrollView(child: StoryLibrarySection()),
       ),
     ));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
     final entry = find.byKey(const ValueKey('stories-a1-open-ccby-0087'));
     await tester.ensureVisible(entry);
     await tester.tap(entry);
