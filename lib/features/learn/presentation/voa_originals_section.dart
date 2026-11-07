@@ -175,7 +175,7 @@ class _VoaOriginalsSectionState extends State<VoaOriginalsSection> {
         future: _lessons,
         builder: (context, state) {
           if (state.hasError) {
-            return Text(ar ? 'تعذر قراءة فهرس VOA.' : 'VOA index unavailable.');
+            return Text(ar ? 'تعذر قراءة فهرس الحلقات.' : 'Episode index unavailable.');
           }
           if (!state.hasData) {
             return const Center(child: CircularProgressIndicator());
@@ -257,7 +257,7 @@ class _VoaOriginalAudioScreenState extends State<VoaOriginalAudioScreen> {
       if (mounted) setState(() => _ready = true);
     } catch (_) {
       if (mounted) {
-        setState(() => _error = 'Audio could not be loaded from VOA.');
+        setState(() => _error = 'Original recording could not be loaded.');
       }
     }
   }
@@ -310,7 +310,7 @@ class _VoaOriginalAudioScreenState extends State<VoaOriginalAudioScreen> {
                 style: const TextStyle(color: Colors.white70)),
             const SizedBox(height: 16),
             if (_error != null)
-              Text(ar ? 'تعذّر تحميل صوت VOA. يمكنك فتح المصدر الأصلي.'
+              Text(ar ? 'تعذّر تحميل التسجيل الأصلي.'
                   : _error!, style: const TextStyle(color: Colors.white)),
             if (_ready)
               StreamBuilder<Duration>(
