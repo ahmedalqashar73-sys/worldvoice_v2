@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart' show SynchronousFuture;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'podcast_sentence_translation.dart';
 
@@ -675,7 +674,7 @@ class _NasaLongPodcastPlayerState extends State<NasaLongPodcastPlayer> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 for (final sentence in line.english
-                                    .split(RegExp(r'(?<=[.!?])\\s+'))
+                                    .split(RegExp(r'(?<=[.!?])\s+'))
                                     .where((value) => value.trim().isNotEmpty))
                                   Padding(
                                     padding: const EdgeInsets.only(bottom: 9),
