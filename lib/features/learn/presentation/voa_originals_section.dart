@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart' show SynchronousFuture;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'podcast_sentence_translation.dart';
 
@@ -261,11 +260,6 @@ class _VoaOriginalAudioScreenState extends State<VoaOriginalAudioScreen> {
         setState(() => _error = 'Audio could not be loaded from VOA.');
       }
     }
-  }
-
-  Future<void> _openOfficialTranscript() async {
-    final uri = Uri.parse(widget.lesson.sourceUrl);
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   String _clock(Duration value) {
