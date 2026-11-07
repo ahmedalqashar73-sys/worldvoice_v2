@@ -256,8 +256,8 @@ class _NasaLongPodcastSectionState extends State<NasaLongPodcastSection> {
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Text(ar
-              ? 'تعذر تحميل تسجيلات NASA الأصلية.'
-              : 'Could not load original NASA recordings.');
+              ? 'تعذر تحميل التسجيلات الأصلية.'
+              : 'Could not load original recordings.');
         }
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
@@ -461,7 +461,7 @@ class _NasaLongPodcastPlayerState extends State<NasaLongPodcastPlayer> {
       if (mounted && generation == _generation) {
         setState(() {
           _loading = false;
-          _error = 'Unable to stream original NASA audio';
+          _error = 'Unable to stream original audio';
         });
       }
     } finally {
@@ -603,7 +603,7 @@ class _NasaLongPodcastPlayerState extends State<NasaLongPodcastPlayer> {
                 final transcript = snapshot.data;
                 if (transcript == null) {
                   return Text(ar
-                      ? 'النص الإنجليزي والترجمة العربية قيد الاستيراد من مصدر NASA الأصلي. افتح صفحة المصدر لقراءة النص الآن.'
+                      ? 'نص الحلقة قيد الإعداد. يمكنك متابعة الاستماع للتسجيل الأصلي.'
                       : 'The transcript is not available for this episode yet. Listen to the original recording.',
                     style: TextStyle(
                         height: 1.5, color: scheme.onSurfaceVariant));
