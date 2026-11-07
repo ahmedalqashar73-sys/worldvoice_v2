@@ -295,16 +295,16 @@ class _TasksTabState extends State<_TasksTab> {
                 : roomXpRequiredForLevel(level);
             final tier = roomCastleTierForLevel(level);
             const castleNamesAr = [
-              'قلعة البداية', 'قلعة البرونز', 'قلعة الفضة',
-              'قلعة الياقوت', 'قلعة الزمرد', 'القلعة الذهبية',
-              'قلعة التنين', 'القلعة السماوية',
-              'القلعة الإمبراطورية', 'قلعة الأساطير',
+              'قصر البداية', 'قصر الطابقين', 'قصر الطوابق الثلاثة',
+              'قصر البرجين', 'قصر الأجنحة', 'قصر الأبراج الأربعة',
+              'القصر الملكي', 'قصر الأبراج الستة',
+              'القصر الإمبراطوري', 'قصر الأساطير',
             ];
             const castleNamesEn = [
-              'Starter Castle', 'Bronze Castle', 'Silver Castle',
-              'Sapphire Castle', 'Emerald Castle', 'Golden Castle',
-              'Dragon Castle', 'Sky Castle',
-              'Imperial Castle', 'Legendary Castle',
+              'Starter Palace', 'Two-storey Palace', 'Three-storey Palace',
+              'Twin-tower Palace', 'Winged Palace', 'Four-tower Palace',
+              'Royal Palace', 'Six-tower Palace',
+              'Imperial Palace', 'Legendary Palace',
             ];
             return Padding(
               padding: const EdgeInsets.only(bottom: 14),
@@ -815,7 +815,7 @@ class RoomCastleArtwork extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(22),
             ),
-            child: Padding(
+            child: SingleChildScrollView(child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -829,7 +829,10 @@ class RoomCastleArtwork extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  SizedBox(height: 300, width: 300, child: _image(cacheWidth: 512)),
+                  SizedBox(height: 300, width: 300, child: _image(
+                    cacheWidth: (300 * MediaQuery.devicePixelRatioOf(dialogContext))
+                        .ceil().clamp(300, 1254).toInt(),
+                  )),
                   const SizedBox(height: 8),
                   Text(
                     'Lv. $first–$last',
@@ -846,10 +849,15 @@ class RoomCastleArtwork extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
+            )),
           ),
         ),
-        child: _image(cacheWidth: 512),
+        child: LayoutBuilder(builder: (context, constraints) {
+          final width = constraints.hasBoundedWidth ? constraints.maxWidth : 240.0;
+          final pixels = (width * MediaQuery.devicePixelRatioOf(context))
+              .ceil().clamp(108, 1254).toInt();
+          return _image(cacheWidth: pixels);
+        }),
       ),
     );
   }

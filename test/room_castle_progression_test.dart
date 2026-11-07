@@ -103,8 +103,8 @@ void main() {
       final codec = await ui.instantiateImageCodec(bytes.buffer.asUint8List(
         bytes.offsetInBytes, bytes.lengthInBytes));
       final frame = await codec.getNextFrame();
-      expect(frame.image.width, 512);
-      expect(frame.image.height, 512);
+      expect(frame.image.width, inInclusiveRange(1024, 2048));
+      expect(frame.image.height, frame.image.width);
       frame.image.dispose();
       codec.dispose();
     }
@@ -135,6 +135,28 @@ void main() {
       }
     }
     expect(roomCastleDisplayXp({'roomPoints': 100}), 300);
+  });
+
+  testWidgets('HD castle preview scrolls on a short high-density screen',
+      (tester) async {
+    tester.view.devicePixelRatio = 3;
+    tester.view.physicalSize = const Size(1200, 600);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    await tester.pumpWidget(const MaterialApp(home: Scaffold(body:
+      SizedBox(width: 100, height: 110, child: RoomCastleArtwork(level: 6)))));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(RoomCastleArtwork));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    final dialogImage = tester.widget<Image>(find.descendant(
+      of: find.byType(Dialog), matching: find.byType(Image)));
+    expect((dialogImage.image as ResizeImage).width, 900);
+    await tester.ensureVisible(find.text('Close'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Close'));
+    await tester.pumpAndSettle();
+    expect(find.byType(Dialog), findsNothing);
   });
 
   test('Flutter matches the shared backend progression contract', () {

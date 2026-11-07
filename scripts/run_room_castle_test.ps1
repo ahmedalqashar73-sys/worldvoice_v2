@@ -8,8 +8,8 @@ $ErrorActionPreference = "Stop"
 Set-Location (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 
 $branch = (& git branch --show-current).Trim()
-if ($LASTEXITCODE -ne 0 -or $branch -ne "feature/scalable-progress-foundation") {
-  throw "Switch to feature/scalable-progress-foundation before running this script. Current: $branch"
+if ($LASTEXITCODE -ne 0 -or $branch -ne "main") {
+  throw "Run this script from the original main branch. Current: $branch"
 }
 
 for ($i = 1; $i -le 10; $i++) {
@@ -18,7 +18,7 @@ for ($i = 1; $i -le 10; $i++) {
   $filename = "castle_{0:D2}_lv{1:D2}-{2:D2}.webp" -f $i, $start, $end
   $path = Join-Path "assets/castles" $filename
   if (-not (Test-Path $path)) {
-    throw "Castle image is missing: $path. Run git pull --ff-only origin feature/scalable-progress-foundation"
+    throw "Castle image is missing: $path. Run git pull --ff-only origin main"
   }
 }
 Write-Host "All ten premium castle images are present." -ForegroundColor Green
@@ -43,7 +43,8 @@ $argsRun = @(
   "--dart-define=AGORA_APP_ID=fa41476c6813471eb45c059bcb4a0e19",
   "--dart-define=WORLDVOICE_ROOM_BACKEND_URL=https://worldvoice-v2.onrender.com",
   "--dart-define=AGORA_TOKEN_ENDPOINT=https://worldvoice-agora-token.worldvoice.workers.dev/agora/token",
-  "--dart-define=WORLDVOICE_ECONOMY_ENDPOINT=https://worldvoice-v2.onrender.com"
+  "--dart-define=WORLDVOICE_ECONOMY_ENDPOINT=https://worldvoice-v2.onrender.com",
+  "--dart-define=WORLDVOICE_GIFT_STORE_ENDPOINT=https://worldvoice-teacher-ai.onrender.com"
 )
 if ($GiftPreview) {
   $argsRun += "--dart-define=WORLDVOICE_FRIEND_GIFT_PREVIEW=true"

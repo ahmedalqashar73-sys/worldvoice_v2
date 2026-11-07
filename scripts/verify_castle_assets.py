@@ -26,6 +26,7 @@ def check() -> int:
     if args.require_webp and len(entries) != 10:
         errors.append("manifest must contain exactly ten castles")
     missing_webp: list[str] = []
+    hashes: set[str] = set()
     for i in range(1, 11):
         lo = (i - 1) * 5 + 1
         hi = i * 5
@@ -44,7 +45,11 @@ def check() -> int:
             errors.append(f"invalid/truncated WebP: {name}")
             continue
         entry = entries.get(f"assets/castles/{name}", {})
-        if entry.get("sha256") != hashlib.sha256(raw).hexdigest() or entry.get("size") != len(raw):
+        digest = hashlib.sha256(raw).hexdigest()
+        if digest in hashes:
+            errors.append(f"duplicate castle artwork: {name}")
+        hashes.add(digest)
+        if entry.get("sha256") != digest or entry.get("size") != len(raw):
             errors.append(f"manifest mismatch: {name}")
         if raw[12:16] == b"VP8X":
             alpha = bool(raw[20] & 0x10)
@@ -56,8 +61,12 @@ def check() -> int:
             dimensions = ((bits & 0x3fff) + 1, ((bits >> 14) & 0x3fff) + 1)
         else:
             alpha, dimensions = False, None
-        if not alpha or dimensions != (512, 512):
-            errors.append(f"expected 512x512 WebP with alpha: {name}")
+        if (not alpha or dimensions is None or
+                dimensions[0] != dimensions[1] or
+                not 1024 <= dimensions[0] <= 2048):
+            errors.append(f"expected square 1024–2048px WebP with alpha: {name}")
+        if dimensions and (entry.get("width"), entry.get("height")) != dimensions:
+            errors.append(f"manifest dimensions mismatch: {name}")
     for err in errors:
         print("ERROR:", err, file=sys.stderr)
     if missing_webp:
