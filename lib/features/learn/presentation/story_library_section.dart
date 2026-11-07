@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show SynchronousFuture;
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../data/academy_catalog.dart';
@@ -10,7 +11,10 @@ import 'graded_story_reader_screen.dart';
 
 /// Independent graded stories; existing lesson stories remain unchanged.
 class StoryLibrarySection extends StatefulWidget {
-  const StoryLibrarySection({super.key});
+  const StoryLibrarySection({super.key, this.initialA1Stories});
+
+  /// Test/preview injection. Production always loads the signed-in main assets.
+  final List<GradedStoryEntry>? initialA1Stories;
 
   @override
   State<StoryLibrarySection> createState() => _StoryLibrarySectionState();
@@ -21,7 +25,10 @@ class _StoryLibrarySectionState extends State<StoryLibrarySection> {
   late final Future<List<StoryLibraryEntry>> _index = _repository.loadIndex();
   final GradedStoryRepository _gradedRepository = GradedStoryRepository();
   late final Future<List<GradedStoryEntry>> _gradedA1Index =
-      _gradedRepository.loadIndex();
+      widget.initialA1Stories == null
+          ? _gradedRepository.loadIndex()
+          : SynchronousFuture<List<GradedStoryEntry>>(
+              widget.initialA1Stories!);
   String _language = 'en';
   String _level = 'A1';
 
