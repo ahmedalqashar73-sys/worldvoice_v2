@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'lib/features/learn/data/story_library_repository.dart'
+      - 'lib/features/learn/data/graded_story_repository.dart'
+      - 'lib/features/learn/presentation/graded_story_reader_screen.dart'
       - 'lib/features/learn/domain/models/story_library_models.dart'
       - 'lib/features/learn/presentation/story_library_*.dart'
       - 'lib/features/learn/presentation/story_textbook_*.dart'
@@ -13,6 +15,7 @@ on:
       - 'lib/features/learn/presentation/learn_screen.dart'
       - 'assets/stories/**'
       - 'test/story_library_*.dart'
+      - 'test/academy_stories_a1_open_license_test.dart'
       - 'test/story_textbook_*.dart'
       - 'test/academy_story_library_navigation_test.dart'
       - 'pubspec.yaml'
@@ -33,4 +36,4 @@ jobs:
       - name: Analyze story library modules
         run: flutter analyze
       - name: Test story JSON, navigation, and illustrations
-        run: flutter test test/story_library_repository_test.dart test/story_library_illustrations_test.dart test/story_textbook_models_test.dart test/academy_story_library_navigation_test.dart test/story_textbook_reader_test.dart test/story_textbook_levels_test.dart
+        run: flutter test test/story_library_repository_test.dart test/story_library_illustrations_test.dart test/story_textbook_models_test.dart test/academy_story_library_navigation_test.dart test/story_textbook_reader_test.dart test/story_textbook_levels_test.dart test/academy_stories_a1_open_license_test.dart
