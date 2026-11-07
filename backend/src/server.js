@@ -1842,7 +1842,7 @@ app.post("/podcast/translate", async (req, res, next) => {
         "Preserve scientific names, speakers, proper nouns, and meaning. " +
         "Do not add notes, answers, explanations, timestamps, or labels. " +
         "Return only the translated sentence. If already in the target language, return unchanged.",
-      input: `Target language code: ${targetLanguageCode}\nEnglish sentence: ${value}`,
+      input: `Target language code: ${targetLanguageCode}\nOriginal sentence: ${value}`,
     });
     const translation = String(response.output_text || "").trim().slice(0, 4000);
     if (!translation) {
