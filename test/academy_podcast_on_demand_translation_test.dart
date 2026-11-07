@@ -3,6 +3,30 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:worldvoice/features/learn/presentation/podcast_sentence_translation.dart';
 
 void main() {
+  test('native language comes from profile code, including legacy profiles', () {
+    expect(podcastNativeLanguageFromProfile({
+      'nativeLanguageCode': 'es',
+      'nativeLanguage': 'Arabic',
+    }, 'en'), 'es');
+    expect(podcastNativeLanguageFromProfile({
+      'nativeLanguage': 'العربية',
+    }, 'en'), 'ar');
+    expect(podcastNativeLanguageFromProfile({
+      'nativeLanguage': 'Español',
+    }, 'ar'), 'es');
+    expect(podcastNativeLanguageFromProfile({
+      'nativeLanguage': 'Russian',
+    }, 'en'), 'ru');
+    expect(podcastNativeLanguageFromProfile(null, 'fr'), 'fr');
+  });
+
+  test('long text splits into isolated sentences before translating', () {
+    expect(podcastReadingSentences('Hello. Welcome! How are you?'),
+      ['Hello.', 'Welcome!', 'How are you?']);
+    expect(podcastReadingSentences('Bonjour ! Bonsoir.'),
+      ['Bonjour !', 'Bonsoir.']);
+  });
+
   testWidgets('translation is opt-in per sentence, defaults to native language',
       (tester) async {
     final calls = <String>[];
