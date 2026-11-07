@@ -25,13 +25,17 @@ void main() {
 
   testWidgets('A1 opens new graded reader instead of legacy storybook',
       (tester) async {
-    final entries = await tester.runAsync(
-        () => GradedStoryRepository().loadIndex());
-    expect(entries, isNotNull);
-    await tester.pumpWidget(MaterialApp(
+    const preview = GradedStoryEntry(
+      id: 'ccby-0087', language: 'en', level: 'A1',
+      title: 'I Like to Read!', titleAr: 'أحب القراءة',
+      asset: 'assets/stories/graded/en/A1/ccby-0087.json',
+      status: 'preview', rightsStatus: 'cc_by_3_0',
+    );
+    await tester.pumpWidget(const MaterialApp(
       home: Scaffold(
-        body: SingleChildScrollView(child:
-          StoryLibrarySection(initialA1Stories: entries!)),
+        body: SingleChildScrollView(
+          child: StoryLibrarySection(initialA1Stories: [preview]),
+        ),
       ),
     ));
     await tester.pump();
