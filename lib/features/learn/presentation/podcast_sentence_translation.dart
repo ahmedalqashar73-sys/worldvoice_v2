@@ -17,7 +17,24 @@ String podcastNativeLanguageFromProfile(
   final storedCode =
       (profile?['nativeLanguageCode'] as String? ?? '').trim().toLowerCase()
           .replaceAll('_', '-');
-  if (RegExp(r'^[a-z]{2,3}(-[a-z0-9]{2,8})?
+  if (RegExp(r'^[a-z]{2,3}(-[a-z0-9]{2,8})?$').hasMatch(storedCode)) {
+    return storedCode;
+  }
+  final oldName =
+      (profile?['nativeLanguage'] as String? ?? '').trim().toLowerCase();
+  if (oldName.isNotEmpty) {
+    for (final language in ProfileLanguageCatalog.languages) {
+      if (oldName == language.code ||
+          oldName == language.englishName.toLowerCase() ||
+          oldName == language.nativeName?.toLowerCase()) {
+        return language.code;
+      }
+    }
+  }
+  return fallback;
+}
+
+/// Keep the original words intact while exposing a separate translate
 /// action for each sentence, even when one transcript cue contains several.
 List<String> podcastReadingSentences(String text) {
   final sentences = text.trim()
