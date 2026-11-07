@@ -240,10 +240,10 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
             isPublished
                 ? (entry.status == 'published_audio'
                     ? (entry.level == 'A2'
-                        ? (ar ? 'صوت بشري VOA · نص مختار · التزامن قيد المراجعة'
-                            : 'VOA human voice · excerpt · sync pending')
-                        : (ar ? 'VOA · صوت بشري · تزامن تجريبي'
-                            : 'VOA human audio · provisional sync'))
+                        ? (ar ? 'صوت بشري · نص مختار · التزامن قيد المراجعة'
+                            : 'Human voice · excerpt · sync pending')
+                        : (ar ? 'صوت بشري · تزامن تجريبي'
+                            : 'Human audio · provisional sync'))
                     : (ar ? 'صوت ونص متزامنان' : 'Audio + synced reading'))
                 : enabled
                     ? (deviceReadAloud
@@ -407,8 +407,8 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
             title: Text(ar ? 'نصوص WorldVoice التدريبية (صوت آلي)'
                 : 'WorldVoice reading practice (device voice)'),
             subtitle: Text(ar
-                ? 'مواد أصلية محفوظة منفصلة عن تسجيلات VOA.'
-                : 'Original practice scripts kept separate from VOA recordings.'),
+                ? 'نصوص تدريبية محفوظة منفصلة عن التسجيلات الأصلية.'
+                : 'Original practice scripts are separate from the published recordings.'),
             children: [
             FutureBuilder<List<AcademyPodcastEntry>>(
               future: _episodes,
@@ -780,8 +780,8 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(Localizations.localeOf(context).languageCode == 'ar'
-            ? 'تعذر تنزيل الصوت. يمكنك تشغيله من رابط VOA الأصلي.'
-            : 'Could not download the audio. Use the official VOA source.'),
+            ? 'تعذر تنزيل التسجيل، جرّب التشغيل عبر الإنترنت.'
+            : 'Could not download the audio. Try streaming the recording.'),
       ));
     } finally {
       if (mounted) setState(() => _downloading = false);
@@ -1117,14 +1117,14 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                   ar
                       ? (episode.canStream
                           ? (_error == null
-                              ? 'جارٍ تحميل التسجيل البشري من VOA...'
+                              ? 'جارٍ تحميل التسجيل البشري الأصلي...'
                               : 'تعذر تحميل الصوت. افتح المصدر الأصلي أدناه.')
                           : (episode.canReadAloud
                               ? 'يمكن الاستماع بنطق آلي إنجليزي من جهازك. لا يوجد تسجيل بشري.'
                               : 'نص قابل للقراءة الآن. التسجيل البشري لم يتوفر بعد.'))
                       : (episode.canStream
                           ? (_error == null
-                              ? 'Loading the human recording from VOA...'
+                              ? 'Loading the original human recording...'
                               : 'Audio could not load. Open the original source below.')
                           : (episode.canReadAloud
                               ? 'Listen with your device’s English synthetic voice. No human recording is available.'
@@ -1156,7 +1156,7 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                     ? (ar ? 'محفوظ للاستماع دون إنترنت' : 'Available offline')
                     : _downloading
                         ? (ar ? 'جارٍ حفظ التسجيل' : 'Saving audio')
-                        : (ar ? 'تنزيل تسجيل VOA' : 'Download VOA audio')),
+                        : (ar ? 'تنزيل التسجيل' : 'Download recording')),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: const Color(0xFFF4D790),
                   side: const BorderSide(color: Color(0xFFE4C779)),
@@ -1167,8 +1167,8 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
           if (episode.isExcerpt) ...[
             const SizedBox(height: 8),
             Text(ar
-                ? 'المحادثة المعروضة مقتطف أصلي مترجم وليست النص الكامل. استمع إلى التسجيل كاملًا، وافتح النص الكامل من VOA أدناه. لم يتم اعتماد توقيت الجمل.'
-                : 'These are selected translated lines, not the full transcript. Listen to the complete official VOA recording and open the full transcript below. No line timings are certified.',
+                ? 'النص المعروض مقتطف وليس الحلقة كاملة، وتوقيت الجمل غير معتمد.'
+                : 'These lines are an excerpt, not the full transcript. Sentence timing is unverified.',
                 style: const TextStyle(
                     color: Color(0xFFE0EEE5), fontSize: 11, height: 1.4)),
           ],
@@ -1561,8 +1561,8 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                                     : 'Reading transcript · No recording published yet.'))
                             : episode.isExcerpt
                                 ? (ar
-                                    ? 'اقرأ المقتطف مع التسجيل البشري الكامل. افتح النص الكامل من VOA؛ توقيت السطور غير متاح.'
-                                    : 'Read this excerpt with the complete human recording. Full transcript on VOA; line timing unavailable.')
+                                    ? 'اقرأ المقتطف أثناء الاستماع للتسجيل الكامل. توقيت الجمل غير متاح.'
+                                    : 'Read this excerpt with the full human recording. Line timing is unavailable.')
                                 : (ar
                                     ? 'اقرأ النص مع تشغيل التسجيل الأصلي. مزامنة السطور قيد التحقق.'
                                     : 'Read along with the authentic recording. Line timing is under review.')),
