@@ -6,6 +6,7 @@ on:
     paths:
       - 'lib/features/learn/data/academy_podcast_repository.dart'
       - 'lib/features/learn/presentation/podcast_library_section.dart'
+      - 'lib/features/learn/presentation/podcast_sentence_translation.dart'
       - 'lib/features/learn/presentation/voa_originals_section.dart'
       - 'lib/features/learn/presentation/a2_long_listening_section.dart'
       - 'lib/features/learn/presentation/b1_voa_long_form_section.dart'
