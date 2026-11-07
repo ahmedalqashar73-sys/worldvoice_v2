@@ -219,7 +219,7 @@ class _GradedStoryReaderScreenState extends State<GradedStoryReaderScreen> {
                       underline: const SizedBox.shrink(),
                       items: const [0.8, 1.0, 1.2].map((value) =>
                           DropdownMenuItem(value: value,
-                            child: Text('${value}×'))).toList(),
+                            child: Text('$value×'))).toList(),
                       onChanged: (next) {
                         if (next == null) return;
                         setState(() => _speed = next);
