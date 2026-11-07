@@ -99,19 +99,21 @@ void main() {
       ),
     ));
     final firstRow = find.byKey(const ValueKey('b1-caption-line-0'));
-    final englishText = tester.widget<Text>(
-      find.descendant(of: firstRow, matching: find.text(fullEnglish)),
-    );
-    final translate = tester.widget<PodcastSentenceTranslation>(
-      find.descendant(
-        of: firstRow,
-        matching: find.byType(PodcastSentenceTranslation),
-      ),
-    );
-    expect(englishText.maxLines, isNull);
-    expect(englishText.overflow, isNull);
+    final sentences = podcastReadingSentences(fullEnglish);
+    expect(sentences.length, greaterThan(1));
+    for (final sentence in sentences) {
+      final englishText = tester.widget<Text>(
+        find.descendant(of: firstRow, matching: find.text(sentence)),
+      );
+      expect(englishText.maxLines, isNull);
+      expect(englishText.overflow, isNull);
+    }
+    expect(find.descendant(
+      of: firstRow,
+      matching: find.byType(PodcastSentenceTranslation),
+    ), findsNWidgets(sentences.length));
     expect(find.text(fullArabic), findsNothing);
-    expect(translate.arabicDraft, fullArabic);
+    expect(transcript.lines.first.arabic, fullArabic);
   });
 
 }
