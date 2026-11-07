@@ -1340,20 +1340,27 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                 style: TextStyle(color: secondary,
                   fontWeight: FontWeight.w800, fontSize: 12)),
               const SizedBox(height: 6),
-              Text(line.text,
-                key: ValueKey('podcast-line-text-$i'),
-                textDirection: sourceIsArabic
-                    ? TextDirection.rtl : TextDirection.ltr,
-                textAlign: TextAlign.start,
-                style: TextStyle(fontSize: _fontSize, height: 1.5,
-                    color: ink, fontWeight: FontWeight.w500),
-              ),
-              PodcastSentenceTranslation(
-                key: ValueKey('podcast-translate-line-$i'),
-                text: line.text,
-                sourceLanguage: _episode?.language ?? 'en',
-                arabicDraft: sourceIsArabic ? null : line.translationAr,
-              ),
+              for (var sentenceIndex = 0;
+                  sentenceIndex < podcastReadingSentences(line.text).length;
+                  sentenceIndex++) ...[
+                Text(
+                  podcastReadingSentences(line.text)[sentenceIndex],
+                  key: ValueKey('podcast-line-text-$i-$sentenceIndex'),
+                  textDirection: sourceIsArabic
+                      ? TextDirection.rtl : TextDirection.ltr,
+                  textAlign: TextAlign.start,
+                  style: TextStyle(fontSize: _fontSize, height: 1.5,
+                      color: ink, fontWeight: FontWeight.w500),
+                ),
+                PodcastSentenceTranslation(
+                  key: ValueKey('podcast-translate-line-$i-$sentenceIndex'),
+                  text: podcastReadingSentences(line.text)[sentenceIndex],
+                  sourceLanguage: _episode?.language ?? 'en',
+                  arabicDraft: !sourceIsArabic &&
+                          podcastReadingSentences(line.text).length == 1
+                      ? line.translationAr : null,
+                ),
+              ],
             ],
           )),
           if (canReplay) ...[
