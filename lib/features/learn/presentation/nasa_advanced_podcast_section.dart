@@ -681,14 +681,14 @@ class _NasaLongPodcastPlayerState extends State<NasaLongPodcastPlayer> {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        SelectableText(sentence.trim(),
-                                          textDirection: TextDirection.ltr,
-                                          style: TextStyle(
-                                            fontSize: _readerFontSize,
-                                            height: 1.55)),
                                         PodcastSentenceTranslation(
                                           key: ValueKey('nasa-translate-$index-${sentence.hashCode}'),
                                           text: sentence.trim(),
+                                          original: SelectableText(sentence.trim(),
+                                            textDirection: TextDirection.ltr,
+                                            style: TextStyle(
+                                              fontSize: _readerFontSize,
+                                              height: 1.55)),
                                         ),
                                       ],
                                     ),
