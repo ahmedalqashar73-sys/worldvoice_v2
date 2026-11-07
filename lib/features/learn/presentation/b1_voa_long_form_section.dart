@@ -5,9 +5,9 @@ import 'package:flutter/foundation.dart' show SynchronousFuture;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'b1_voa_transcript_section.dart';
+import 'podcast_sentence_translation.dart';
 
 /// Curated real VOA broadcasts. None of these episodes has an approved
 /// full-length bilingual transcript or sentence cue file yet.
@@ -159,8 +159,8 @@ class _B1VoaLongSectionState extends State<B1VoaLongSection> {
             const SizedBox(height: 6),
             Text(
               ar
-                  ? '30 تسجيلًا أصليًا من VOA، مدة كل حلقة نحو 30 دقيقة. النص الإنجليزي والترجمة العربية الآلية متاحان للقراءة؛ وتوقيت الجمل تقريبي ويحتاج إلى مراجعة.'
-                  : '30 original VOA recordings, roughly 30 minutes each. English transcripts and Arabic machine-draft translations are available to read; sentence timing is approximate and needs review.',
+                  ? '30 تسجيلًا أصليًا طويلًا، مع ترجمة اختيارية لكل جملة إلى لغتك الأم. توقيت الجمل تقريبي.'
+                  : '30 original long recordings with optional per-sentence native-language translation. Line timings are provisional.',
               style: TextStyle(fontSize: 12, height: 1.5,
                   color: scheme.onSurfaceVariant),
             ),
@@ -378,7 +378,7 @@ class _B1VoaLongPlayerState extends State<B1VoaLongPlayer> {
               const Row(children: [
                 Icon(Icons.headphones_rounded, color: Color(0xFFF3D78F)),
                 SizedBox(width: 8),
-                Expanded(child: Text('VOA LEARNING ENGLISH · B1',
+                Expanded(child: Text('WORLDVOICE PODCAST · B1',
                   style: TextStyle(color: Color(0xFFF3D78F),
                       fontWeight: FontWeight.w900))),
               ]),
@@ -503,8 +503,8 @@ class _B1VoaLongPlayerState extends State<B1VoaLongPlayer> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(ar ? 'النص الإنجليزي والترجمة العربية'
-                            : 'English transcript and Arabic translation',
+                        Text(ar ? 'النص الإنجليزي · ترجمة جملة عند الضغط'
+                            : 'English transcript · tap to translate a sentence',
                           style: const TextStyle(
                               fontWeight: FontWeight.w900,
                               fontSize: 16)),
@@ -520,21 +520,10 @@ class _B1VoaLongPlayerState extends State<B1VoaLongPlayer> {
                   },
                 ),
                 const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  key: const ValueKey('b1-voa-long-source'),
-                  onPressed: () async {
-                    await launchUrl(Uri.parse(episode.sourceUrl),
-                        mode: LaunchMode.externalApplication);
-                  },
-                  icon: const Icon(Icons.open_in_new_rounded),
-                  label: Text(ar
-                      ? 'فتح تسجيل VOA والمصدر الأصلي'
-                      : 'Open original VOA episode'),
+                PodcastSourceInfo(
+                  source: 'VOA Learning English',
+                  url: episode.sourceUrl,
                 ),
-                const SizedBox(height: 7),
-                Text('VOA Learning English · learningenglish.voanews.com',
-                  style: TextStyle(fontSize: 11,
-                      color: scheme.onSurfaceVariant)),
               ]),
             ),
           ),
