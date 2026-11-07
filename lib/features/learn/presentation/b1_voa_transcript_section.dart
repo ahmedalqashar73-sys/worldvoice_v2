@@ -300,6 +300,7 @@ class _B1VoaCaptionPanelState extends State<B1VoaCaptionPanel> {
           itemCount: widget.transcript.lines.length,
           itemBuilder: (context, i) {
             final item = widget.transcript.lines[i];
+            final sentences = podcastReadingSentences(item.english);
             final selected = i == active;
             final completed = item.endMs < widget.position.inMilliseconds;
             return Padding(
@@ -325,10 +326,10 @@ class _B1VoaCaptionPanelState extends State<B1VoaCaptionPanel> {
                         ),
                         const SizedBox(height: 5),
                         for (var sentenceIndex = 0;
-                            sentenceIndex < podcastReadingSentences(item.english).length;
+                            sentenceIndex < sentences.length;
                             sentenceIndex++) ...[
                           Text(
-                            podcastReadingSentences(item.english)[sentenceIndex],
+                            sentences[sentenceIndex],
                             textDirection: TextDirection.ltr,
                             style: TextStyle(fontSize: 13,
                                 fontWeight: selected
@@ -338,7 +339,7 @@ class _B1VoaCaptionPanelState extends State<B1VoaCaptionPanel> {
                                 'b1-translate-${widget.transcript.id}-$i-$sentenceIndex'),
                             text: podcastReadingSentences(item.english)[sentenceIndex],
                             arabicDraft:
-                                podcastReadingSentences(item.english).length == 1
+                                sentences.length == 1
                                     ? item.arabic : null,
                           ),
                         ],
