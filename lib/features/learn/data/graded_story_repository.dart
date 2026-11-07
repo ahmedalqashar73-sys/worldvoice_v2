@@ -122,7 +122,7 @@ class GradedStoryChapter {
     if (images != null &&
         (images is! List || images.length != (raw is List ? raw.length : -1) ||
           images.any((item) => item is! String ||
-              !(item as String).startsWith('https://')))) {
+              !item.startsWith('https://')))) {
       throw const FormatException('Story illustration count does not match text.');
     }
     if (images is List) {
@@ -136,7 +136,7 @@ class GradedStoryChapter {
         duration is! int || duration < 0 ||
         raw is! List || raw.isEmpty ||
         raw.any((paragraph) => paragraph is! String ||
-            (paragraph as String).trim().isEmpty)) {
+            paragraph.trim().isEmpty)) {
       throw const FormatException('Incomplete graded story chapter.');
     }
     return GradedStoryChapter(
