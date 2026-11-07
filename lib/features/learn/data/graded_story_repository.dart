@@ -75,10 +75,16 @@ class GradedStoryEntry {
     final language = _required(json, 'language');
     final asset = _required(json, 'asset');
     final status = _required(json, 'status');
+    final format = _required(json, 'format');
+    final rights = _required(json, 'rights_status');
+    final isPublicDomain = format == 'public_domain_original' &&
+        rights == 'us_public_domain_international_review_pending';
+    final isOpenA1 = format == 'open_licensed_storybook' &&
+        rights == 'cc_by_3_0' && level == 'A1';
     if (!GradedStoryRepository.levels.contains(level) ||
         language != 'en' ||
         (status != 'preview' && status != 'published') ||
-        json['format'] != 'public_domain_original' ||
+        !(isPublicDomain || isOpenA1) ||
         !asset.startsWith('assets/stories/graded/en/$level/') ||
         !asset.endsWith('.json') ||
         !RegExp(r'^[a-z0-9-]+$').hasMatch(id)) {
@@ -96,19 +102,38 @@ class GradedStoryChapter {
   const GradedStoryChapter({
     required this.number, required this.title, required this.durationSeconds,
     required this.audioUrl, required this.paragraphs,
+    this.imageUrls = const <String>[],
   });
   final int number, durationSeconds;
   final String title, audioUrl;
   final List<String> paragraphs;
+  final List<String> imageUrls;
 
   factory GradedStoryChapter.fromJson(Map<String, dynamic> json) {
     final number = json['number'];
     final duration = json['duration_seconds'];
     final audio = _required(json, 'audio_url');
-    _trustedUrl(audio, const {'archive.org', 'www.archive.org'});
+    _trustedUrl(audio, const {
+      'archive.org', 'www.archive.org',
+      'storybookscanada.ca', 'www.storybookscanada.ca',
+    });
     final raw = json['paragraphs'];
+    final images = json['image_urls'];
+    if (images != null &&
+        (images is! List || images.length != (raw is List ? raw.length : -1) ||
+          images.any((item) => item is! String ||
+              !(item as String).startsWith('https://')))) {
+      throw const FormatException('Story illustration count does not match text.');
+    }
+    if (images is List) {
+      for (final image in images) {
+        _trustedUrl(image as String, const {
+          'storybookscanada.ca', 'www.storybookscanada.ca',
+        });
+      }
+    }
     if (number is! int || number < 1 ||
-        duration is! int || duration < 30 ||
+        duration is! int || duration < 0 ||
         raw is! List || raw.isEmpty ||
         raw.any((paragraph) => paragraph is! String ||
             (paragraph as String).trim().isEmpty)) {
@@ -117,7 +142,9 @@ class GradedStoryChapter {
     return GradedStoryChapter(
       number: number, title: _required(json, 'title'),
       durationSeconds: duration, audioUrl: audio,
-      paragraphs: List<String>.unmodifiable(raw.cast<String>()));
+      paragraphs: List<String>.unmodifiable(raw.cast<String>()),
+      imageUrls: List<String>.unmodifiable(
+          images is List ? images.cast<String>() : const <String>[]));
   }
 }
 
@@ -127,18 +154,21 @@ class GradedStoryBook {
     required this.title, required this.titleAr, required this.author,
     required this.reader, required this.rightsStatus,
     required this.sourceTextUrl, required this.sourceAudioUrl,
-    required this.chapters,
+    required this.chapters, this.illustrator, this.licenseUrl,
   });
   final String id, level, language, title, titleAr, author, reader;
   final String rightsStatus, sourceTextUrl, sourceAudioUrl;
+  final String? illustrator, licenseUrl;
   final List<GradedStoryChapter> chapters;
 
   factory GradedStoryBook.fromJson(Map<String, dynamic> json) {
     if (json['translation_status'] != 'on_demand_only' ||
         json['audio_sync_status'] != 'not_verified' ||
         json['cefr_status'] != 'worldvoice_editorial_provisional' ||
-        json['rights_status'] !=
-          'us_public_domain_international_review_pending') {
+        !const {
+          'us_public_domain_international_review_pending',
+          'cc_by_3_0',
+        }.contains(json['rights_status'])) {
       throw const FormatException('Unverified graded story claims.');
     }
     final level = _required(json, 'level');
@@ -148,8 +178,21 @@ class GradedStoryBook {
     }
     final textUrl = _required(json, 'source_text_url');
     final audioUrl = _required(json, 'source_audio_url');
-    _trustedUrl(textUrl, const {'www.gutenberg.org', 'gutenberg.org'});
-    _trustedUrl(audioUrl, const {'librivox.org', 'www.librivox.org'});
+    final isOpenA1 = json['rights_status'] == 'cc_by_3_0';
+    _trustedUrl(textUrl, isOpenA1
+        ? const {'storybookscanada.ca', 'www.storybookscanada.ca'}
+        : const {'www.gutenberg.org', 'gutenberg.org'});
+    _trustedUrl(audioUrl, isOpenA1
+        ? const {'storybookscanada.ca', 'www.storybookscanada.ca'}
+        : const {'librivox.org', 'www.librivox.org'});
+    if (isOpenA1) {
+      if (level != 'A1' ||
+          _required(json, 'license_url') !=
+              'https://creativecommons.org/licenses/by/3.0/' ||
+          _required(json, 'illustrator').isEmpty) {
+        throw const FormatException('Unverified A1 commercial reuse license.');
+      }
+    }
     final rawChapters = json['chapters'];
     if (rawChapters is! List || rawChapters.isEmpty) {
       throw const FormatException('Graded story needs chapters.');
@@ -172,6 +215,8 @@ class GradedStoryBook {
       author: _required(json, 'author'), reader: _required(json, 'reader'),
       rightsStatus: _required(json, 'rights_status'),
       sourceTextUrl: textUrl, sourceAudioUrl: audioUrl,
+      illustrator: json['illustrator'] as String?,
+      licenseUrl: json['license_url'] as String?,
       chapters: List<GradedStoryChapter>.unmodifiable(chapters));
   }
 }
