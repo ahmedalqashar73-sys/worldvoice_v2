@@ -321,7 +321,7 @@ class _B1VoaLongPlayerState extends State<B1VoaLongPlayer> {
       if (mounted && token == _token) {
         setState(() {
           _loading = false;
-          _error = 'Unable to load the original VOA MP3';
+          _error = 'Unable to load the original recording';
         });
       }
     } finally {
@@ -397,8 +397,8 @@ class _B1VoaLongPlayerState extends State<B1VoaLongPlayer> {
               if (_error != null) ...[
                 const SizedBox(height: 10),
                 Text(ar
-                    ? 'تعذر تحميل تسجيل VOA. تحقق من اتصال الإنترنت وأعد المحاولة، ولن نستبدل الصوت بآخر.'
-                    : 'Could not load this VOA original. Check your connection and retry; no substitute audio will be used.',
+                    ? 'تعذر تحميل التسجيل الأصلي. تحقق من الإنترنت وأعد المحاولة.'
+                    : 'Could not load the original audio. Check your connection and retry.',
                     style: const TextStyle(color: Color(0xFFFFD6A2))),
                 TextButton.icon(
                   key: const ValueKey('b1-voa-long-retry'),
