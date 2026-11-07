@@ -13,6 +13,7 @@ import 'voa_originals_section.dart';
 import 'a2_long_listening_section.dart';
 import 'b1_voa_long_form_section.dart';
 import 'nasa_advanced_podcast_section.dart';
+import 'podcast_sentence_translation.dart';
 
 /// Separate CEFR/language paths; never represent unrecorded plans as audio.
 class PodcastLibrarySection extends StatefulWidget {
@@ -76,14 +77,14 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
           const SizedBox(height: 15),
           Text(ar
                   ? (voaPilot
-                      ? 'أصوات VOA الأصلية · تعلّم الإنجليزية'
+                      ? 'بودكاست الإنجليزية · تعلّم بالاستماع'
                       : (nasaOriginal
-                          ? 'بودكاست NASA الأصلي · الإنجليزية المتقدمة'
+                          ? 'البودكاست المتقدم · الإنجليزية'
                           : 'صوتان، حوار واحد، لغة جديدة'))
                   : (voaPilot
-                      ? 'Original VOA voices · Learn English'
+                      ? 'English podcast · Listen and learn'
                       : (nasaOriginal
-                          ? 'Original NASA voices · Advanced English'
+                          ? 'Advanced English podcasts'
                           : 'Two voices. One new language')),
               style: const TextStyle(
                   color: Colors.white,
@@ -93,35 +94,35 @@ class _PodcastLibrarySectionState extends State<PodcastLibrarySection> {
             ar
                 ? (voaPilot
                     ? (_selectedLevel == 'B1'
-                        ? 'استمع إلى برامج VOA الطويلة بأصوات مذيعيها الأصليين، مع النص والترجمة العربية.'
-                        : 'استمع إلى التسجيلات الأصلية من VOA واقرأ المحادثات المطابقة.')
+                        ? 'استمع إلى الحلقات الطويلة وترجم الجملة التي تختارها إلى لغتك الأم.'
+                        : 'استمع إلى التسجيلات الأصلية واقرأ المحادثات، مع ترجمة اختيارية لكل جملة.')
                     : (nasaOriginal
-                        ? '30 تسجيلًا طويلًا من NASA لكل مستوى، مع النص الإنجليزي وترجمة عربية أولية عند توفرها.'
+                        ? '30 حلقة طويلة لكل مستوى، مع النص الإنجليزي والترجمة عند الضغط لكل جملة.'
                         : 'محادثات تعليمية للاستماع والقراءة في وقت واحد.'))
                 : (voaPilot
                     ? (_selectedLevel == 'B1'
-                        ? 'Listen to long original VOA broadcasts with English and Arabic text.'
-                        : 'Original VOA voices and matching lesson dialogues.')
+                        ? 'Listen to long original recordings and translate individual sentences when needed.'
+                        : 'Listen to original recordings and translate only the sentences you choose.')
                     : (nasaOriginal
-                        ? '30 long NASA originals per level, with English text and draft Arabic translation when available.'
+                        ? '30 long episodes per level with optional sentence-by-sentence translation.'
                         : 'Read and listen to language conversations.')),
             style: const TextStyle(
                 color: Color(0xFFE0EEE5), height: 1.5, fontSize: 13),
           ),
           const SizedBox(height: 17),
           Row(children: [
-            _hostPill(nasaOriginal ? 'NASA' : (voaPilot && _selectedLevel == 'B1' ? 'VOA' : 'ANNA'), Icons.face_3_rounded,
+            _hostPill(nasaOriginal ? 'HOST' : (voaPilot && _selectedLevel == 'B1' ? 'HOST' : 'ANNA'), Icons.face_3_rounded,
                 const Color(0xFFF2BDD6)),
             const SizedBox(width: 9),
-            _hostPill(nasaOriginal ? 'NASA CAST' : (voaPilot ? 'VOA CAST' : 'DANIEL'), Icons.face_rounded,
+            _hostPill(nasaOriginal ? 'GUEST' : (voaPilot ? 'GUEST' : 'DANIEL'), Icons.face_rounded,
                 const Color(0xFFC1DBFF)),
             const Spacer(),
             const Icon(Icons.schedule_rounded,
                 color: Color(0xFFF1D98F), size: 16),
             const SizedBox(width: 4),
             Text(voaPilot
-                ? (_selectedLevel == 'A1' ? '15 VOA' : '30 VOA')
-                : (nasaOriginal ? '30 NASA' : '≈ 05:00'),
+                ? (_selectedLevel == 'A1' ? '15 EP' : '30 EP')
+                : (nasaOriginal ? '30 EP' : '≈ 05:00'),
                 style: TextStyle(color: Color(0xFFF1D98F),
                     fontWeight: FontWeight.w800, fontSize: 13)),
           ]),
@@ -634,7 +635,6 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
   bool _audioLoaded = false;
   bool _downloaded = false;
   bool _downloading = false;
-  bool _showArabic = false;
   bool _autoFollow = true;
   String? _error;
   // Sentence changes must not rebuild the entire (long) transcript.
@@ -678,10 +678,6 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
       if (!mounted) return;
       setState(() {
         _episode = loaded;
-        // A2 VOA originals are bilingual: show the matching Arabic text
-        // immediately, while preserving the reader's manual toggle.
-        // Never infer audio cue timings when sync_status is unverified.
-        _showArabic = loaded.language == 'en' && loaded.level == 'A2';
         _anchors = List<GlobalKey>.generate(
             loaded.dialogue.length, (_) => GlobalKey());
       });
@@ -1140,26 +1136,6 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
               ]),
             ),
           ],
-          if (episode.sourceUrl != null) ...[
-            const SizedBox(height: 12),
-            InkWell(
-              onTap: () async {
-                final uri = Uri.tryParse(episode.sourceUrl!);
-                if (uri != null) {
-                  await launchUrl(uri,
-                      mode: LaunchMode.externalApplication);
-                }
-              },
-              child: const Row(children: [
-                Icon(Icons.open_in_new_rounded,
-                    size: 16, color: Color(0xFFF4D790)),
-                SizedBox(width: 6),
-                Text('VOA Learning English · Original source',
-                    style: TextStyle(color: Color(0xFFF4D790),
-                        fontWeight: FontWeight.w700, fontSize: 12)),
-              ]),
-            ),
-          ],
           // The offline helper validates MP3 bytes. Lesson 8 is a video
           // audio stream and must not be offered an incompatible MP3 save.
           if (episode.canStream &&
@@ -1375,15 +1351,12 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                 style: TextStyle(fontSize: _fontSize, height: 1.5,
                     color: ink, fontWeight: FontWeight.w500),
               ),
-              if (_showArabic && translation.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(translation,
-                  textDirection: sourceIsArabic
-                      ? TextDirection.ltr : TextDirection.rtl,
-                  style: TextStyle(fontSize: _fontSize - 2,
-                    height: 1.5, color: secondary),
-                ),
-              ],
+              PodcastSentenceTranslation(
+                key: ValueKey('podcast-translate-line-$i'),
+                text: line.text,
+                sourceLanguage: sourceIsArabic ? 'ar' : 'en',
+                arabicDraft: sourceIsArabic ? null : line.translationAr,
+              ),
             ],
           )),
           if (canReplay) ...[
@@ -1567,21 +1540,11 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                         _fontSize = (_fontSize + 1).clamp(14.0, 22.0).toDouble()),
                     icon: const Icon(Icons.text_increase_rounded)),
                 ]),
-                Row(children: [
-                  Expanded(child: Text(
-                    episode.language == 'ar'
-                        ? (ar ? 'إظهار الترجمة الإنجليزية'
-                            : 'Show English translation')
-                        : (ar ? 'إظهار الترجمة العربية'
-                            : 'Show Arabic translation'),
-                    style: TextStyle(color: scheme.onSurfaceVariant,
-                        fontSize: 12))),
-                  Switch(
-                    key: const ValueKey('podcast-translation-toggle'),
-                    value: _showArabic,
-                    onChanged: (value) => setState(() => _showArabic = value),
-                  ),
-                ]),
+                Text(
+                  ar ? 'اضغط علامة الترجمة على أي جملة لترجمتها إلى لغتك الأم'
+                      : 'Tap the translation icon on a sentence to read it in your native language',
+                  style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12),
+                ),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 5),
                   child: Text(
@@ -1622,13 +1585,11 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                     Chip(label: Text('${word.word} · ${word.meaningAr}')),
                 ]),
                 _quiz(episode),
-                if (episode.sourceCredit != null) ...[
-                  const SizedBox(height: 15),
-                  Text(episode.sourceCredit!,
-                    style: TextStyle(
-                      color: scheme.onSurfaceVariant,
-                      fontSize: 11, height: 1.5)),
-                ],
+                if (episode.sourceUrl != null)
+                  PodcastSourceInfo(
+                    source: episode.sourceCredit ?? 'Original recording',
+                    url: episode.sourceUrl!,
+                  ),
                 ],
               ),
             ),
