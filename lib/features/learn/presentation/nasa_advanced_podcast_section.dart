@@ -279,8 +279,8 @@ class _NasaLongPodcastSectionState extends State<NasaLongPodcastSection> {
           const SizedBox(height: 6),
           Text(
             ar
-                ? 'تسجيلات NASA الأصلية بأصوات بشرية ومقابلات واقعية. مستويات WorldVoice مقترحة وتحتاج مراجعة تربوية. نعرض النصوص والترجمة عند اكتمال استيرادها؛ لا نختلق توقيت الجمل.'
-                : 'Real NASA interviews. Level labels are provisional WorldVoice editorial ratings. We show bilingual text only after importing and validating the original transcripts; sentence timing is not invented.',
+                ? 'تسجيلات بشرية أصلية ومقابلات واقعية. المستويات مقترحة وتحتاج مراجعة. اضغط علامة الترجمة بجانب الجملة التي تريدها.'
+                : 'Original human interviews with provisional learning levels. Tap the translate icon for just the sentence you choose.',
             style: TextStyle(
                 color: scheme.onSurfaceVariant, height: 1.5, fontSize: 12)),
           const SizedBox(height: 10),
@@ -300,8 +300,8 @@ class _NasaLongPodcastSectionState extends State<NasaLongPodcastSection> {
                 subtitle: Text(
                   available.contains(selected[i].id)
                       ? (ar
-                          ? '${selected[i].durationSeconds ~/ 60} دقيقة · صوت أصلي · نص وترجمة عربية آليان'
-                          : '${selected[i].durationSeconds ~/ 60} min · original audio · English/Arabic machine drafts')
+                          ? '${selected[i].durationSeconds ~/ 60} دقيقة · صوت أصلي · ترجمة اختيارية'
+                          : '${selected[i].durationSeconds ~/ 60} min · original audio · optional translation')
                       : (ar
                           ? '${selected[i].durationSeconds ~/ 60} دقيقة · صوت أصلي · النص قيد الإعداد'
                           : '${selected[i].durationSeconds ~/ 60} min · original audio · text pending'),
@@ -509,7 +509,7 @@ class _NasaLongPodcastPlayerState extends State<NasaLongPodcastPlayer> {
           ),
           padding: const EdgeInsets.all(18),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('NASA · HOUSTON WE HAVE A PODCAST',
+            const Text('WORLDVOICE · PODCAST',
               style: TextStyle(color: Color(0xFFF1DB9E),
                   fontWeight: FontWeight.w900, fontSize: 12)),
             const SizedBox(height: 10),
@@ -604,7 +604,7 @@ class _NasaLongPodcastPlayerState extends State<NasaLongPodcastPlayer> {
                 if (transcript == null) {
                   return Text(ar
                       ? 'النص الإنجليزي والترجمة العربية قيد الاستيراد من مصدر NASA الأصلي. افتح صفحة المصدر لقراءة النص الآن.'
-                      : 'English and Arabic captions are being imported from the original NASA source. Open the official episode for its full English transcript.',
+                      : 'The transcript is not available for this episode yet. Listen to the original recording.',
                     style: TextStyle(
                         height: 1.5, color: scheme.onSurfaceVariant));
                 }
