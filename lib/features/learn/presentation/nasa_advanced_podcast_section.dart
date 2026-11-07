@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'podcast_sentence_translation.dart';
+
 const nasaAdvancedLevels = ['B2', 'C1', 'C2'];
 
 /// Source-verified original audio from the official NASA podcast RSS.
@@ -360,7 +362,6 @@ class _NasaLongPodcastPlayerState extends State<NasaLongPodcastPlayer> {
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
   late Future<NasaBilingualTranscript?> _transcript;
-  bool _showArabic = true;
   int _readingParagraph = 0;
   double _readerFontSize = 15;
   final ScrollController _readerScroll = ScrollController();
@@ -611,24 +612,18 @@ class _NasaLongPodcastPlayerState extends State<NasaLongPodcastPlayer> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(ar ? 'النص الإنجليزي والترجمة العربية'
-                        : 'English transcript + Arabic translation',
+                    Text(ar ? 'النص الإنجليزي · ترجمة كل جملة عند الضغط'
+                        : 'English transcript · tap to translate a sentence',
                       style: const TextStyle(
                           fontSize: 17, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 6),
                     Text(ar
-                        ? 'نص NASA الأصلي مع ترجمة عربية آلية تحتاج مراجعة. لا توجد مزامنة معتمدة؛ التنقل بين الفقرات يدوي.'
-                        : 'Original NASA text with draft Arabic. Timing is unverified; paragraph navigation is manual.',
+                        ? 'الترجمة اختيارية لكل جملة إلى لغتك الأم. توقيت الفقرات غير معتمد والتنقل يدوي.'
+                        : 'Translate individual sentences into your native language on demand. Paragraph timing is not verified.',
                       style: TextStyle(
                           color: scheme.onSurfaceVariant, fontSize: 12)),
                     Wrap(spacing: 6, crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Row(mainAxisSize: MainAxisSize.min, children: [
-                          Switch(
-                            value: _showArabic,
-                            onChanged: (n) => setState(() => _showArabic = n)),
-                          Text(ar ? 'إظهار العربية' : 'Show Arabic'),
-                        ]),
                         IconButton(
                           tooltip: ar ? 'تصغير الخط' : 'Smaller text',
                           onPressed: _readerFontSize <= 13 ? null : () =>
@@ -679,19 +674,26 @@ class _NasaLongPodcastPlayerState extends State<NasaLongPodcastPlayer> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                SelectableText(line.english,
-                                  textDirection: TextDirection.ltr,
-                                  style: TextStyle(fontSize: _readerFontSize,
-                                      height: 1.55)),
-                                if (_showArabic) ...[
-                                  const SizedBox(height: 3),
-                                  SelectableText(line.arabic,
-                                    textDirection: TextDirection.rtl,
-                                    style: TextStyle(
-                                        fontSize: _readerFontSize,
-                                        height: 1.55,
-                                        color: scheme.onSurfaceVariant)),
-                                ],
+                                for (final sentence in line.english
+                                    .split(RegExp(r'(?<=[.!?])\\s+'))
+                                    .where((value) => value.trim().isNotEmpty))
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 9),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        SelectableText(sentence.trim(),
+                                          textDirection: TextDirection.ltr,
+                                          style: TextStyle(
+                                            fontSize: _readerFontSize,
+                                            height: 1.55)),
+                                        PodcastSentenceTranslation(
+                                          key: ValueKey('nasa-translate-$index-${sentence.hashCode}'),
+                                          text: sentence.trim(),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 Divider(thickness: selected ? 2 : 1,
                                     color: selected ? scheme.primary
                                         : scheme.outlineVariant),
@@ -707,20 +709,7 @@ class _NasaLongPodcastPlayerState extends State<NasaLongPodcastPlayer> {
             ),
           ),
         ),
-        OutlinedButton.icon(
-          key: const ValueKey('nasa-source-page'),
-          onPressed: () => launchUrl(Uri.parse(episode.sourceUrl),
-              mode: LaunchMode.externalApplication),
-          icon: const Icon(Icons.open_in_new),
-          label: Text(ar
-              ? 'صفحة NASA الأصلية والنص الإنجليزي الكامل'
-              : 'Original NASA page and full English transcript'),
-        ),
-        Text(
-          ar ? 'المصدر: NASA. التطبيق غير تابع لناسا ولا تمثله.'
-              : 'Source: NASA. WorldVoice is not affiliated with NASA.',
-          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 11),
-        ),
+        PodcastSourceInfo(source: 'NASA', url: episode.sourceUrl),
       ]),
     );
   }
