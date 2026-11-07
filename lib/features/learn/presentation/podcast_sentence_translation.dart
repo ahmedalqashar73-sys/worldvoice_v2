@@ -117,6 +117,7 @@ class _PodcastSentenceTranslationState
           body: jsonEncode({
             'text': widget.text,
             'targetLanguageCode': target,
+            'sourceLanguageCode': widget.sourceLanguage,
           }),
         ).timeout(const Duration(seconds: 35));
         final data = jsonDecode(response.body);
