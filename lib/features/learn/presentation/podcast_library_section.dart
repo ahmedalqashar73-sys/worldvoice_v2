@@ -1351,7 +1351,7 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
               PodcastSentenceTranslation(
                 key: ValueKey('podcast-translate-line-$i'),
                 text: line.text,
-                sourceLanguage: sourceIsArabic ? 'ar' : 'en',
+                sourceLanguage: _episode?.language ?? 'en',
                 arabicDraft: sourceIsArabic ? null : line.translationAr,
               ),
             ],
