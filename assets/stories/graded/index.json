@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "series": "WorldVoice Graded Classics",
+  "levels": [
+    "A1",
+    "A2",
+    "B1",
+    "B2",
+    "C1",
+    "C2"
+  ],
+  "entries": [
+    {
+      "id": "pd-jekyll-hyde",
+      "language": "en",
+      "level": "C1",
+      "title": "The Strange Case of Dr Jekyll and Mr Hyde",
+      "title_ar": "القضية الغريبة للدكتور جيكل والسيد هايد",
+      "asset": "assets/stories/graded/en/C1/pd-jekyll-hyde.json",
+      "status": "preview",
+      "format": "public_domain_original",
+      "rights_status": "us_public_domain_international_review_pending"
+    }
+  ]
+}
