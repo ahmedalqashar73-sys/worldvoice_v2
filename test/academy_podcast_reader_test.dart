@@ -37,7 +37,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 120));
     expect(find.byKey(const ValueKey('podcast-original-en-a1-voa-020')),
         findsOneWidget);
-    expect(find.text('VOA human audio · provisional sync'), findsNWidgets(7));
+    expect(find.text('Human audio · provisional sync'), findsNWidgets(7));
     final practice = find.byKey(const ValueKey('podcast-a1-reading-practice'));
     await tester.ensureVisible(practice);
     await tester.tap(practice);
@@ -67,11 +67,10 @@ void main() {
         findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-device-tts-play-pause')),
         findsOneWidget);
-    await tester.tap(
-        find.byKey(const ValueKey('podcast-translation-toggle')));
-    await tester.pump();
-    expect(find.text('مرحبًا! هل هذا المقعد فارغ؟ المقهى مزدحم اليوم.'),
+    expect(find.byKey(const ValueKey('podcast-translate-line-0')),
         findsOneWidget);
+    expect(find.text('مرحبًا! هل هذا المقعد فارغ؟ المقهى مزدحم اليوم.'),
+        findsNothing);
   });
   testWidgets('English A2 presents all 30 official VOA source lessons',
       (tester) async {
@@ -136,13 +135,13 @@ void main() {
         findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-play-pause')), findsNothing);
     expect(find.byKey(const ValueKey('podcast-device-tts-player')), findsNothing);
-    await tester.tap(find.byKey(const ValueKey('podcast-translation-toggle')));
-    await tester.pump();
-    expect(find.text('مرحبًا، هل هذا الكرسي فارغ؟ هناك أشخاص كثيرون في المقهى اليوم.'),
+    expect(find.byKey(const ValueKey('podcast-translate-line-0')),
         findsOneWidget);
+    expect(find.text('مرحبًا، هل هذا الكرسي فارغ؟ هناك أشخاص كثيرون في المقهى اليوم.'),
+        findsNothing);
   });
 
-  testWidgets('English A2 displays Arabic under original dialogue by default',
+  testWidgets('English A2 leaves translations hidden until a sentence tap',
       (tester) async {
     const entry = AcademyPodcastEntry(
       id: 'en-a2-static-review', level: 'A2',
@@ -158,10 +157,8 @@ void main() {
     await tester.pump(const Duration(milliseconds: 200));
     expect(find.text('Everyone has a skill. You need to find yours.'),
         findsOneWidget);
-    expect(find.text('كل شخص لديه مهارة، وعليك أن تكتشف مهارتك.'),
+    expect(find.byKey(const ValueKey('podcast-translate-line-0')),
         findsOneWidget);
-    await tester.tap(find.byKey(const ValueKey('podcast-translation-toggle')));
-    await tester.pump();
     expect(find.text('كل شخص لديه مهارة، وعليك أن تكتشف مهارتك.'),
         findsNothing);
   });
