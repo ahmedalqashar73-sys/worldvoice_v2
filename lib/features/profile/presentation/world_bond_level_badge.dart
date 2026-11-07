@@ -5,10 +5,11 @@ import 'world_bond_identity.dart';
 class WorldBondLevelBadge extends StatelessWidget {
   const WorldBondLevelBadge({required this.level,
     this.relationshipType = 'learning', this.compact = false,
-    this.isArabic = true, super.key});
+    this.isArabic = true, this.chat = false, super.key});
   final int level;
   final String relationshipType;
   final bool compact;
+  final bool chat;
   final bool isArabic;
 
   @override
@@ -20,7 +21,7 @@ class WorldBondLevelBadge extends StatelessWidget {
           : 'WorldBond badge level $value',
       child: Container(
         key: ValueKey('worldbond-level-badge-$value'),
-        padding: EdgeInsets.symmetric(horizontal: compact ? 5 : 9, vertical: 2),
+        padding: EdgeInsets.symmetric(horizontal: chat ? 4 : (compact ? 5 : 9), vertical: chat ? 1 : 2),
         decoration: BoxDecoration(
           gradient: LinearGradient(colors: [
             WorldBondIdentity.background(relationshipType),
@@ -31,10 +32,10 @@ class WorldBondLevelBadge extends StatelessWidget {
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           WorldBondBadgeArt(relationshipType: relationshipType,
-            size: compact ? 26 : 38),
-          const SizedBox(width: 4),
-          Text('Level $value', textDirection: TextDirection.ltr,
-            style: TextStyle(color: accent, fontSize: compact ? 10 : 12,
+            size: chat ? 16 : (compact ? 26 : 38)),
+          SizedBox(width: chat ? 2 : 4),
+          Text(chat ? '$value' : 'Level $value', textDirection: TextDirection.ltr,
+            style: TextStyle(color: accent, fontSize: chat ? 9 : (compact ? 10 : 12),
               fontWeight: FontWeight.w800)),
         ]),
       ),

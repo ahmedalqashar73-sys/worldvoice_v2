@@ -521,6 +521,7 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                                               PlaceholderAlignment.middle,
                                           child: PublicMemberMarks(
                                             userId: msg.userId,
+                                            compact: true,
                                           ),
                                         ),
                                       TextSpan(

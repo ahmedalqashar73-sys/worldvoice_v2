@@ -98,29 +98,17 @@ class _RoomBondChatMarksState extends State<RoomBondChatMarks> {
         }
         final data = snapshot.data?['badges'];
         if (data is! Map) return const SizedBox.shrink();
-        const designs = <(String, String, IconData, Color)>[
-          ('learning', 'رفيق التعلّم', Icons.menu_book_rounded,
-            Color(0xFF2CC795)),
-          ('language', 'رفيق اللغة', Icons.translate_rounded,
-            Color(0xFF66D5F1)),
-          ('friend', 'صديق مميز', Icons.star_rounded,
-            Color(0xFFC199FF)),
-          ('duo', 'ثنائي مميز', Icons.favorite_rounded,
-            Color(0xFFFFCB87)),
-        ];
+        const designs = ['learning', 'language', 'friend', 'duo'];
         return Wrap(
           key: const ValueKey('room-chat-worldbond-badges'),
           spacing: 3, runSpacing: 3,
           children: [
             for (final item in designs)
-              if (((data[item.$1] as num?)?.toInt() ?? 0) > 0)
-                Tooltip(
-                  message: '${item.$2} · Level ${data[item.$1]}',
-                  child: WorldBondLevelBadge(
-                    key: ValueKey('room-chat-bond-${item.$1}'),
-                    relationshipType: item.$1,
-                    level: (data[item.$1] as num).toInt(), compact: true,
-                  ),
+              if (((data[item] as num?)?.toInt() ?? 0) > 0)
+                WorldBondLevelBadge(
+                    key: ValueKey('room-chat-bond-$item'),
+                    relationshipType: item,
+                    level: (data[item] as num).toInt(), compact: true, chat: true,
                 ),
           ],
         );

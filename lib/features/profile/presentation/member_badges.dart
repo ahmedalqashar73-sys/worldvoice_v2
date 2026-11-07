@@ -54,10 +54,12 @@ class VipSignatureBadge extends StatelessWidget {
   const VipSignatureBadge({
     required this.design,
     this.large = false,
+    this.compact = false,
     super.key,
   });
   final String design;
   final bool large;
+  final bool compact;
   @override
   Widget build(BuildContext context) {
     final color = MemberBadgeCatalog.color(design);
@@ -74,8 +76,8 @@ class VipSignatureBadge extends StatelessWidget {
     return Semantics(
       label: 'VIP ${MemberBadgeCatalog.name(design, false)}',
       child: Container(
-        height: large ? 48 : 20,
-        padding: EdgeInsets.symmetric(horizontal: large ? 15 : 5),
+        height: large ? 48 : (compact ? 16 : 20),
+        padding: EdgeInsets.symmetric(horizontal: large ? 15 : (compact ? 4 : 5)),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(large ? 15 : 7),
           border: Border.all(
@@ -103,13 +105,13 @@ class VipSignatureBadge extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: large ? 28 : 13, color: color),
+              Icon(icon, size: large ? 28 : (compact ? 10 : 13), color: color),
               SizedBox(width: large ? 8 : 3),
               Text(
                 'VIP',
                 style: TextStyle(
                   color: color,
-                  fontSize: large ? 25 : 11,
+                  fontSize: large ? 25 : (compact ? 9 : 11),
                   height: 1,
                   fontStyle: FontStyle.italic,
                   fontWeight: FontWeight.w900,
@@ -130,7 +132,8 @@ class VipSignatureBadge extends StatelessWidget {
 }
 
 class GiftLevelBadge extends StatelessWidget {
-  const GiftLevelBadge({required this.level, super.key});
+  const GiftLevelBadge({required this.level, this.compact = false, super.key});
+  final bool compact;
   final int level;
   @override
   Widget build(BuildContext context) {
@@ -145,8 +148,8 @@ class GiftLevelBadge extends StatelessWidget {
     return Semantics(
       label: 'Gift level $value',
       child: Container(
-        height: 20,
-        padding: const EdgeInsets.symmetric(horizontal: 5),
+        height: compact ? 16 : 20,
+        padding: EdgeInsets.symmetric(horizontal: compact ? 4 : 5),
         decoration: BoxDecoration(
           color: const Color(0xFF17262F),
           borderRadius: BorderRadius.circular(6),
@@ -155,13 +158,13 @@ class GiftLevelBadge extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.diamond_rounded, size: 12, color: color),
+            Icon(Icons.diamond_rounded, size: compact ? 10 : 12, color: color),
             const SizedBox(width: 3),
             Text(
               '$value',
               style: TextStyle(
                 color: color,
-                fontSize: 11,
+                fontSize: compact ? 9 : 11,
                 height: 1,
                 fontWeight: FontWeight.w800,
               ),
@@ -174,7 +177,8 @@ class GiftLevelBadge extends StatelessWidget {
 }
 
 class PublicMemberMarks extends StatefulWidget {
-  const PublicMemberMarks({required this.userId, super.key});
+  const PublicMemberMarks({required this.userId, this.compact = false, super.key});
+  final bool compact;
   final String userId;
   @override
   State<PublicMemberMarks> createState() => _PublicMemberMarksState();
@@ -231,14 +235,15 @@ class _PublicMemberMarksState extends State<PublicMemberMarks> {
       if (data == null) return const SizedBox.shrink();
       final level = (data['giftLevel'] as num?)?.toInt() ?? 0;
       final vip = data['vipBadge'] as String?;
-      return MemberBadgeMarks(level: level, vip: vip);
+      return MemberBadgeMarks(level: level, vip: vip, compact: widget.compact);
     },
   );
 }
 
 /// Public identity never displays an unearned level-zero badge.
 class MemberBadgeMarks extends StatelessWidget {
-  const MemberBadgeMarks({required this.level, this.vip, super.key});
+  const MemberBadgeMarks({required this.level, this.vip, this.compact = false, super.key});
+  final bool compact;
   final int level;
   final String? vip;
   @override
@@ -247,9 +252,9 @@ class MemberBadgeMarks extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (vip != null) VipSignatureBadge(design: vip!),
+        if (vip != null) VipSignatureBadge(design: vip!, compact: compact),
         if (vip != null && level > 0) const SizedBox(width: 4),
-        if (level > 0) GiftLevelBadge(level: level),
+        if (level > 0) GiftLevelBadge(level: level, compact: compact),
       ],
     );
   }
