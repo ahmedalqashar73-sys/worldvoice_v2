@@ -24,8 +24,7 @@ void main() {
       expect(book.illustrator?.trim(), isNotEmpty);
       expect(book.reader, 'Darshan Soni');
       expect(book.sourceTextUrl,
-          'https://www.storybookscanada.ca/stories/en/' +
-          entry.id.substring(5) + '/');
+          'https://www.storybookscanada.ca/stories/en/${entry.id.substring(5)}/');
       expect(book.chapters, hasLength(1));
       final chapter = book.chapters.single;
       expect(chapter.number, 1);
