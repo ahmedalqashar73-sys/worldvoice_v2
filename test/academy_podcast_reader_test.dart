@@ -52,8 +52,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Anna'), findsWidgets);
     expect(find.text('Daniel'), findsWidgets);
-    expect(find.text('Hi! Is this seat free? The café is very busy today.'),
-        findsOneWidget);
+    expect(find.text('Hi!'), findsOneWidget);
+    expect(find.text('Is this seat free?'), findsOneWidget);
+    expect(find.text('The café is very busy today.'), findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-play-pause')), findsNothing);
     expect(find.byKey(const ValueKey('podcast-reader-header')), findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-jump-to-transcript')),
@@ -67,7 +68,7 @@ void main() {
         findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-device-tts-play-pause')),
         findsOneWidget);
-    expect(find.byKey(const ValueKey('podcast-translate-line-0')),
+    expect(find.byKey(const ValueKey('podcast-translate-line-0-0')),
         findsOneWidget);
     expect(find.text('مرحبًا! هل هذا المقعد فارغ؟ المقهى مزدحم اليوم.'),
         findsNothing);
@@ -131,11 +132,11 @@ void main() {
     await tester.tap(pilot);
     await tester.pumpAndSettle();
 
-    expect(find.text('Hola, ¿está libre esta silla? Hay mucha gente en la cafetería hoy.'),
-        findsOneWidget);
+    expect(find.text('Hola, ¿está libre esta silla?'), findsOneWidget);
+    expect(find.text('Hay mucha gente en la cafetería hoy.'), findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-play-pause')), findsNothing);
     expect(find.byKey(const ValueKey('podcast-device-tts-player')), findsNothing);
-    expect(find.byKey(const ValueKey('podcast-translate-line-0')),
+    expect(find.byKey(const ValueKey('podcast-translate-line-0-0')),
         findsOneWidget);
     expect(find.text('مرحبًا، هل هذا الكرسي فارغ؟ هناك أشخاص كثيرون في المقهى اليوم.'),
         findsNothing);
@@ -155,9 +156,9 @@ void main() {
     ));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 200));
-    expect(find.text('Everyone has a skill. You need to find yours.'),
+    expect(find.text('Everyone has a skill.'),
         findsOneWidget);
-    expect(find.byKey(const ValueKey('podcast-translate-line-0')),
+    expect(find.byKey(const ValueKey('podcast-translate-line-0-0')),
         findsOneWidget);
     expect(find.text('كل شخص لديه مهارة، وعليك أن تكتشف مهارتك.'),
         findsNothing);
@@ -177,8 +178,7 @@ void main() {
     ));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 150));
-    final sentence = find.text(
-        'Everyone has a skill. You need to find yours.');
+    final sentence = find.text('Everyone has a skill.');
     expect(sentence, findsOneWidget);
     final text = tester.widget<Text>(sentence);
     final onSurface = Theme.of(tester.element(sentence)).colorScheme.onSurface;
@@ -187,7 +187,7 @@ void main() {
     final row = find.byKey(const ValueKey('podcast-dialogue-line-0'));
     expect(row, findsOneWidget);
     expect(tester.widget<Material>(row).color, const Color(0xFF22302A));
-    expect(find.byKey(const ValueKey('podcast-line-text-0')), findsOneWidget);
+    expect(find.byKey(const ValueKey('podcast-line-text-0-0')), findsOneWidget);
     expect(find.text('Anna'), findsWidgets);
     // A paint exception here used to produce blank transcript cards.
     await tester.pump();
@@ -204,7 +204,7 @@ void main() {
     await tester.tap(jump);
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
-    expect(find.byKey(const ValueKey('podcast-line-text-0')), findsOneWidget);
+    expect(find.byKey(const ValueKey('podcast-line-text-0-0')), findsOneWidget);
     final follow = find.byKey(const ValueKey('podcast-auto-follow-toggle'));
     expect(tester.widget<IconButton>(follow).tooltip, 'Disable auto-follow');
     await tester.tap(follow);
