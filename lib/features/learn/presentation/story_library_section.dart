@@ -3,8 +3,10 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../data/academy_catalog.dart';
 import '../data/story_library_repository.dart';
+import '../data/graded_story_repository.dart';
 import '../domain/models/story_library_models.dart';
 import 'story_library_reader_screen.dart';
+import 'graded_story_reader_screen.dart';
 
 /// Independent graded stories; existing lesson stories remain unchanged.
 class StoryLibrarySection extends StatefulWidget {
@@ -17,6 +19,9 @@ class StoryLibrarySection extends StatefulWidget {
 class _StoryLibrarySectionState extends State<StoryLibrarySection> {
   late final StoryLibraryRepository _repository = StoryLibraryRepository();
   late final Future<List<StoryLibraryEntry>> _index = _repository.loadIndex();
+  final GradedStoryRepository _gradedRepository = GradedStoryRepository();
+  late final Future<List<GradedStoryEntry>> _gradedA1Index =
+      _gradedRepository.loadIndex();
   String _language = 'en';
   String _level = 'A1';
 
@@ -86,7 +91,10 @@ class _StoryLibrarySectionState extends State<StoryLibrarySection> {
           ]),
         ),
         const SizedBox(height: 18),
-        FutureBuilder<List<StoryLibraryEntry>>(
+        if (_language == 'en' && _level == 'A1')
+          _gradedA1Shelf(ar, scheme, accent)
+        else
+          FutureBuilder<List<StoryLibraryEntry>>(
           future: _index,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
@@ -214,4 +222,103 @@ class _StoryLibrarySectionState extends State<StoryLibrarySection> {
       ],
     );
   }
+  /// Only English A1 is migrated in this stage. Keep A2–C2 unchanged.
+  Widget _gradedA1Shelf(bool ar, ColorScheme scheme, Color accent) {
+    return FutureBuilder<List<GradedStoryEntry>>(
+      future: _gradedA1Index,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Text(ar
+              ? 'تعذّر تحميل قصص A1، تحقق من ملفات المكتبة.'
+              : 'Could not load A1 stories.');
+        }
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final stories = snapshot.data!
+            .where((entry) => entry.language == 'en' &&
+                entry.level == 'A1' && entry.rightsStatus == 'cc_by_3_0')
+            .toList(growable: false);
+        if (stories.isEmpty) {
+          return Text(ar ? 'لا توجد قصص A1 جاهزة بعد.'
+              : 'No A1 stories available yet.');
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(ar
+                ? 'قصص A1 · صوت بشري ونص أصلي'
+                : 'A1 graded stories · Original human narration',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w900)),
+            const SizedBox(height: 7),
+            Text(ar
+                ? 'قصص قصيرة للتدرّب على القراءة والاستماع. اختر جملة لترجمتها إلى لغتك الأم. مستوياتنا تقديرية وليست تصنيف CEFR رسميًا.'
+                : 'Short stories for reading and listening. Translate only the sentence you choose. CEFR A1 is an editorial learning estimate.',
+              style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 12)),
+            const SizedBox(height: 14),
+            for (final story in stories)
+              Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                clipBehavior: Clip.antiAlias,
+                color: scheme.surfaceContainerLow,
+                child: InkWell(
+                  key: ValueKey('stories-a1-open-${story.id}'),
+                  onTap: () => Navigator.of(context).push<void>(
+                    MaterialPageRoute(builder: (_) =>
+                      GradedStoryReaderScreen(
+                        entry: story, repository: _gradedRepository))),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.network(
+                          'https://www.storybookscanada.ca/images/${story.id.substring(5)}/01.jpg',
+                          width: 105, height: 110,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              SizedBox(width: 105, height: 110,
+                                child: ColoredBox(
+                                  color: scheme.primaryContainer,
+                                  child: Icon(Icons.auto_stories_rounded,
+                                    color: accent, size: 42))),
+                        ),
+                      ),
+                      const SizedBox(width: 13),
+                      Expanded(child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(story.title,
+                            textDirection: TextDirection.ltr,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w900, fontSize: 16)),
+                          const SizedBox(height: 4),
+                          Text(story.titleAr,
+                            style: TextStyle(
+                                color: scheme.onSurfaceVariant, fontSize: 12)),
+                          const SizedBox(height: 8),
+                          Row(children: [
+                            Icon(Icons.headphones_rounded,
+                                size: 17, color: accent),
+                            const SizedBox(width: 5),
+                            Expanded(child: Text(
+                              ar ? 'A1 · تسجيل بشري · CC BY'
+                                  : 'A1 · human narration · CC BY',
+                              style: TextStyle(fontSize: 11, color: accent),
+                            )),
+                          ]),
+                        ],
+                      )),
+                      Icon(Icons.chevron_right_rounded, color: accent),
+                    ]),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
 }
