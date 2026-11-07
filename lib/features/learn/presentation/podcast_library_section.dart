@@ -1344,22 +1344,22 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
               for (var sentenceIndex = 0;
                   sentenceIndex < sentences.length;
                   sentenceIndex++) ...[
-                Text(
-                  sentences[sentenceIndex],
-                  key: ValueKey('podcast-line-text-$i-$sentenceIndex'),
-                  textDirection: sourceIsArabic
-                      ? TextDirection.rtl : TextDirection.ltr,
-                  textAlign: TextAlign.start,
-                  style: TextStyle(fontSize: _fontSize, height: 1.5,
-                      color: ink, fontWeight: FontWeight.w500),
-                ),
                 PodcastSentenceTranslation(
                   key: ValueKey('podcast-translate-line-$i-$sentenceIndex'),
-                  text: podcastReadingSentences(line.text)[sentenceIndex],
+                  text: sentences[sentenceIndex],
                   sourceLanguage: _episode?.language ?? 'en',
                   arabicDraft: !sourceIsArabic &&
                           sentences.length == 1
                       ? line.translationAr : null,
+                  original: Text(
+                    sentences[sentenceIndex],
+                    key: ValueKey('podcast-line-text-$i-$sentenceIndex'),
+                    textDirection: sourceIsArabic
+                        ? TextDirection.rtl : TextDirection.ltr,
+                    textAlign: TextAlign.start,
+                    style: TextStyle(fontSize: _fontSize, height: 1.5,
+                        color: ink, fontWeight: FontWeight.w500),
+                  ),
                 ),
               ],
             ],
