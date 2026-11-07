@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../data/graded_story_repository.dart';
 import 'podcast_sentence_translation.dart';
@@ -29,6 +30,7 @@ class _GradedStoryReaderScreenState extends State<GradedStoryReaderScreen> {
   bool _loading = false;
   String? _error;
   double _size = 16;
+  double _speed = 1.0;
 
   Future<void> _selectChapter(int next) async {
     if (next == _chapterIndex) return;
@@ -61,6 +63,7 @@ class _GradedStoryReaderScreenState extends State<GradedStoryReaderScreen> {
     });
     try {
       await _player.setUrl(chapter.audioUrl);
+      await _player.setSpeed(_speed);
       if (!mounted) return;
       setState(() {
         _loadedChapter = chapter.number;
@@ -178,7 +181,7 @@ class _GradedStoryReaderScreenState extends State<GradedStoryReaderScreen> {
                         final max = total.inMilliseconds > 0
                             ? total.inMilliseconds.toDouble() : 1.0;
                         return Column(children: [
-                          Text('${_clock(current)} / ${_clock(total)}',
+                          Text('${_clock(current)} / ${chapter.durationSeconds == 0 && _player.duration == null ? '--:--' : _clock(total)}',
                             textDirection: TextDirection.ltr,
                             style: const TextStyle(fontSize: 12)),
                           Slider(
@@ -194,10 +197,36 @@ class _GradedStoryReaderScreenState extends State<GradedStoryReaderScreen> {
                       },
                     )),
                   ]),
-                  if (_error != null) Text(ar
-                      ? 'تعذر تشغيل التسجيل الأصلي. تأكد من اتصال الإنترنت.'
-                      : _error!, style: TextStyle(
-                          color: scheme.error, fontSize: 12)),
+                  if (_error != null) ...[
+                    Text(ar
+                        ? 'تعذر تشغيل التسجيل الأصلي مباشرة. يمكنك الاستماع من موقع الناشر.'
+                        : 'Direct audio playback failed. You can listen on the publisher site.',
+                      style: TextStyle(color: scheme.error, fontSize: 12)),
+                    TextButton.icon(
+                      onPressed: () => launchUrl(
+                        Uri.parse(book.sourceAudioUrl),
+                        mode: LaunchMode.externalApplication),
+                      icon: const Icon(Icons.open_in_new_rounded, size: 16),
+                      label: Text(ar ? 'استماع من المصدر' : 'Listen at source'),
+                    ),
+                  ],
+                  Row(children: [
+                    const Icon(Icons.speed_rounded, size: 18),
+                    const SizedBox(width: 8),
+                    DropdownButton<double>(
+                      key: const ValueKey('graded-playback-speed'),
+                      value: _speed,
+                      underline: const SizedBox.shrink(),
+                      items: const [0.8, 1.0, 1.2].map((value) =>
+                          DropdownMenuItem(value: value,
+                            child: Text('${value}×'))).toList(),
+                      onChanged: (next) {
+                        if (next == null) return;
+                        setState(() => _speed = next);
+                        unawaited(_player.setSpeed(next));
+                      },
+                    ),
+                  ]),
                   Row(children: [
                     Expanded(child: Text(ar ? 'اضغط على الترجمة بجانب الجملة'
                         : 'Tap a sentence icon to translate into your native language',
@@ -229,6 +258,22 @@ class _GradedStoryReaderScreenState extends State<GradedStoryReaderScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if (paragraphIndex < chapter.imageUrls.length) ...[
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            chapter.imageUrls[paragraphIndex],
+                            width: double.infinity,
+                            height: 210,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) =>
+                              const SizedBox(height: 70,
+                                child: Center(child:
+                                  Icon(Icons.image_not_supported_outlined))),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
                       for (var i = 0; i < sentences.length; i++)
                         PodcastSentenceTranslation(
                           key: ValueKey('graded-translate-${chapter.number}-$paragraphIndex-$i'),
@@ -245,9 +290,44 @@ class _GradedStoryReaderScreenState extends State<GradedStoryReaderScreen> {
             )),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: PodcastSourceInfo(
-                source: 'LibriVox · ${book.reader} · original work by ${book.author}',
-                url: book.sourceAudioUrl),
+              child: book.rightsStatus == 'cc_by_3_0'
+                  ? ExpansionTile(
+                      key: const ValueKey('graded-a1-attribution'),
+                      leading: const Icon(Icons.info_outline, size: 18),
+                      title: Text(ar ? 'الكاتب والراوي والترخيص'
+                          : 'Story credits and license',
+                          style: const TextStyle(fontSize: 12)),
+                      children: [
+                        Text(ar
+                            ? 'المؤلف: ${book.author}'
+                            : 'Written by: ${book.author}'),
+                        Text(ar
+                            ? 'الرسوم: ${book.illustrator ?? ''}'
+                            : 'Illustrated by: ${book.illustrator ?? ''}'),
+                        Text(ar
+                            ? 'الراوي: ${book.reader}'
+                            : 'Narrated by: ${book.reader}'),
+                        const Text('Storybooks Canada · African Storybook'),
+                        Text(ar
+                            ? 'الترخيص: CC BY 3.0 · استخدام مع نسب العمل لأصحابه'
+                            : 'License: CC BY 3.0 · credit required'),
+                        TextButton(
+                          onPressed: () => launchUrl(
+                            Uri.parse(book.sourceTextUrl),
+                            mode: LaunchMode.externalApplication),
+                          child: Text(ar ? 'رابط القصة الأصلية' : 'Original story'),
+                        ),
+                        TextButton(
+                          onPressed: () => launchUrl(
+                            Uri.parse(book.licenseUrl!),
+                            mode: LaunchMode.externalApplication),
+                          child: Text(ar ? 'تفاصيل الترخيص' : 'License terms'),
+                        ),
+                      ],
+                    )
+                  : PodcastSourceInfo(
+                      source: 'LibriVox · ${book.reader} · original work by ${book.author}',
+                      url: book.sourceAudioUrl),
             ),
           ]);
         },
