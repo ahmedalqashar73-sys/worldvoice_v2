@@ -11,6 +11,61 @@
   ],
   "entries": [
     {
+      "id": "ccby-0087",
+      "language": "en",
+      "level": "A1",
+      "title": "I Like to Read!",
+      "title_ar": "أحب القراءة",
+      "asset": "assets/stories/graded/en/A1/ccby-0087.json",
+      "status": "preview",
+      "format": "open_licensed_storybook",
+      "rights_status": "cc_by_3_0"
+    },
+    {
+      "id": "ccby-0327",
+      "language": "en",
+      "level": "A1",
+      "title": "Counting Animals",
+      "title_ar": "عدّ الحيوانات",
+      "asset": "assets/stories/graded/en/A1/ccby-0327.json",
+      "status": "preview",
+      "format": "open_licensed_storybook",
+      "rights_status": "cc_by_3_0"
+    },
+    {
+      "id": "ccby-0008",
+      "language": "en",
+      "level": "A1",
+      "title": "What Are You Doing?",
+      "title_ar": "ماذا تفعل؟",
+      "asset": "assets/stories/graded/en/A1/ccby-0008.json",
+      "status": "preview",
+      "format": "open_licensed_storybook",
+      "rights_status": "cc_by_3_0"
+    },
+    {
+      "id": "ccby-0156",
+      "language": "en",
+      "level": "A1",
+      "title": "The Hungry Crocodile",
+      "title_ar": "التمساح الجائع",
+      "asset": "assets/stories/graded/en/A1/ccby-0156.json",
+      "status": "preview",
+      "format": "open_licensed_storybook",
+      "rights_status": "cc_by_3_0"
+    },
+    {
+      "id": "ccby-0302",
+      "language": "en",
+      "level": "A1",
+      "title": "Fire",
+      "title_ar": "النار",
+      "asset": "assets/stories/graded/en/A1/ccby-0302.json",
+      "status": "preview",
+      "format": "open_licensed_storybook",
+      "rights_status": "cc_by_3_0"
+    },
+    {
       "id": "pd-jekyll-hyde",
       "language": "en",
       "level": "C1",
