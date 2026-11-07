@@ -324,16 +324,24 @@ class _B1VoaCaptionPanelState extends State<B1VoaCaptionPanel> {
                             fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 5),
-                        Text(item.english,
-                          textDirection: TextDirection.ltr,
-                          style: TextStyle(fontSize: 13,
-                              fontWeight: selected
-                                  ? FontWeight.w800 : FontWeight.normal)),
-                        PodcastSentenceTranslation(
-                          key: ValueKey('b1-translate-${widget.transcript.id}-$i'),
-                          text: item.english,
-                          arabicDraft: item.arabic,
-                        ),
+                        for (var sentenceIndex = 0;
+                            sentenceIndex < podcastReadingSentences(item.english).length;
+                            sentenceIndex++) ...[
+                          Text(
+                            podcastReadingSentences(item.english)[sentenceIndex],
+                            textDirection: TextDirection.ltr,
+                            style: TextStyle(fontSize: 13,
+                                fontWeight: selected
+                                    ? FontWeight.w800 : FontWeight.normal)),
+                          PodcastSentenceTranslation(
+                            key: ValueKey(
+                                'b1-translate-${widget.transcript.id}-$i-$sentenceIndex'),
+                            text: podcastReadingSentences(item.english)[sentenceIndex],
+                            arabicDraft:
+                                podcastReadingSentences(item.english).length == 1
+                                    ? item.arabic : null,
+                          ),
+                        ],
                         if (selected || completed) ...[
                           const SizedBox(height: 7),
                           Container(
