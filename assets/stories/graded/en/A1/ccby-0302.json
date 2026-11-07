@@ -1,0 +1,47 @@
+{
+  "id": "ccby-0302",
+  "language": "en",
+  "level": "A1",
+  "title": "Fire",
+  "title_ar": "النار",
+  "author": "Deborah Namugosa, Beatrice Nabune, Alison Tukei, Rose Sabano",
+  "illustrator": "Rob Owen",
+  "reader": "Darshan Soni",
+  "source_text_url": "https://www.storybookscanada.ca/stories/en/0302/",
+  "source_audio_url": "https://www.storybookscanada.ca/stories/en/0302/",
+  "license_url": "https://creativecommons.org/licenses/by/3.0/",
+  "license_name": "CC BY 3.0",
+  "rights_status": "cc_by_3_0",
+  "cefr_status": "worldvoice_editorial_provisional",
+  "translation_status": "on_demand_only",
+  "audio_sync_status": "not_verified",
+  "content_note": "Unabridged original reading from Storybooks Canada Level 1. Not Oxford Bookworms. WorldVoice CEFR A1 label is provisional.",
+  "chapters": [
+    {
+      "number": 1,
+      "title": "Fire",
+      "duration_seconds": 0,
+      "audio_url": "https://www.storybookscanada.ca/audio/en/0302/en-0302_fire.mp3",
+      "paragraphs": [
+        "Look, fire!",
+        "Fire burns.",
+        "Fire cooks.",
+        "Fire gives warmth.",
+        "Fire gives light.",
+        "Look, fire!",
+        "Fire is wonderful.",
+        "And it is powerful."
+      ],
+      "image_urls": [
+        "https://www.storybookscanada.ca/images/0302/02.jpg",
+        "https://www.storybookscanada.ca/images/0302/03.jpg",
+        "https://www.storybookscanada.ca/images/0302/04.jpg",
+        "https://www.storybookscanada.ca/images/0302/05.jpg",
+        "https://www.storybookscanada.ca/images/0302/06.jpg",
+        "https://www.storybookscanada.ca/images/0302/07.jpg",
+        "https://www.storybookscanada.ca/images/0302/08.jpg",
+        "https://www.storybookscanada.ca/images/0302/09.jpg"
+      ]
+    }
+  ]
+}
