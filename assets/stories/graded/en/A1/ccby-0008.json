@@ -1,0 +1,47 @@
+{
+  "id": "ccby-0008",
+  "language": "en",
+  "level": "A1",
+  "title": "What Are You Doing?",
+  "title_ar": "ماذا تفعل؟",
+  "author": "Nina Orange",
+  "illustrator": "Wiehan de Jager",
+  "reader": "Darshan Soni",
+  "source_text_url": "https://www.storybookscanada.ca/stories/en/0008/",
+  "source_audio_url": "https://www.storybookscanada.ca/stories/en/0008/",
+  "license_url": "https://creativecommons.org/licenses/by/3.0/",
+  "license_name": "CC BY 3.0",
+  "rights_status": "cc_by_3_0",
+  "cefr_status": "worldvoice_editorial_provisional",
+  "translation_status": "on_demand_only",
+  "audio_sync_status": "not_verified",
+  "content_note": "Unabridged original reading from Storybooks Canada Level 1. Not Oxford Bookworms. WorldVoice CEFR A1 label is provisional.",
+  "chapters": [
+    {
+      "number": 1,
+      "title": "What Are You Doing?",
+      "duration_seconds": 0,
+      "audio_url": "https://www.storybookscanada.ca/audio/en/0008/en-0008_what.mp3",
+      "paragraphs": [
+        "I am singing.",
+        "She is waving.",
+        "I am clapping.",
+        "She is stretching.",
+        "He is calling.",
+        "I am answering.",
+        "She is listening.",
+        "What are you doing?"
+      ],
+      "image_urls": [
+        "https://www.storybookscanada.ca/images/0008/02.jpg",
+        "https://www.storybookscanada.ca/images/0008/03.jpg",
+        "https://www.storybookscanada.ca/images/0008/04.jpg",
+        "https://www.storybookscanada.ca/images/0008/05.jpg",
+        "https://www.storybookscanada.ca/images/0008/06.jpg",
+        "https://www.storybookscanada.ca/images/0008/07.jpg",
+        "https://www.storybookscanada.ca/images/0008/08.jpg",
+        "https://www.storybookscanada.ca/images/0008/09.jpg"
+      ]
+    }
+  ]
+}
