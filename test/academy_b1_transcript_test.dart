@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:worldvoice/features/learn/presentation/b1_voa_transcript_section.dart';
+import 'package:worldvoice/features/learn/presentation/podcast_sentence_translation.dart';
 
 Map<String, dynamic> draftFixture() {
   return {
@@ -50,7 +51,7 @@ void main() {
         throwsFormatException);
   });
 
-  testWidgets('English and Arabic caption draft render within transcript panel',
+  testWidgets('B1 transcript shows English with opt-in per-sentence translator',
       (tester) async {
     final captions = B1VoaTranscript.fromJson(draftFixture());
     Duration? seeked;
@@ -64,7 +65,8 @@ void main() {
       )),
     ));
     expect(find.text('English line number 1'), findsWidgets);
-    expect(find.text('السطر العربي رقم 1'), findsWidgets);
+    expect(find.text('السطر العربي رقم 1'), findsNothing);
+    expect(find.byKey(const ValueKey('podcast-translate-sentence')), findsWidgets);
     expect(find.byKey(const ValueKey('b1-bilingual-captions')),
         findsOneWidget);
     await tester.tap(find.byKey(const ValueKey('b1-caption-line-0')));
@@ -100,13 +102,16 @@ void main() {
     final englishText = tester.widget<Text>(
       find.descendant(of: firstRow, matching: find.text(fullEnglish)),
     );
-    final arabicText = tester.widget<Text>(
-      find.descendant(of: firstRow, matching: find.text(fullArabic)),
+    final translate = tester.widget<PodcastSentenceTranslation>(
+      find.descendant(
+        of: firstRow,
+        matching: find.byType(PodcastSentenceTranslation),
+      ),
     );
     expect(englishText.maxLines, isNull);
     expect(englishText.overflow, isNull);
-    expect(arabicText.maxLines, isNull);
-    expect(arabicText.overflow, isNull);
+    expect(find.text(fullArabic), findsNothing);
+    expect(translate.arabicDraft, fullArabic);
   });
 
 }
