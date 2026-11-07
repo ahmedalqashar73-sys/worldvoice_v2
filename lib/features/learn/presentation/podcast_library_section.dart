@@ -6,7 +6,6 @@ import 'package:just_audio/just_audio.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../data/academy_podcast_repository.dart';
 import 'voa_originals_section.dart';
@@ -1313,8 +1312,6 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
         : (i.isEven ? const Color(0xFFF2F7F3) : Colors.white);
     final anna = line.speaker == 'Anna';
     final sourceIsArabic = _episode?.language == 'ar';
-    final translation = sourceIsArabic
-        ? line.translationEn ?? '' : line.translationAr;
     final canReplay = (_audioLoaded && line.startMs != null) ||
         (_episode?.canReadAloud ?? false);
     // The dialogue itself is a cached child. Cue updates repaint only the
