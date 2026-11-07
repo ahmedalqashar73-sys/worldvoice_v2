@@ -1802,12 +1802,17 @@ app.post("/podcast/translate", async (req, res, next) => {
     const targetLanguageCode = String(
       req.body?.targetLanguageCode ?? "",
     ).trim().toLowerCase();
+    const sourceLanguageCode = String(
+      req.body?.sourceLanguageCode ?? "auto",
+    ).trim().toLowerCase();
     if (!value || value.length > 1400 ||
-        !/^[a-z]{2,3}(?:-[a-z0-9]{2,8})?$/.test(targetLanguageCode)) {
+        !/^[a-z]{2,3}(?:-[a-z0-9]{2,8})?$/.test(targetLanguageCode) ||
+        (sourceLanguageCode !== "auto" &&
+          !/^[a-z]{2,3}(?:-[a-z0-9]{2,8})?$/.test(sourceLanguageCode))) {
       return res.status(400).json({error: "Invalid podcast sentence or target language."});
     }
     const cacheKey = createHash("sha256")
-      .update(JSON.stringify([value, targetLanguageCode])).digest("hex");
+      .update(JSON.stringify([value, sourceLanguageCode, targetLanguageCode])).digest("hex");
     if (podcastTranslationCache.has(cacheKey)) {
       const translation = podcastTranslationCache.get(cacheKey);
       // Recent translations stay in the bounded cache.
@@ -1842,7 +1847,7 @@ app.post("/podcast/translate", async (req, res, next) => {
         "Preserve scientific names, speakers, proper nouns, and meaning. " +
         "Do not add notes, answers, explanations, timestamps, or labels. " +
         "Return only the translated sentence. If already in the target language, return unchanged.",
-      input: `Target language code: ${targetLanguageCode}\nOriginal sentence: ${value}`,
+      input: `Source language code: ${sourceLanguageCode}\nTarget language code: ${targetLanguageCode}\nOriginal sentence: ${value}`,
     });
     const translation = String(response.output_text || "").trim().slice(0, 4000);
     if (!translation) {
