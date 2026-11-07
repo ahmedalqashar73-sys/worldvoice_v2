@@ -27,6 +27,7 @@ class PodcastSentenceTranslation extends StatefulWidget {
     required this.text,
     this.arabicDraft,
     this.sourceLanguage = 'en',
+    this.original,
     this.nativeLanguageResolver,
     this.translationOverride,
   });
@@ -34,6 +35,8 @@ class PodcastSentenceTranslation extends StatefulWidget {
   final String text;
   final String? arabicDraft;
   final String sourceLanguage;
+  /// Optional English sentence shown beside the translation icon.
+  final Widget? original;
   /// Optional translation seams for deterministic widget testing.
   final Future<String> Function()? nativeLanguageResolver;
   final Future<String> Function(String text, String language)? translationOverride;
@@ -189,20 +192,24 @@ class _PodcastSentenceTranslationState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: IconButton(
-            key: const ValueKey('podcast-translate-sentence'),
-            tooltip: ar ? 'ترجمة هذه الجملة إلى لغتي الأم'
-                : 'Translate this sentence to my native language',
-            icon: Icon(_visible
-                ? Icons.translate_rounded : Icons.g_translate_rounded,
-                size: 20),
-            color: _visible ? const Color(0xFF20845C) : null,
-            constraints: const BoxConstraints(minHeight: 36, minWidth: 36),
-            padding: const EdgeInsets.all(5),
-            onPressed: _loading ? null : _toggle,
-          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (widget.original != null)
+              Expanded(child: widget.original!),
+            IconButton(
+              key: const ValueKey('podcast-translate-sentence'),
+              tooltip: ar ? 'ترجمة هذه الجملة إلى لغتي الأم'
+                  : 'Translate this sentence to my native language',
+              icon: Icon(_visible
+                  ? Icons.translate_rounded : Icons.g_translate_rounded,
+                  size: 20),
+              color: _visible ? const Color(0xFF20845C) : null,
+              constraints: const BoxConstraints(minHeight: 36, minWidth: 36),
+              padding: const EdgeInsets.all(5),
+              onPressed: _loading ? null : _toggle,
+            ),
+          ],
         ),
         if (_visible && _loading)
           const Padding(
