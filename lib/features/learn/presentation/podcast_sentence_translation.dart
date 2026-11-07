@@ -16,11 +16,16 @@ class PodcastSentenceTranslation extends StatefulWidget {
     required this.text,
     this.arabicDraft,
     this.sourceLanguage = 'en',
+    this.nativeLanguageResolver,
+    this.translationOverride,
   });
 
   final String text;
   final String? arabicDraft;
   final String sourceLanguage;
+  /// Optional translation seams for deterministic widget testing.
+  final Future<String> Function()? nativeLanguageResolver;
+  final Future<String> Function(String text, String language)? translationOverride;
 
   @override
   State<PodcastSentenceTranslation> createState() =>
@@ -71,7 +76,8 @@ class _PodcastSentenceTranslationState
     });
     try {
       final fallback = Localizations.localeOf(context).languageCode;
-      final target = await _nativeLanguage(fallback);
+      final target = await (widget.nativeLanguageResolver?.call() ??
+          _nativeLanguage(fallback));
       if (!mounted || generation != _generation) return;
       final cacheKey = jsonEncode([target, widget.text]);
       String translated;
@@ -80,6 +86,8 @@ class _PodcastSentenceTranslationState
       } else if (target == 'ar' &&
           (widget.arabicDraft?.trim().isNotEmpty ?? false)) {
         translated = widget.arabicDraft!.trim();
+      } else if (widget.translationOverride != null) {
+        translated = await widget.translationOverride!(widget.text, target);
       } else if (_memoryCache.containsKey(cacheKey)) {
         translated = _memoryCache[cacheKey]!;
       } else {
