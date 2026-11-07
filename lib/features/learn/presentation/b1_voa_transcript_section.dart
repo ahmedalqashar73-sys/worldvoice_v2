@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'podcast_sentence_translation.dart';
+
 /// Machine-generated candidates based on the exact 30-minute VOA MP3.
 /// These are NOT editorially verified or word-accurate subtitles.
 class B1VoaCaptionLine {
@@ -180,7 +182,6 @@ class B1VoaCaptionPanel extends StatefulWidget {
 class _B1VoaCaptionPanelState extends State<B1VoaCaptionPanel> {
   final ScrollController _controller = ScrollController();
   final Map<int, GlobalKey> _rowKeys = {};
-  bool _showArabic = true;
   bool _autoScroll = true;
   int _lastLine = -2;
 
@@ -250,25 +251,20 @@ class _B1VoaCaptionPanelState extends State<B1VoaCaptionPanel> {
         const Icon(Icons.subtitles_rounded, color: Color(0xFF20845C)),
         const SizedBox(width: 8),
         Expanded(child: Text(
-          ar ? 'النص الإنجليزي والترجمة العربية'
-              : 'English captions and Arabic translation',
+          ar ? 'نص البودكاست · الترجمة عند الضغط'
+              : 'Podcast captions · tap to translate',
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
         )),
       ]),
       const SizedBox(height: 7),
       Text(
         ar
-            ? 'مسودة تفريغ وترجمة آلية من التسجيل الأصلي. توقيت الجمل تقريبي ويحتاج مراجعة؛ اضغط الجملة للانتقال إليها.'
-            : 'Automatic transcript and translation draft from the original audio. Approximate line timing needs review; tap a line to seek.',
+            ? 'اضغط علامة الترجمة بجانب أي جملة لترجمتها إلى لغتك الأم. توقيت الجمل تقريبي ويحتاج مراجعة.'
+            : 'Tap the translate icon beside a sentence to see it in your native language. Sentence timing needs review.',
         style: TextStyle(fontSize: 12, height: 1.5,
             color: scheme.onSurfaceVariant),
       ),
       Row(children: [
-        Checkbox(
-          value: _showArabic,
-          onChanged: (v) => setState(() => _showArabic = v ?? true),
-        ),
-        Text(ar ? 'إظهار الترجمة العربية' : 'Show Arabic translation'),
         const Spacer(),
         IconButton(
           tooltip: ar ? 'التمرير التلقائي' : 'Auto scroll',
@@ -292,11 +288,6 @@ class _B1VoaCaptionPanelState extends State<B1VoaCaptionPanel> {
               textDirection: TextDirection.ltr,
               style: const TextStyle(fontSize: 15,
                   fontWeight: FontWeight.bold)),
-            if (_showArabic) ...[
-              const SizedBox(height: 6),
-              Text(widget.transcript.lines[active].arabic,
-                textDirection: TextDirection.rtl),
-            ],
           ]),
         ),
         const SizedBox(height: 8),
@@ -338,12 +329,11 @@ class _B1VoaCaptionPanelState extends State<B1VoaCaptionPanel> {
                           style: TextStyle(fontSize: 13,
                               fontWeight: selected
                                   ? FontWeight.w800 : FontWeight.normal)),
-                        if (_showArabic) ...[
-                          const SizedBox(height: 3),
-                          Text(item.arabic,
-                            textDirection: TextDirection.rtl,
-                            style: const TextStyle(fontSize: 13, height: 1.4)),
-                        ],
+                        PodcastSentenceTranslation(
+                          key: ValueKey('b1-translate-${widget.transcript.id}-$i'),
+                          text: item.english,
+                          arabicDraft: item.arabic,
+                        ),
                         if (selected || completed) ...[
                           const SizedBox(height: 7),
                           Container(
