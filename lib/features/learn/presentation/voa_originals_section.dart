@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'podcast_sentence_translation.dart';
+
 /// A curated, attributed set of REAL VOA English voice recordings.
 /// The full, exact transcript lives on the matching original VOA page.
 /// No WorldVoice script is ever passed off as the original spoken words.
@@ -148,24 +150,24 @@ class _VoaOriginalsSectionState extends State<VoaOriginalsSection> {
     final scheme = Theme.of(context).colorScheme;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(ar
-          ? 'تسجيلات VOA الأصلية — ${widget.level} — ${widget.level == 'A2' ? 30 : 15} حلقة'
-          : 'Original VOA audio — ${widget.level} — ${widget.level == 'A2' ? 30 : 15} episodes',
+          ? 'بودكاست الإنجليزية — ${widget.level} — ${widget.level == 'A2' ? 30 : 15} حلقة'
+          : 'English podcast — ${widget.level} — ${widget.level == 'A2' ? 30 : 15} episodes',
           style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900)),
       const SizedBox(height: 5),
       Text(ar
           ? (widget.level == 'A2'
-              ? '30 درسًا من VOA بأصواتها الأصلية، كل تسجيل لا يقل عن 3:30. تظهر مدة كل درس، والنصوص المترجمة والمسودات الآلية مميّزة بوضوح.'
-              : 'جميع التسجيلات من VOA. آنا صوت رئيسي متكرر، ويشارك بيت وشخصيات أخرى حسب الحلقة. لا توجد أصوات آلية في هذه القائمة.')
+              ? '30 درسًا بالصوت الأصلي، كل تسجيل لا يقل عن 3:30. الترجمة متاحة عند الضغط على الجملة في النص المتوفر.'
+              : 'تسجيلات بشرية أصلية. آنا صوت رئيسي متكرر، ويشارك بيت وشخصيات أخرى حسب الحلقة.')
           : (widget.level == 'A2'
-              ? '30 authentic VOA Level 2 recordings, each at least 3:30. Durations, bilingual transcript scope, and machine-translation drafts are labeled for every episode.'
-              : 'Every recording is from VOA. Anna is a recurring voice; Pete and other characters appear when they are part of the original lesson. No synthetic voices here.'),
+              ? '30 original recordings, each at least 3:30, with optional sentence translation where the transcript is available.'
+              : 'Original human recordings with Anna and guest speakers depending on the episode.'),
           style: TextStyle(fontSize: 12, height: 1.5,
               color: scheme.onSurfaceVariant)),
       if (widget.level == 'A2') ...[
         const SizedBox(height: 7),
         Text(ar
-            ? 'VOA Level 2 منهج متوسط وليس معادلًا رسميًا لـ A2 الأوروبي. الدرس 8 يستعمل صوت فيديو VOA الأصلي لعدم توفر MP3 مستقل؛ قد يحتاج بيانات أكثر.'
-            : 'VOA Level 2 is an intermediate series, not a formal CEFR A2 equivalent. Lesson 8 streams the original VOA video audio because no independent MP3 is published.',
+            ? 'تصنيف المستوى A2 تعليمي مقترح. الدرس الثامن يستخدم الصوت الأصلي من فيديو وقد يحتاج بيانات أكثر.'
+            : 'A2 is an editorial learning label. Lesson 8 streams audio from the original video and may use more data.',
             style: TextStyle(fontSize: 11, height: 1.4,
                 color: scheme.onSurfaceVariant)),
       ],
@@ -201,15 +203,15 @@ class _VoaOriginalsSectionState extends State<VoaOriginalsSection> {
                       style: const TextStyle(fontWeight: FontWeight.w800)),
                   subtitle: Text(
                     lesson.syncStatus == 'provisional'
-                      ? (ar ? 'VOA · صوت بشري أصلي · تزامن سطور تجريبي'
-                          : 'VOA human audio · provisional sync')
+                      ? (ar ? 'صوت بشري أصلي · تزامن سطور تجريبي'
+                          : 'Human audio · provisional sync')
                       : widget.level == 'A2'
                           ? (ar
-                              ? 'VOA درس ${lesson.number} · ${lesson.durationSec ~/ 60}:${(lesson.durationSec % 60).toString().padLeft(2, '0')} · ${lesson.number == 8 ? 'صوت الفيديو الأصلي' : 'تسجيل أصلي'} · ${lesson.transcriptScope == 'full' ? 'نص مترجم كامل' : 'مقتطف مترجم'}${lesson.translationStatus == 'machine_draft' ? ' · ترجمة آلية أولية' : ''}'
-                              : 'VOA Lesson ${lesson.number} · ${lesson.durationSec ~/ 60}:${(lesson.durationSec % 60).toString().padLeft(2, '0')} · ${lesson.number == 8 ? 'original video audio' : 'original audio'} · ${lesson.transcriptScope == 'full' ? 'full bilingual text' : 'translated excerpt'}${lesson.translationStatus == 'machine_draft' ? ' · machine translation draft' : ''}')
+                              ? 'الدرس ${lesson.number} · ${lesson.durationSec ~/ 60}:${(lesson.durationSec % 60).toString().padLeft(2, '0')} · ${lesson.number == 8 ? 'صوت الفيديو الأصلي' : 'تسجيل أصلي'} · ${lesson.transcriptScope == 'full' ? 'نص مترجم كامل' : 'مقتطف مترجم'}${lesson.translationStatus == 'machine_draft' ? ' · ترجمة آلية أولية' : ''}'
+                              : 'Lesson ${lesson.number} · ${lesson.durationSec ~/ 60}:${(lesson.durationSec % 60).toString().padLeft(2, '0')} · ${lesson.number == 8 ? 'original video audio' : 'original audio'} · ${lesson.transcriptScope == 'full' ? 'full bilingual text' : 'translated excerpt'}${lesson.translationStatus == 'machine_draft' ? ' · machine translation draft' : ''}')
                           : (ar
-                              ? 'Anna${lesson.petePresent ? ' + Pete' : ' + ضيوف'} · تسجيل VOA بشري أصلي'
-                              : 'Anna${lesson.petePresent ? ' + Pete' : ' + guests'} · original human VOA audio'),
+                              ? 'Anna${lesson.petePresent ? ' + Pete' : ' + ضيوف'} · صوت بشري أصلي'
+                              : 'Anna${lesson.petePresent ? ' + Pete' : ' + guests'} · original human audio'),
                     style: TextStyle(fontSize: 11,
                         color: scheme.onSurfaceVariant),
                   ),
@@ -299,7 +301,7 @@ class _VoaOriginalAudioScreenState extends State<VoaOriginalAudioScreen> {
                   color: Color(0xFFF1D98F)),
               const SizedBox(width: 7),
               Expanded(child: Text(
-                  'VOA LEARNING ENGLISH · ${lesson.level} ORIGINAL AUDIO',
+                  'WORLDVOICE PODCAST · ${lesson.level}',
                   style: const TextStyle(color: Color(0xFFF1D98F),
                       fontSize: 11, fontWeight: FontWeight.w900))),
             ]),
@@ -309,8 +311,8 @@ class _VoaOriginalAudioScreenState extends State<VoaOriginalAudioScreen> {
               style: const TextStyle(color: Colors.white, fontSize: 20,
                   fontWeight: FontWeight.w800)),
             const SizedBox(height: 7),
-            Text(lesson.petePresent ? 'Anna · Pete · VOA cast'
-                : 'Anna · VOA cast',
+            Text(lesson.petePresent ? 'Anna · Pete · guests'
+                : 'Anna · guests',
                 style: const TextStyle(color: Colors.white70)),
             const SizedBox(height: 16),
             if (_error != null)
@@ -379,20 +381,14 @@ class _VoaOriginalAudioScreenState extends State<VoaOriginalAudioScreen> {
                 fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
         Text(ar
-            ? 'هذا التسجيل من VOA مباشرة. افتح نصه الأصلي من المصدر نفسه؛ لم يتم اعتماد توقيت كل سطر بعد، لذلك لا نعرض تزامنًا وهميًا.'
-            : 'This is the actual VOA conversation. Open its full original transcript at the source; line-by-line timing is not yet verified.',
+            ? 'هذه الحلقة بصوتها الأصلي، ولم تتم مراجعة توقيت كل سطر. يمكن فتح النص الكامل من تفاصيل التسجيل.'
+            : 'Original audio is preserved. Full text is available through recording information; line-by-line timing is not verified.',
             style: TextStyle(height: 1.6, color: scheme.onSurfaceVariant)),
         const SizedBox(height: 13),
-        FilledButton.icon(
-          key: const ValueKey('voa-original-transcript-link'),
-          onPressed: _openOfficialTranscript,
-          icon: const Icon(Icons.open_in_new_rounded),
-          label: Text(ar ? 'فتح النص الكامل في موقع VOA'
-              : 'Open complete original transcript on VOA'),
+        PodcastSourceInfo(
+          source: 'VOA Learning English',
+          url: lesson.sourceUrl,
         ),
-        const SizedBox(height: 10),
-        Text('VOA Learning English · Let\'s Learn English Level ${lesson.level == 'A2' ? 2 : 1}. WorldVoice is not affiliated with VOA.',
-          style: TextStyle(color: scheme.onSurfaceVariant, fontSize: 11)),
       ]),
     );
   }
