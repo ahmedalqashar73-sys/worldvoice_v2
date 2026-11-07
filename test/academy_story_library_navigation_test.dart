@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:worldvoice/features/learn/presentation/story_library_section.dart';
 import 'package:worldvoice/features/learn/presentation/graded_story_reader_screen.dart';
+import 'package:worldvoice/features/learn/data/graded_story_repository.dart';
 
 void main() {
   testWidgets('English A1 shows only five licensed graded storybooks',
@@ -24,9 +25,13 @@ void main() {
 
   testWidgets('A1 opens new graded reader instead of legacy storybook',
       (tester) async {
-    await tester.pumpWidget(const MaterialApp(
+    final entries = await tester.runAsync(
+        () => GradedStoryRepository().loadIndex());
+    expect(entries, isNotNull);
+    await tester.pumpWidget(MaterialApp(
       home: Scaffold(
-        body: SingleChildScrollView(child: StoryLibrarySection()),
+        body: SingleChildScrollView(child:
+          StoryLibrarySection(initialA1Stories: entries!)),
       ),
     ));
     await tester.pump();
