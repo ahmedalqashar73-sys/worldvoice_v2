@@ -1312,6 +1312,7 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
         : (i.isEven ? const Color(0xFFF2F7F3) : Colors.white);
     final anna = line.speaker == 'Anna';
     final sourceIsArabic = _episode?.language == 'ar';
+    final sentences = podcastReadingSentences(line.text);
     final canReplay = (_audioLoaded && line.startMs != null) ||
         (_episode?.canReadAloud ?? false);
     // The dialogue itself is a cached child. Cue updates repaint only the
@@ -1341,10 +1342,10 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                   fontWeight: FontWeight.w800, fontSize: 12)),
               const SizedBox(height: 6),
               for (var sentenceIndex = 0;
-                  sentenceIndex < podcastReadingSentences(line.text).length;
+                  sentenceIndex < sentences.length;
                   sentenceIndex++) ...[
                 Text(
-                  podcastReadingSentences(line.text)[sentenceIndex],
+                  sentences[sentenceIndex],
                   key: ValueKey('podcast-line-text-$i-$sentenceIndex'),
                   textDirection: sourceIsArabic
                       ? TextDirection.rtl : TextDirection.ltr,
@@ -1357,7 +1358,7 @@ class _PodcastReaderScreenState extends State<PodcastReaderScreen> {
                   text: podcastReadingSentences(line.text)[sentenceIndex],
                   sourceLanguage: _episode?.language ?? 'en',
                   arabicDraft: !sourceIsArabic &&
-                          podcastReadingSentences(line.text).length == 1
+                          sentences.length == 1
                       ? line.translationAr : null,
                 ),
               ],
