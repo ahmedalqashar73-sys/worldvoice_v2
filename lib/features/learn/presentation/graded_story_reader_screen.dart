@@ -309,6 +309,9 @@ class _GradedStoryReaderScreenState extends State<GradedStoryReaderScreen> {
                             : 'Narrated by: ${book.reader}'),
                         const Text('Storybooks Canada · African Storybook'),
                         Text(ar
+                            ? 'أعيد تنسيق النص والصور للقراءة داخل WorldVoice. لم نغيّر التسجيل الأصلي.'
+                            : 'Pages are reformatted for WorldVoice reading. Original narration is unchanged.'),
+                        Text(ar
                             ? 'الترخيص: CC BY 3.0 · استخدام مع نسب العمل لأصحابه'
                             : 'License: CC BY 3.0 · credit required'),
                         TextButton(
