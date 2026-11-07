@@ -1,0 +1,47 @@
+{
+  "id": "ccby-0327",
+  "language": "en",
+  "level": "A1",
+  "title": "Counting Animals",
+  "title_ar": "عدّ الحيوانات",
+  "author": "Zanele Buthelezi, Thembani Dladla, Clare Verbeek",
+  "illustrator": "Rob Owen",
+  "reader": "Darshan Soni",
+  "source_text_url": "https://www.storybookscanada.ca/stories/en/0327/",
+  "source_audio_url": "https://www.storybookscanada.ca/stories/en/0327/",
+  "license_url": "https://creativecommons.org/licenses/by/3.0/",
+  "license_name": "CC BY 3.0",
+  "rights_status": "cc_by_3_0",
+  "cefr_status": "worldvoice_editorial_provisional",
+  "translation_status": "on_demand_only",
+  "audio_sync_status": "not_verified",
+  "content_note": "Unabridged original reading from Storybooks Canada Level 1. Not Oxford Bookworms. WorldVoice CEFR A1 label is provisional.",
+  "chapters": [
+    {
+      "number": 1,
+      "title": "Counting Animals",
+      "duration_seconds": 0,
+      "audio_url": "https://www.storybookscanada.ca/audio/en/0327/en-0327_counting.mp3",
+      "paragraphs": [
+        "One elephant is going to drink water.",
+        "Two giraffes are going to drink water.",
+        "Three buffaloes and four birds are also going to drink water.",
+        "Five impalas and six warthogs are walking to the water.",
+        "Seven zebras are running to the water.",
+        "Eight frogs and nine fish are swimming in the water.",
+        "One lion roars. He also wants to drink. Who is afraid of the lion?",
+        "One elephant is drinking water with the lion."
+      ],
+      "image_urls": [
+        "https://www.storybookscanada.ca/images/0327/02.jpg",
+        "https://www.storybookscanada.ca/images/0327/03.jpg",
+        "https://www.storybookscanada.ca/images/0327/04.jpg",
+        "https://www.storybookscanada.ca/images/0327/05.jpg",
+        "https://www.storybookscanada.ca/images/0327/06.jpg",
+        "https://www.storybookscanada.ca/images/0327/07.jpg",
+        "https://www.storybookscanada.ca/images/0327/08.jpg",
+        "https://www.storybookscanada.ca/images/0327/09.jpg"
+      ]
+    }
+  ]
+}
