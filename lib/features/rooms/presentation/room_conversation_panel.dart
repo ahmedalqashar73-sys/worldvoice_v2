@@ -529,6 +529,7 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                                       PublicMemberMarks(
                                         userId: msg.userId,
                                         compact: true,
+                                        showVip: false,
                                       ),
                                       RoomBondChatMarks(userId: msg.userId),
                                     ],

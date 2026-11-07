@@ -177,7 +177,8 @@ class GiftLevelBadge extends StatelessWidget {
 }
 
 class PublicMemberMarks extends StatefulWidget {
-  const PublicMemberMarks({required this.userId, this.compact = false, super.key});
+  const PublicMemberMarks({required this.userId, this.compact = false, this.showVip = true, super.key});
+  final bool showVip;
   final bool compact;
   final String userId;
   @override
@@ -235,7 +236,7 @@ class _PublicMemberMarksState extends State<PublicMemberMarks> {
       if (data == null) return const SizedBox.shrink();
       final level = (data['giftLevel'] as num?)?.toInt() ?? 0;
       final vip = data['vipBadge'] as String?;
-      return MemberBadgeMarks(level: level, vip: vip, compact: widget.compact);
+      return MemberBadgeMarks(level: level, vip: widget.showVip ? vip : null, compact: widget.compact);
     },
   );
 }
