@@ -1790,6 +1790,74 @@ app.post("/translate", async (req, res, next) => {
   }
 });
 
+// Podcast reading translation is independent of room/live membership.
+// A tap on one sentence creates one authenticated, bounded request.
+// We cache repeated text in memory to avoid charging for each replay.
+const podcastTranslationCache = new Map();
+const podcastTranslationRate = new Map();
+app.post("/podcast/translate", async (req, res, next) => {
+  try {
+    const user = await authenticatedUser(req);
+    const value = String(req.body?.text ?? "").trim();
+    const targetLanguageCode = String(
+      req.body?.targetLanguageCode ?? "",
+    ).trim().toLowerCase();
+    if (!value || value.length > 1400 ||
+        !/^[a-z]{2,3}(?:-[a-z0-9]{2,8})?$/.test(targetLanguageCode)) {
+      return res.status(400).json({error: "Invalid podcast sentence or target language."});
+    }
+    const cacheKey = createHash("sha256")
+      .update(JSON.stringify([value, targetLanguageCode])).digest("hex");
+    if (podcastTranslationCache.has(cacheKey)) {
+      const translation = podcastTranslationCache.get(cacheKey);
+      // Recent translations stay in the bounded cache.
+      podcastTranslationCache.delete(cacheKey);
+      podcastTranslationCache.set(cacheKey, translation);
+      return res.json({ok: true, translation, targetLanguageCode, cached: true});
+    }
+    const now = Date.now();
+    const rate = podcastTranslationRate.get(user.uid) || {start: now, count: 0};
+    if (now - rate.start >= 60000) {
+      rate.start = now;
+      rate.count = 0;
+    }
+    if (rate.count >= 40) {
+      return res.status(429).json({error: "Too many translation requests. Try again shortly."});
+    }
+    rate.count++;
+    podcastTranslationRate.set(user.uid, rate);
+    if (podcastTranslationRate.size > 3000) {
+      for (const [uid, item] of podcastTranslationRate) {
+        if (now - item.start > 120000) podcastTranslationRate.delete(uid);
+      }
+    }
+
+    requireEnv(aiKey, aiKeyName);
+    requireEnv(teacherModel, aiModelName);
+    const response = await worldVoiceAiResponse({
+      model: teacherModel,
+      store: false,
+      instructions:
+        "Translate only the supplied single podcast reading sentence into the exact target language. " +
+        "Preserve scientific names, speakers, proper nouns, and meaning. " +
+        "Do not add notes, answers, explanations, timestamps, or labels. " +
+        "Return only the translated sentence. If already in the target language, return unchanged.",
+      input: `Target language code: ${targetLanguageCode}\nEnglish sentence: ${value}`,
+    });
+    const translation = String(response.output_text || "").trim().slice(0, 4000);
+    if (!translation) {
+      return res.status(502).json({error: "Translation unavailable."});
+    }
+    podcastTranslationCache.set(cacheKey, translation);
+    if (podcastTranslationCache.size > 3000) {
+      podcastTranslationCache.delete(podcastTranslationCache.keys().next().value);
+    }
+    return res.json({ok: true, translation, targetLanguageCode, cached: false});
+  } catch (error) {
+    next(error);
+  }
+});
+
 /**
  * Uniform non-currency entitlement purchase/gift. VIP with coins is gifted
  * only; a user's own recurring VIP plan goes through verified store billing.
