@@ -1,0 +1,47 @@
+{
+  "id": "ccby-0087",
+  "language": "en",
+  "level": "A1",
+  "title": "I Like to Read!",
+  "title_ar": "أحب القراءة",
+  "author": "Letta Machoga",
+  "illustrator": "Wiehan de Jager",
+  "reader": "Darshan Soni",
+  "source_text_url": "https://www.storybookscanada.ca/stories/en/0087/",
+  "source_audio_url": "https://www.storybookscanada.ca/stories/en/0087/",
+  "license_url": "https://creativecommons.org/licenses/by/3.0/",
+  "license_name": "CC BY 3.0",
+  "rights_status": "cc_by_3_0",
+  "cefr_status": "worldvoice_editorial_provisional",
+  "translation_status": "on_demand_only",
+  "audio_sync_status": "not_verified",
+  "content_note": "Unabridged original reading from Storybooks Canada Level 1. Not Oxford Bookworms. WorldVoice CEFR A1 label is provisional.",
+  "chapters": [
+    {
+      "number": 1,
+      "title": "I Like to Read!",
+      "duration_seconds": 0,
+      "audio_url": "https://www.storybookscanada.ca/audio/en/0087/en-0087_read.mp3",
+      "paragraphs": [
+        "I like to read.",
+        "Who can I read to?",
+        "My sister is asleep.",
+        "Who can I read to?",
+        "My mother and grandmother are busy.",
+        "Who can I read to?",
+        "My father and grandfather are busy.",
+        "Who can I read to? I can read to myself!"
+      ],
+      "image_urls": [
+        "https://www.storybookscanada.ca/images/0087/02.jpg",
+        "https://www.storybookscanada.ca/images/0087/03.jpg",
+        "https://www.storybookscanada.ca/images/0087/04.jpg",
+        "https://www.storybookscanada.ca/images/0087/05.jpg",
+        "https://www.storybookscanada.ca/images/0087/06.jpg",
+        "https://www.storybookscanada.ca/images/0087/07.jpg",
+        "https://www.storybookscanada.ca/images/0087/08.jpg",
+        "https://www.storybookscanada.ca/images/0087/09.jpg"
+      ]
+    }
+  ]
+}
