@@ -328,19 +328,18 @@ class _B1VoaCaptionPanelState extends State<B1VoaCaptionPanel> {
                         for (var sentenceIndex = 0;
                             sentenceIndex < sentences.length;
                             sentenceIndex++) ...[
-                          Text(
-                            sentences[sentenceIndex],
-                            textDirection: TextDirection.ltr,
-                            style: TextStyle(fontSize: 13,
-                                fontWeight: selected
-                                    ? FontWeight.w800 : FontWeight.normal)),
                           PodcastSentenceTranslation(
                             key: ValueKey(
                                 'b1-translate-${widget.transcript.id}-$i-$sentenceIndex'),
-                            text: podcastReadingSentences(item.english)[sentenceIndex],
-                            arabicDraft:
-                                sentences.length == 1
-                                    ? item.arabic : null,
+                            text: sentences[sentenceIndex],
+                            arabicDraft: sentences.length == 1
+                                ? item.arabic : null,
+                            original: Text(
+                              sentences[sentenceIndex],
+                              textDirection: TextDirection.ltr,
+                              style: TextStyle(fontSize: 13,
+                                  fontWeight: selected
+                                      ? FontWeight.w800 : FontWeight.normal)),
                           ),
                         ],
                         if (selected || completed) ...[
