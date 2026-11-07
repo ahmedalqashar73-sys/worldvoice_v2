@@ -108,6 +108,7 @@ class _RoomBondChatMarksState extends State<RoomBondChatMarks> {
                 WorldBondLevelBadge(
                     key: ValueKey('room-chat-bond-$item'),
                     relationshipType: item,
+                    isArabic: Localizations.localeOf(context).languageCode == 'ar',
                     level: (data[item] as num).toInt(), compact: true, chat: true,
                 ),
           ],

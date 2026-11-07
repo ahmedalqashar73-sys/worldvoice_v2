@@ -16,6 +16,12 @@ class WorldBondLevelBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final value = level.clamp(1, 5);
     final accent = WorldBondIdentity.accent(relationshipType);
+    final relationshipName = switch (relationshipType) {
+      'language' => isArabic ? 'رفيق اللغة' : 'Language partner',
+      'friend' => isArabic ? 'صديق مميز' : 'Special friend',
+      'duo' => isArabic ? 'ثنائي' : 'Duo',
+      _ => isArabic ? 'رفيق التعلم' : 'Learning partner',
+    };
     return Semantics(
       label: isArabic ? 'شارة العلاقة المستوى $value'
           : 'WorldBond badge level $value',
@@ -32,9 +38,10 @@ class WorldBondLevelBadge extends StatelessWidget {
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           WorldBondBadgeArt(relationshipType: relationshipType,
-            size: chat ? 16 : (compact ? 26 : 38)),
+            size: chat ? 18 : (compact ? 26 : 38)),
           SizedBox(width: chat ? 2 : 4),
-          Text(chat ? '$value' : 'Level $value', textDirection: TextDirection.ltr,
+          Text(chat ? relationshipName : 'Level $value',
+            textDirection: chat && isArabic ? TextDirection.rtl : TextDirection.ltr,
             style: TextStyle(color: accent, fontSize: chat ? 9 : (compact ? 10 : 12),
               fontWeight: FontWeight.w800)),
         ]),

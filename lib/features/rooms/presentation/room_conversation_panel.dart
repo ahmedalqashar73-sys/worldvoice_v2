@@ -512,50 +512,39 @@ class _RoomConversationPanelState extends State<RoomConversationPanel> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text.rich(
-                                  TextSpan(
+                                if (!welcome && msg != null) ...[
+                                  Wrap(
+                                    crossAxisAlignment: WrapCrossAlignment.center,
+                                    spacing: 4,
+                                    runSpacing: 4,
                                     children: [
-                                      if (!welcome && msg != null)
-                                        WidgetSpan(
-                                          alignment:
-                                              PlaceholderAlignment.middle,
-                                          child: PublicMemberMarks(
-                                            userId: msg.userId,
-                                            compact: true,
-                                          ),
-                                        ),
-                                      TextSpan(
-                                        text: welcome
-                                            ? 'WorldVoice  '
-                                            : '${msg!.displayName}  ',
+                                      Text(
+                                        msg.displayName,
                                         style: const TextStyle(
                                           color: Color(0xFFE7C56E),
+                                          fontSize: 13,
                                           fontWeight: FontWeight.w700,
                                         ),
                                       ),
-                                      if (!welcome && msg != null)
-                                        WidgetSpan(
-                                          alignment: PlaceholderAlignment.middle,
-                                          child: Padding(
-                                            padding: const EdgeInsetsDirectional.only(end: 4),
-                                            child: RoomBondChatMarks(
-                                              userId: msg.userId,
-                                            ),
-                                          ),
-                                        ),
-                                      TextSpan(
-                                        text: welcome
-                                            ? (ar
-                                                  ? 'أهلًا بك! تعلّم وتحدث وشارك باحترام.'
-                                                  : 'Welcome! Learn, talk and share with respect.')
-                                            : giftPreview != null
-                                            ? (ar
-                                                  ? '🎁 معاينة هدية مجانية لصديق • دون خصم كوينات'
-                                                  : '🎁 Free gift effect for a friend • no coins')
-                                            : msg!.text,
+                                      PublicMemberMarks(
+                                        userId: msg.userId,
+                                        compact: true,
                                       ),
+                                      RoomBondChatMarks(userId: msg.userId),
                                     ],
                                   ),
+                                  const SizedBox(height: 4),
+                                ],
+                                Text(
+                                  welcome
+                                      ? (ar
+                                          ? 'WorldVoice  أهلًا بك! تعلّم وتحدث وشارك باحترام.'
+                                          : 'WorldVoice  Welcome! Learn, talk and share with respect.')
+                                      : giftPreview != null
+                                          ? (ar
+                                              ? '🎁 معاينة هدية مجانية لصديق • دون خصم كوينات'
+                                              : '🎁 Free gift effect for a friend • no coins')
+                                          : msg!.text,
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 13,
