@@ -154,12 +154,12 @@ void main() {
     ));
     await tester.pump();
     await tester.pumpAndSettle();
-    expect(find.text('VOA index unavailable.'), findsNothing);
+    expect(find.text('Episode index unavailable.'), findsNothing);
     expect(find.byKey(const ValueKey('podcast-original-en-a1-voa-001')),
         findsOneWidget);
     expect(find.byKey(const ValueKey('podcast-original-en-a1-voa-020')),
         findsOneWidget);
-    expect(find.text('VOA human audio · provisional sync'),
+    expect(find.text('Human audio · provisional sync'),
         findsNWidgets(7));
   });
   testWidgets('A2 VOA audio library distinguishes full bilingual texts from excerpts',
@@ -179,7 +179,7 @@ void main() {
       ),
     ));
     await tester.pump();
-    expect(find.text('VOA index unavailable.'), findsNothing);
+    expect(find.text('Episode index unavailable.'), findsNothing);
     final complete = originals.where((e) => e.transcriptScope == 'full').length;
     final partial = originals.where((e) => e.transcriptScope == 'excerpt').length;
     expect(find.descendant(
