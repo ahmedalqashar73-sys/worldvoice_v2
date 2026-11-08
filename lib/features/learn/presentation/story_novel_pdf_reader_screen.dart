@@ -176,8 +176,24 @@ class _StoryNovelPdfReaderScreenState
           return KeyedSubtree(
             key: ValueKey(source.path),
             child: source.isAsset
-              ? PdfViewer.asset(source.path)
-              : PdfViewer.file(source.path),
+              ? PdfViewer.asset(
+                  source.path,
+                  params: const PdfViewerParams(
+                    margin: 2.0,
+                    backgroundColor: Colors.white,
+                    scaleEnabled: true,
+                    panEnabled: true,
+                  ),
+                )
+              : PdfViewer.file(
+                  source.path,
+                  params: const PdfViewerParams(
+                    margin: 2.0,
+                    backgroundColor: Colors.white,
+                    scaleEnabled: true,
+                    panEnabled: true,
+                  ),
+                ),
           );
         },
       ),
