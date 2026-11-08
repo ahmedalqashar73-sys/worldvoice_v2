@@ -9,7 +9,19 @@
       "title_ar": "الظرف الأزرق",
       "format": "novel",
       "asset": "assets/stories/en/A1/the_blue_envelope.json",
-      "cover_image": "assets/stories/en/A1/illustrations/the_blue_envelope_cover.svg"
+      "cover_image": "assets/stories/en/A1/illustrations/the_blue_envelope_cover.svg",
+      "chapter_count": 7
+    },
+    {
+      "id": "the_empty_house",
+      "language": "en",
+      "level": "A1",
+      "title": "The Empty House",
+      "title_ar": "المنزل الخالي",
+      "format": "novel",
+      "chapter_count": 7,
+      "asset": "assets/stories/en/A1/the_empty_house.json",
+      "cover_image": "assets/stories/en/A1/illustrations/the_empty_house_cover.svg"
     },
     {
       "id": "the_small_green_bag",

@@ -273,6 +273,7 @@ class StoryLibraryEntry {
     required this.asset,
     this.coverImage,
     this.format = 'legacy',
+    this.chapterCount,
   });
 
   final String id;
@@ -283,6 +284,7 @@ class StoryLibraryEntry {
   final String asset;
   final String? coverImage;
   final String format;
+  final int? chapterCount;
 
   static const levels = <String>['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
@@ -303,6 +305,11 @@ class StoryLibraryEntry {
         asset != '$prefix$id.json') {
       throw const FormatException('Invalid story index entry.');
     }
+    final chapterCount = json['chapter_count'];
+    if (chapterCount != null &&
+        (chapterCount is! int || chapterCount < 5)) {
+      throw const FormatException('Novel chapter count must be at least five.');
+    }
     return StoryLibraryEntry(
       id: id,
       language: language,
@@ -312,6 +319,7 @@ class StoryLibraryEntry {
       asset: asset,
       coverImage: _optionalText(json, 'cover_image'),
       format: format as String,
+      chapterCount: chapterCount as int?,
     );
   }
 }

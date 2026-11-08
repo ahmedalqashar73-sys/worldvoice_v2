@@ -280,8 +280,8 @@ class _StoryLibrarySectionState extends State<StoryLibrarySection> {
                           Text(novel.titleAr,
                             style: TextStyle(color: scheme.onSurfaceVariant)),
                           const SizedBox(height: 8),
-                          Text(ar ? 'رواية كاملة · 7 فصول · A1'
-                                  : 'Complete novel · 7 chapters · A1',
+                          Text(ar ? 'رواية كاملة · ${novel.chapterCount ?? 7} فصول · A1'
+                                  : 'Complete novel · ${novel.chapterCount ?? 7} chapters · A1',
                             style: TextStyle(fontSize: 12,
                               color: scheme.onSurfaceVariant)),
                         ],

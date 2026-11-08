@@ -16,6 +16,7 @@ class _StoryNovelReaderScreenState extends State<StoryNovelReaderScreen> {
   late final Future<Map<String, dynamic>> _book = _load();
   int _section = -1; // -1 introduction, -2 glossary, -3 questions
   final Map<int, int> _answers = {};
+  final Map<int, int> _finalAnswers = {};
 
   Future<Map<String, dynamic>> _load() async {
     final raw = jsonDecode(await rootBundle.loadString(widget.entry.asset));
@@ -66,8 +67,9 @@ class _StoryNovelReaderScreenState extends State<StoryNovelReaderScreen> {
     final children = <Widget>[];
     if (_section == -1) {
       children.addAll([
-        SvgPicture.asset('assets/stories/en/A1/illustrations/the_blue_envelope_cover.svg',
-          height: 260, fit: BoxFit.contain),
+        if (widget.entry.coverImage != null)
+          SvgPicture.asset(widget.entry.coverImage!,
+            height: 260, fit: BoxFit.contain),
         _heading(novel['title'] as String, size: 29),
         Center(child: Text(novel['author'] as String,
           style: const TextStyle(color: Colors.black87))),
@@ -122,8 +124,11 @@ class _StoryNovelReaderScreenState extends State<StoryNovelReaderScreen> {
         ));
       }
     } else {
-      final qs = (novel['questions'] as List).cast<Map<String, dynamic>>();
-      children.add(_heading('Reading Comprehension'));
+      final finalTest = _section == -4 && novel['final_test'] is List;
+      final qs = ((finalTest ? novel['final_test'] : novel['questions']) as List)
+          .cast<Map<String, dynamic>>();
+      final answers = finalTest ? _finalAnswers : _answers;
+      children.add(_heading(finalTest ? 'Final Test' : 'Reading Comprehension'));
       for (var j = 0; j < qs.length; j++) {
         final q = qs[j];
         children.add(Padding(
@@ -135,14 +140,14 @@ class _StoryNovelReaderScreenState extends State<StoryNovelReaderScreen> {
           children.add(RadioListTile<int>(
             title: Text(q['options'][k] as String,
               style: const TextStyle(color: Colors.black)),
-            value: k, groupValue: _answers[j],
-            onChanged: (v) => setState(() { if (v != null) _answers[j] = v; }),
+            value: k, groupValue: answers[j],
+            onChanged: (v) => setState(() { if (v != null) answers[j] = v; }),
           ));
         }
       }
-      if (_answers.length == qs.length) {
+      if (answers.length == qs.length) {
         final score = List<int>.generate(qs.length, (i) => i)
-            .where((i) => qs[i]['answer'] == _answers[i]).length;
+            .where((i) => qs[i]['answer'] == answers[i]).length;
         children.add(_heading('Score: ' + score.toString() + '/' +
             qs.length.toString(), size: 21));
       }
@@ -191,9 +196,15 @@ class _StoryNovelReaderScreenState extends State<StoryNovelReaderScreen> {
                     selected: _section == -2,
                     onSelected: (_) => setState(() => _section = -2)),
                   const SizedBox(width: 6),
-                  ChoiceChip(label: Text(ar ? 'الاختبار' : 'Quiz'),
+                  ChoiceChip(label: Text(ar ? 'أسئلة الفهم' : 'Reading Check'),
                     selected: _section == -3,
                     onSelected: (_) => setState(() => _section = -3)),
+                  if (book['final_test'] is List) ...[
+                    const SizedBox(width: 6),
+                    ChoiceChip(label: Text(ar ? 'الاختبار النهائي' : 'Final Test'),
+                      selected: _section == -4,
+                      onSelected: (_) => setState(() => _section = -4)),
+                  ],
                 ],
               )),
               const Divider(height: 1, color: Colors.black26),

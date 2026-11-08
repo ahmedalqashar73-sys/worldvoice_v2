@@ -1,0 +1,799 @@
+{
+  "id": "the_empty_house",
+  "title": "The Empty House",
+  "title_ar": "المنزل الخالي",
+  "language": "en",
+  "level": "A1",
+  "format": "novel",
+  "author": "Ahmed Al-Qashar",
+  "publisher": "WorldVoice Library",
+  "status": "editorial_review",
+  "subtitle": "A Mystery in Alderwick",
+  "synopsis": "Clara moves to Alderwick and sees a light in number seventeen, a house that has been empty for six years. Then a silver cup and old clock go missing from the village hall. Clara and Ben follow the clues, but only the police can enter the house and find the truth.",
+  "characters": [
+    {
+      "name": "Clara Wells",
+      "description": "A woman of thirty-one who moves to Alderwick and works in the flower shop. She notices small details and asks careful questions."
+    },
+    {
+      "name": "Ben Marsh",
+      "description": "A friendly young baker. He helps Clara and knows the village."
+    },
+    {
+      "name": "Mrs Ellis",
+      "description": "An older woman who lives next to number seventeen. She remembers the house when people lived there."
+    },
+    {
+      "name": "Officer Hall",
+      "description": "A police officer who listens to facts and keeps people safe."
+    },
+    {
+      "name": "Mr Pike",
+      "description": "A delivery driver with a green van. People ask questions about his van."
+    },
+    {
+      "name": "Mr Cole",
+      "description": "A man who fixes village buildings and has a key to the empty house."
+    },
+    {
+      "name": "Miss Hart",
+      "description": "The owner of number seventeen. The house belonged to her mother."
+    }
+  ],
+  "chapters": [
+    {
+      "number": 1,
+      "title": "The Light Across the Road",
+      "title_ar": "الضوء عبر الطريق",
+      "image": "assets/stories/en/A1/illustrations/the_empty_house_ch1.svg",
+      "paragraphs": [
+        "On the first Monday in October, Clara Wells arrived in Alderwick with two bags and a small box of books. She was thirty-one years old. She had come from a busy city to work in the village flower shop. She wanted a quiet life, with clean air and friendly faces.",
+        "Her new room was above the shop. From its window she could see the narrow road, a little stone bridge, and a large house behind an iron gate. The house had dark windows and a tall roof. Ivy grew over its walls. There were leaves on the steps and grass between the stones.",
+        "The sign beside the gate said NUMBER SEVENTEEN. A small bird sat on the sign. There was no car in front of the house and no light inside. Clara thought it was a beautiful place, but a very sad one.",
+        "A woman came out of the house next door. She carried a basket of apples. She had white hair and a kind face. “You must be Clara,” she said. “I am Mrs Ellis. Welcome to Willow Lane.”",
+        "“Thank you,” Clara said. She looked at number seventeen. “Does anyone live there?”",
+        "“No,” Mrs Ellis answered. “Not for six years. Miss Hart owns it, but she lives far away. The house is empty.”",
+        "“Six years is a long time,” Clara said.",
+        "“It is,” Mrs Ellis said. “Houses need people. Without people, they become cold.” She gave Clara two apples and went home.",
+        "That afternoon Clara cleaned her room. She put her books on a shelf and her blue coat behind the door. Then she went downstairs to meet Ben Marsh, the young man who worked at the bakery. Ben brought bread for her first dinner.",
+        "“I know everyone in Alderwick,” Ben said. “And soon everyone will know you.”",
+        "“Do they all know the empty house?” Clara asked.",
+        "Ben looked across the road. “Of course. People talk about it. Some say they hear strange sounds there at night. But old houses make sounds when the wind is strong.”",
+        "“Do you believe that?” Clara asked.",
+        "“I believe the wind is strong,” Ben said, and they both laughed.",
+        "At nine o'clock that evening Clara made tea. Rain began to fall. She opened the curtains and looked at the quiet road. There was no one outside. The village clock gave nine slow sounds.",
+        "Then she saw something that made her put down her cup. A small yellow light came on in the top window of number seventeen. It was not the moon. The light was inside the room.",
+        "Clara stood close to her window. For a few seconds she saw the dark shape of a person move past the glass. Then the light went out. The house was dark again.",
+        "She opened her window. “Hello?” she called across the road. No one answered. Only the rain made a sound on the old roof.",
+        "Clara closed the window. Mrs Ellis had said the house was empty. Ben had said there was only wind. But the light was real, and someone had been inside.",
+        "She wrote three words in her notebook: LIGHT. NINE O'CLOCK. She did not sleep quickly that night."
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Footprints in the Rain",
+      "title_ar": "آثار الأقدام تحت المطر",
+      "image": "assets/stories/en/A1/illustrations/the_empty_house_ch2.svg",
+      "paragraphs": [
+        "The next morning the rain stopped. Clara went downstairs early and opened the flower shop. She put red flowers in one window and white flowers in the other. Across the road, number seventeen looked the same as before. Every window was dark.",
+        "Ben came in with a basket of fresh bread. “You look tired,” he said. “Did you stay up late?”",
+        "“I saw a light in the empty house,” Clara told him. “And I saw a person at the window.”",
+        "Ben put down the basket. “Are you sure?”",
+        "“I know what I saw. Come and look from the road with me.”",
+        "They walked along the public path beside the iron gate. The path was still wet. There was mud near the wall and fresh footprints in the mud. Some were large. A person had walked from the back lane to the gate.",
+        "“These are not six years old,” Clara said.",
+        "“No,” Ben answered. He bent down and looked at the prints. “Someone was here after the rain began.”",
+        "Clara found a short piece of brown rope on the path. It was wet and dirty. She did not pick it up. She only pointed to it. “Perhaps it came from a box,” she said.",
+        "Mrs Ellis came out with her little dog. “What are you doing there?” she asked. When Clara told her about the light, Mrs Ellis looked worried.",
+        "“The house has no working electricity,” Mrs Ellis said. “The people took the power away years ago. There cannot be a light in the top room.”",
+        "“A small lamp can work without electricity from the wall,” Ben said. “My bicycle lamp has a battery.”",
+        "Mrs Ellis held her dog's lead tightly. “A man called Mr Cole checks the house sometimes. He has a key. But he always comes in the morning. He tells us the old floor is not safe.”",
+        "“Who is Mr Cole?” Clara asked.",
+        "“He fixes doors and windows for the village,” Mrs Ellis answered. “He also works at the village hall.”",
+        "They heard the sound of a van. A green van turned into Willow Lane, stopped for a moment near the back lane, and then drove away. Its left door had a long white mark on it.",
+        "“That is Mr Pike's van,” Ben said. “He brings fruit and vegetables to the shops. He is usually here before breakfast.”",
+        "“Why did he stop by the house?” Clara asked.",
+        "“I don't know,” Ben said. “A van can stop for many reasons.”",
+        "Clara wrote GREEN VAN under her first three words. She wanted to know what was happening, but she did not want to make a story out of every little thing.",
+        "That evening, before going upstairs, she looked at the house again. At nine o'clock a light came on in the top window. This time it stayed on for a full minute.",
+        "A shadow passed across the wall. Then Clara heard a short sound: two hard knocks, like wood against wood. The light went out. She went downstairs and called Ben.",
+        "“Please come tomorrow,” she said. “We need to speak to someone who can help.”"
+      ]
+    },
+    {
+      "number": 3,
+      "title": "The Missing Cup",
+      "title_ar": "الكأس المفقودة",
+      "image": "assets/stories/en/A1/illustrations/the_empty_house_ch3.svg",
+      "paragraphs": [
+        "On Wednesday morning the village was busy. People stood outside the village hall and spoke in low voices. A police car was near the door. Clara saw Mrs Ellis in the crowd, so she went over to her.",
+        "“What happened?” Clara asked.",
+        "“Some things are missing from the hall,” Mrs Ellis said. “An old silver cup and a small clock. They were here yesterday. Now they are gone.”",
+        "The cup was not used for tea. It was a prize from the first village summer fair. The clock was old, but it still worked. They stood in a glass cupboard near the front door. Many people loved them.",
+        "A police officer came out of the hall. She was a tall woman with a grey jacket and black shoes. “I am Officer Hall,” she said. “Please do not touch the cupboard or move anything in this room.”",
+        "Clara spoke to her. “I have seen lights in a house that is supposed to be empty. The house is number seventeen on Willow Lane. There are new footprints by its gate.”",
+        "Officer Hall listened without smiling or laughing. “Did you go into the house?” she asked.",
+        "“No. We stayed on the road.”",
+        "“That was the right thing to do,” the officer said. “An empty house is still someone's home or property. Leave it to us. I will speak to the owner.”",
+        "Ben came from the bakery. He had heard about the missing things. “A few days ago I saw Mr Cole near the hall after dark,” he said. “He had a long wooden box. I thought he was fixing something.”",
+        "“Mr Cole works here,” Mrs Ellis said. “That does not make him a thief.”",
+        "“Of course not,” Ben said. “I am only telling you what I saw.”",
+        "Officer Hall wrote his words in a small book. “Thank you. We need facts, not guesses,” she said. “If you remember anything else, tell me.”",
+        "In the afternoon Clara served an old man in the flower shop. He wanted yellow flowers for his wife's birthday. He talked about the missing cup. “People are afraid,” he said. “First strange lights, then things disappear. Maybe the old house is bad luck.”",
+        "Clara gave him his flowers. “Maybe a person is doing something wrong,” she answered. “Houses cannot take cups.”",
+        "When night came, Clara stood by her window once more. The light in the top room came on at nine. She did not see a person, but she heard something strange through the open window.",
+        "It was a small metal sound. Ding. Then ding again. It sounded like a bell that a child might ring by hand.",
+        "The old village clock made nine sounds from far away. The little bell came from much closer. It seemed to be inside number seventeen.",
+        "Clara wrote SMALL BELL in her notebook. Then she remembered the silver cup and the clock from the village hall. Perhaps there was no ghost in the house. Perhaps someone was using it to hide things.",
+        "She closed her notebook. This was a question for Officer Hall, not a reason to walk into the house alone."
+      ]
+    },
+    {
+      "number": 4,
+      "title": "The Green Van",
+      "title_ar": "السيارة الخضراء",
+      "image": "assets/stories/en/A1/illustrations/the_empty_house_ch4.svg",
+      "paragraphs": [
+        "On Thursday the sky was bright, but the air was cold. Clara took flowers to the bakery. Ben was putting small cakes on a tray. He looked up when she came in.",
+        "“Did you tell Officer Hall about the bell?” he asked.",
+        "“Yes,” Clara said. “She thanked me. She is trying to call the house owner. She wants to know who has a key.”",
+        "Ben put the tray down. “I have something to show you. Come to the back door.”",
+        "The green van was parked in the lane behind the bakery. Mr Pike stood beside it with a basket of apples. He was a thin man with a red face and tired eyes. He looked as if he had a cold.",
+        "“Good morning,” Clara said. “May I ask you something about your van?”",
+        "Mr Pike looked surprised. “Of course. What's wrong?”",
+        "“On Tuesday I saw it near the empty house. Did you stop there?”",
+        "“No,” Mr Pike said. “I was at home on Tuesday. I was ill. My head hurt, and I could not work.”",
+        "“But I saw your van,” Clara said. “It has a long white mark on the left door.”",
+        "Mr Pike touched the mark with one hand. “Yes, that is my van. I lent it to Mr Cole on Tuesday. He needed to carry an old table. He brought it back that night.”",
+        "“Does Mr Cole have a key to number seventeen?” Ben asked.",
+        "“I don't know. He fixes many houses,” Mr Pike said. “Why are you asking?”",
+        "“There were lights in that house,” Clara said. “Officer Hall is looking into it.”",
+        "Mr Pike shook his head. “Then please tell her about the van. I do not want people to think I took anything from the hall.”",
+        "Clara promised she would tell the officer exactly what he had said. She did not tell anyone at the market that Mr Pike was a thief. She had no reason to say such a thing.",
+        "That afternoon Officer Hall came to the flower shop. She had spoken to Miss Hart, the owner of number seventeen. Miss Hart was visiting her sister in another city. She had not come to Alderwick for many months.",
+        "“Miss Hart says Mr Cole has a key,” Officer Hall said. “He checks the roof and windows. She is not expecting anyone to stay in the house. She has given the police permission to look inside.”",
+        "Clara told the officer about the green van. Officer Hall made a note. “A borrowed van does not prove a crime,” she said. “But it is important to know who drove it.”",
+        "As they spoke, the village clock gave four sounds. A man walked past the shop with his hands in his coat pockets. It was Mr Cole. He looked at the police car, then looked away very quickly.",
+        "“Good afternoon,” Officer Hall called. Mr Cole stopped, but he did not come closer. “I am going to check the old house tomorrow,” she said. “You have been working there, haven't you?”",
+        "“Only small jobs,” Mr Cole said. “Be careful. It is a dangerous place.”",
+        "“Thank you,” Officer Hall said. “We will be careful.”",
+        "Mr Cole walked away. Clara saw mud on the back of his shoes. She looked down at her notebook, but she did not write THIEF. She wrote only: FRIDAY — HOUSE CHECK."
+      ]
+    },
+    {
+      "number": 5,
+      "title": "A Room Behind the Kitchen",
+      "title_ar": "الغرفة خلف المطبخ",
+      "image": "assets/stories/en/A1/illustrations/the_empty_house_ch5.svg",
+      "paragraphs": [
+        "Friday morning came with a strong wind. The trees moved above Willow Lane, and leaves ran along the road. Officer Hall arrived at number seventeen at ten. Miss Hart had sent a key to the police station by a trusted friend.",
+        "Clara and Ben waited outside the gate. Mrs Ellis stood by her own front door. “Please be careful,” she said to everyone.",
+        "Officer Hall opened the iron gate. She looked at the ground, the broken steps, and the windows. Then she opened the heavy front door. She did not go in quickly. She walked from room to room and checked that the old floors were safe.",
+        "After some time she came back. “There is a safe path through the ground floor,” she said. “Miss Hart has said you may come in with me. Do not touch anything.”",
+        "Clara and Ben followed her into a large hall. The air was cold. White dust covered the floor. A picture hung crooked on the wall. There were no flowers, no clean chairs, and no warm fire.",
+        "“This place really has been empty for a long time,” Ben said.",
+        "“Most of it has,” Officer Hall answered. “But not all of it.”",
+        "They walked into the kitchen. One chair stood beside a small table. On the table were a cup, a bottle of water, and a battery lamp. The cup was clean. There was no dust on the table.",
+        "“Someone has been here recently,” Clara said.",
+        "Officer Hall pointed to a little door beside the kitchen cupboard. The door was open, and a narrow stair went down into the dark. “Please stay here,” she said. “I will go first.”",
+        "The officer went down with her lamp. They heard her steps. Then they heard her voice. “I think I have found something. Wait for me.”",
+        "She came back with a small wooden box. She put it carefully on the kitchen table and opened it. Inside was the old silver cup from the village hall. It shone in the light.",
+        "Ben took a step back. “So the cup was here!”",
+        "Officer Hall closed the box. “Yes. I will take it to the police station. We must check the other things too. This is evidence.”",
+        "“Was the small clock there?” Clara asked.",
+        "“There is another box downstairs,” the officer said. “We will look at it safely with another officer. For now, please leave the house.”",
+        "As they went out, Clara saw a dark coat hanging behind the kitchen door. A green glove stuck out of one pocket. There was a small piece of brown rope on the floor below it.",
+        "She pointed these things out to Officer Hall. The officer looked closely. “Thank you. Please don't touch them,” she said.",
+        "Outside, Mrs Ellis was waiting. “Was there a ghost?” she asked.",
+        "“No,” Clara said. “There was a lamp, a chair, and a cup. This looks like the work of a person.”",
+        "Officer Hall locked the door. “We still need to find that person,” she said. “The house will be watched tonight. Please stay at home.”"
+      ]
+    },
+    {
+      "number": 6,
+      "title": "The Man at the Gate",
+      "title_ar": "الرجل عند البوابة",
+      "image": "assets/stories/en/A1/illustrations/the_empty_house_ch6.svg",
+      "paragraphs": [
+        "At eight on Friday evening Clara closed the flower shop. Ben brought her a warm loaf of bread. They sat at the small table by her window. Across the road, number seventeen was dark.",
+        "“Do you think Mr Cole will come back?” Ben asked.",
+        "“Officer Hall thinks someone will,” Clara answered. “She asked us to keep away from the gate. We can watch from here, but we must not go outside.”",
+        "At half past eight a police car stopped farther down the road. Its lights were off. Officer Hall and another officer sat inside. They could see the old house through the trees.",
+        "The village was quiet. A cat walked along the wall. Mrs Ellis closed her curtains. The wind moved the dead leaves across the street.",
+        "At nine o'clock a man came into Willow Lane. He wore a dark coat and carried a cloth bag. He walked quickly toward the iron gate of number seventeen. Clara could not see his face.",
+        "“He has a key,” Ben whispered. “Look.”",
+        "The man opened the gate, went through, and closed it behind him. A moment later a yellow light came on in the top window. It was the same light Clara had seen every night.",
+        "Officer Hall came out of the police car with the second officer. They walked to the gate. Clara watched as Officer Hall rang the bell and called, “Police. Please come to the door.”",
+        "The light in the top window went out. For a moment nothing moved. Then the front door opened. The man in the dark coat came down the steps.",
+        "It was Mr Cole.",
+        "“What are you doing here?” Officer Hall asked. Her voice was calm.",
+        "“I came to check the roof,” Mr Cole answered. “Miss Hart asks me to check it.”",
+        "“At nine at night, with a large bag?” the officer asked. “We found the silver cup from the hall here this morning. We need to speak with you about it.”",
+        "Mr Cole looked at the road. He looked at the trees. Then he put his bag on the step. His hands were shaking.",
+        "“I made a mistake,” he said slowly. “I took the cup and the clock. I needed money. I thought nobody would find them here.”",
+        "“Did you drive Mr Pike's green van?” Officer Hall asked.",
+        "“Yes. I borrowed it. Mr Pike did not know what I was carrying,” Mr Cole answered. “Please do not blame him.”",
+        "Officer Hall asked Mr Cole to go with her to the police station. The other officer went inside to keep the house safe. Clara and Ben stayed at the window until the police car left.",
+        "“What about the light?” Ben asked quietly.",
+        "“Mr Cole needed to see the stairs,” Clara said. “And he used a lamp. People saw the light and made stories about ghosts.”",
+        "Clara felt happy that the truth was coming out, but she was not happy about what Mr Cole had done. The cup and the clock belonged to everyone in the village. They were old, and they could not be replaced easily.",
+        "She turned off her own lamp and looked across the road. For the first time that week, she knew why number seventeen had been bright at night."
+      ]
+    },
+    {
+      "number": 7,
+      "title": "The Open Windows",
+      "title_ar": "النوافذ المفتوحة",
+      "image": "assets/stories/en/A1/illustrations/the_empty_house_ch7.svg",
+      "paragraphs": [
+        "On Saturday morning Alderwick woke to good news. Officer Hall had found the old clock in the second wooden box. The cup and the clock were safe. The police would keep them for a short time and then return them to the village hall.",
+        "Mr Pike came to the flower shop first. He looked tired but relieved. “Thank you for telling the officer what I said,” he told Clara. “Some people looked at my van and thought I was a thief. You listened to me.”",
+        "“The van was a clue,” Clara said, “but it was not the whole answer.”",
+        "Ben came in with warm rolls. “Now we can talk about better things,” he said. “The village fair is next month. We need flowers for the hall.”",
+        "Mrs Ellis joined them. She had brought a jar of honey. “I was afraid of that house,” she said. “I thought strange things lived there. Now I know a person was using it.”",
+        "“A person can make a place frightening,” Clara said. “But a person can also make it warm.”",
+        "That afternoon a small car stopped in front of number seventeen. A woman got out. She wore a dark green coat and carried a little suitcase. She looked at the house for a long time before opening the gate.",
+        "Mrs Ellis hurried across the road. “Miss Hart!” she called. “I thought you were away.”",
+        "“I came when Officer Hall called,” Miss Hart said. “This was my mother's house. I have not been ready to come back. The rooms have been empty for too long.”",
+        "Clara and Ben walked over to meet her. They told her how people had worried about the light. Miss Hart looked at the broken gate and the leaves on the steps.",
+        "“I remember this house when I was a girl,” she said. “There were flowers under every window. My mother played music in the front room. The doors were always open to friends.”",
+        "“Do you want to sell it?” Clara asked.",
+        "“Not yet,” Miss Hart answered. “First I want to see whether it can be a home again.”",
+        "The following week workers made the roof safe. Ben helped carry old chairs out of the ground floor. Clara brought flowers. Mrs Ellis washed the windows. People did not enter the unsafe upstairs rooms until the work was finished.",
+        "On the first Sunday in November, Miss Hart opened the front door to her friends. There was tea on the table and music in the front room. The curtains were clean. The garden still needed work, but the house did not look sad.",
+        "Clara stood by the gate and looked up. A soft yellow light shone from the top window. This time she knew exactly who was inside. Miss Hart was putting books on a shelf.",
+        "“It is the same light,” Ben said, standing beside Clara.",
+        "“No,” Clara answered with a smile. “It is a different kind of light.”",
+        "The village clock gave six sounds. The windows of number seventeen stood open to the fresh evening air. A house that had been empty for six years was empty no longer."
+      ]
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "afraid",
+      "meaning": "feeling fear",
+      "example": "Mrs Ellis is afraid of the empty house."
+    },
+    {
+      "word": "answer",
+      "meaning": "what you say after a question",
+      "example": "Clara wants an answer about the light."
+    },
+    {
+      "word": "bakery",
+      "meaning": "a place where bread is made or sold",
+      "example": "Ben works at the bakery."
+    },
+    {
+      "word": "basket",
+      "meaning": "a thing for carrying food or other things",
+      "example": "Ben carries bread in a basket."
+    },
+    {
+      "word": "battery",
+      "meaning": "a thing that gives power to a small light",
+      "example": "The lamp can work with a battery."
+    },
+    {
+      "word": "borrow",
+      "meaning": "to use something and give it back",
+      "example": "Mr Cole borrows the green van."
+    },
+    {
+      "word": "bridge",
+      "meaning": "a road or path over water",
+      "example": "There is a small stone bridge near the shop."
+    },
+    {
+      "word": "calm",
+      "meaning": "not angry or frightened",
+      "example": "Officer Hall speaks in a calm voice."
+    },
+    {
+      "word": "chair",
+      "meaning": "a seat for one person",
+      "example": "There is a chair in the kitchen."
+    },
+    {
+      "word": "clue",
+      "meaning": "something that helps you find an answer",
+      "example": "The green van is one clue."
+    },
+    {
+      "word": "clock",
+      "meaning": "a thing that tells the time",
+      "example": "The old clock is missing from the hall."
+    },
+    {
+      "word": "coat",
+      "meaning": "clothes worn over other clothes",
+      "example": "Clara hangs up her blue coat."
+    },
+    {
+      "word": "cup",
+      "meaning": "a thing used to drink from",
+      "example": "The silver cup is a prize, not a tea cup."
+    },
+    {
+      "word": "curtain",
+      "meaning": "cloth over a window",
+      "example": "Mrs Ellis closes her curtains."
+    },
+    {
+      "word": "dangerous",
+      "meaning": "not safe",
+      "example": "Mr Cole says the floor is dangerous."
+    },
+    {
+      "word": "delivery",
+      "meaning": "bringing things to people or shops",
+      "example": "Mr Pike makes deliveries in a van."
+    },
+    {
+      "word": "dust",
+      "meaning": "very small pieces of dirt",
+      "example": "There is dust on the floor."
+    },
+    {
+      "word": "empty",
+      "meaning": "with no one or nothing inside",
+      "example": "The house has been empty for six years."
+    },
+    {
+      "word": "evidence",
+      "meaning": "things that help show what happened",
+      "example": "Officer Hall takes the box as evidence."
+    },
+    {
+      "word": "flower",
+      "meaning": "a colourful part of a plant",
+      "example": "Clara puts red flowers in the window."
+    },
+    {
+      "word": "footprint",
+      "meaning": "a mark made by a foot or shoe",
+      "example": "Clara sees footprints in the mud."
+    },
+    {
+      "word": "gate",
+      "meaning": "a door in a fence or wall",
+      "example": "The iron gate stands by the old house."
+    },
+    {
+      "word": "ghost",
+      "meaning": "a spirit in a frightening story",
+      "example": "Some people talk about ghosts."
+    },
+    {
+      "word": "glove",
+      "meaning": "clothing for a hand",
+      "example": "There is a green glove in the coat."
+    },
+    {
+      "word": "hall",
+      "meaning": "a big room for meetings or events",
+      "example": "The village hall has an old silver cup."
+    },
+    {
+      "word": "ivy",
+      "meaning": "a green plant that grows on walls",
+      "example": "Ivy grows over the old house."
+    },
+    {
+      "word": "key",
+      "meaning": "a small metal thing for opening a lock",
+      "example": "Mr Cole has a key to the house."
+    },
+    {
+      "word": "lamp",
+      "meaning": "a light you can carry or put on a table",
+      "example": "A battery lamp is on the kitchen table."
+    },
+    {
+      "word": "lane",
+      "meaning": "a small road",
+      "example": "The green van turns into Willow Lane."
+    },
+    {
+      "word": "mud",
+      "meaning": "wet earth",
+      "example": "There are large footprints in the mud."
+    },
+    {
+      "word": "neighbour",
+      "meaning": "a person who lives near you",
+      "example": "Mrs Ellis is Clara’s neighbour."
+    },
+    {
+      "word": "notebook",
+      "meaning": "a small book for writing notes",
+      "example": "Clara writes facts in her notebook."
+    },
+    {
+      "word": "officer",
+      "meaning": "a person who works for the police",
+      "example": "Officer Hall comes to the shop."
+    },
+    {
+      "word": "path",
+      "meaning": "a way for people to walk",
+      "example": "They walk along the public path."
+    },
+    {
+      "word": "permission",
+      "meaning": "when someone says you may do something",
+      "example": "Miss Hart gives the police permission."
+    },
+    {
+      "word": "roof",
+      "meaning": "the top of a house",
+      "example": "Workers make the old roof safe."
+    },
+    {
+      "word": "rope",
+      "meaning": "a strong thick string",
+      "example": "A piece of brown rope is near the gate."
+    },
+    {
+      "word": "shadow",
+      "meaning": "a dark shape made when light is stopped",
+      "example": "Clara sees a shadow in the window."
+    },
+    {
+      "word": "van",
+      "meaning": "a road vehicle for carrying things",
+      "example": "Mr Pike has a green van."
+    },
+    {
+      "word": "window",
+      "meaning": "glass in a wall that lets in light",
+      "example": "Clara sees light at the window."
+    }
+  ],
+  "questions": [
+    {
+      "q": "Why does Clara move to Alderwick?",
+      "options": [
+        "To work in a flower shop",
+        "To buy the village hall",
+        "To stay at a hotel"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "How long has number seventeen been empty?",
+      "options": [
+        "Two months",
+        "Six years",
+        "One year"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "What does Clara see at nine o’clock?",
+      "options": [
+        "A yellow light upstairs",
+        "A fire in the garden",
+        "A blue car"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What does Ben bring Clara on her first day?",
+      "options": [
+        "A silver cup",
+        "A basket of bread",
+        "An old photograph"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "What is on the wet path?",
+      "options": [
+        "Fresh footprints",
+        "New books",
+        "A red umbrella"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "Who has a key to the old house?",
+      "options": [
+        "Mr Cole",
+        "Ben",
+        "Mr Pike"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What two things are missing from the hall?",
+      "options": [
+        "A chair and table",
+        "A cup and a clock",
+        "Two books"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "Why does Officer Hall tell Clara not to enter?",
+      "options": [
+        "The house is private and may be unsafe",
+        "The house is new",
+        "There is no door"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What colour is Mr Pike’s van?",
+      "options": [
+        "Red",
+        "Black",
+        "Green"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "Who borrows the van on Tuesday?",
+      "options": [
+        "Mrs Ellis",
+        "Mr Cole",
+        "Miss Hart"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "What is clean inside the old kitchen?",
+      "options": [
+        "A small table",
+        "Every window",
+        "The whole upstairs floor"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "Where does Officer Hall find the silver cup?",
+      "options": [
+        "Under a tree",
+        "In a wooden box",
+        "At the bakery"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "What does Mr Cole use in the house?",
+      "options": [
+        "A battery lamp",
+        "A telephone",
+        "A bicycle bell"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "Who asks Mr Cole to come to the police station?",
+      "options": [
+        "Ben",
+        "Clara",
+        "Officer Hall"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "Who comes back to live in the house?",
+      "options": [
+        "Miss Hart",
+        "Mr Pike",
+        "Officer Hall"
+      ],
+      "answer": 0
+    }
+  ],
+  "final_test": [
+    {
+      "q": "A thing that tells you the time is a ___.",
+      "options": [
+        "clock",
+        "coat",
+        "gate"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "A ___ is a small vehicle for carrying things.",
+      "options": [
+        "roof",
+        "van",
+        "flower"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "A small thing that opens a door is a ___.",
+      "options": [
+        "key",
+        "cup",
+        "lamp"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "A ___ is a person who lives near you.",
+      "options": [
+        "ghost",
+        "officer",
+        "neighbour"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "A ___ is a mark made by a shoe.",
+      "options": [
+        "footprint",
+        "basket",
+        "curtain"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "A ___ helps us see in a dark room.",
+      "options": [
+        "rope",
+        "lamp",
+        "clock"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "___ is wet earth.",
+      "options": [
+        "Ivy",
+        "Dust",
+        "Mud"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "A ___ is a small road.",
+      "options": [
+        "lane",
+        "cup",
+        "chair"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "A ___ is the top of a building.",
+      "options": [
+        "gate",
+        "roof",
+        "hall"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "To ___ a van means to use it and give it back.",
+      "options": [
+        "borrow",
+        "forget",
+        "open"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "Clara ___ in a flower shop.",
+      "options": [
+        "work",
+        "works",
+        "working"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "There ___ a yellow light in the window.",
+      "options": [
+        "is",
+        "are",
+        "be"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "Ben and Clara ___ outside the gate.",
+      "options": [
+        "stands",
+        "standing",
+        "stand"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "Mr Cole ___ the van on Tuesday.",
+      "options": [
+        "borrows",
+        "borrow",
+        "borrowing"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "Miss Hart ___ to the house at the end.",
+      "options": [
+        "come",
+        "comes",
+        "coming"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "Who first tells Clara the house is empty?",
+      "options": [
+        "Mrs Ellis",
+        "Mr Cole",
+        "Miss Hart"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "Where is the missing cup found?",
+      "options": [
+        "In the river",
+        "In the old house",
+        "At the flower shop"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "Who owns the green van?",
+      "options": [
+        "Mr Pike",
+        "Ben",
+        "Officer Hall"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "Who takes the stolen things?",
+      "options": [
+        "Miss Hart",
+        "Mrs Ellis",
+        "Mr Cole"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "What happens to the house at the end?",
+      "options": [
+        "It is still dark and empty",
+        "Miss Hart opens it again",
+        "It is taken away"
+      ],
+      "answer": 1
+    }
+  ],
+  "short_questions": [
+    "What makes Clara think that number seventeen is not empty?",
+    "Why are the footprints important?",
+    "Why does Clara not call Mr Pike a thief?",
+    "What is missing from the village hall?",
+    "How do the police enter the house legally?",
+    "What does the officer find inside the wooden box?",
+    "Why does Mr Cole use the house at night?",
+    "How does number seventeen change at the end?"
+  ],
+  "discussion_questions": [
+    "Have you ever been afraid of a dark building? Why?",
+    "Is it fair to say that someone is a thief because you saw their van?",
+    "Why is it important to tell the police what you saw, not what you guess?",
+    "What makes a house feel like a home?"
+  ],
+  "short_answers": [
+    "She sees a yellow light and the shape of a person upstairs.",
+    "They show that someone has walked near the house recently.",
+    "She has only seen his van; she does not know who drove it.",
+    "A silver prize cup and an old clock are missing.",
+    "Miss Hart, the owner, gives the police permission.",
+    "She finds the old silver cup from the village hall.",
+    "He hides stolen things there and uses a lamp to see the stairs.",
+    "Miss Hart comes back. People clean it and open the windows."
+  ],
+  "source": "WorldVoice Library original November 2026 review edition."
+}
