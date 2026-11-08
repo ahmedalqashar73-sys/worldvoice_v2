@@ -71,7 +71,7 @@ class _StoryNovelBookReaderScreenState
       builder: (context) => SafeArea(
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.sizeOf(context).height * .75),
+            maxHeight: MediaQuery.sizeOf(context).height * 0.75),
           child: ListView(
             shrinkWrap: true,
             children: [
