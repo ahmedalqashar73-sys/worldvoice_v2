@@ -1,1 +1,41 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="330" height="440" viewBox="0 0 330 440"><defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#180e16"/><stop offset=".5" stop-color="#433039"/><stop offset="1" stop-color="#7b513c"/></linearGradient></defs><rect width="330" height="440" fill="url(#sky)"/><path d="M0 316h330V440H0Z" fill="#170f15"/><path d="M47 322V207l124-80 122 80v115M46 206l125-87 123 87" fill="#241e27" stroke="#c1a078" stroke-width="2"/><path d="M77 252h55v69H77zM211 252h54v69h-54zM145 236h54v86h-54z" fill="#332c32" stroke="#b8a180"/><path d="M160 260h26v41h-26z" fill="#e3b078"/><path d="M0 332H330" stroke="#cbb18d" stroke-width="2"/><path d="M34 342V230m266 112V230" stroke="#a48967" stroke-width="4"/><g fill="#f4e8d2" font-family="serif" text-anchor="middle"><text x="165" y="45" font-size="20">WorldVoice Library</text><text x="165" y="96" font-size="40" font-style="italic">The Empty</text><text x="165" y="139" font-size="40" font-style="italic">House</text><text x="165" y="170" font-size="17">A Mystery Story</text><text x="187" y="418" font-size="17">Ahmed Al-Qashar</text></g><rect x="12" y="381" width="52" height="45" fill="#912f38"/><text x="38" y="413" fill="white" font-size="26" font-family="serif" text-anchor="middle">A1</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="330" height="440" viewBox="0 0 330 440">
+<defs>
+ <linearGradient id="night" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#041029"/><stop offset=".55" stop-color="#0b386b"/><stop offset="1" stop-color="#071831"/></linearGradient>
+ <linearGradient id="stone" x1="0" y1="0" x2=".85" y2="1"><stop stop-color="#335a7c"/><stop offset=".6" stop-color="#1b3954"/><stop offset="1" stop-color="#10243c"/></linearGradient>
+ <linearGradient id="light" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff2a0"/><stop offset="1" stop-color="#f1b65c"/></linearGradient>
+ <radialGradient id="moon"><stop offset="0" stop-color="#fbffff"/><stop offset="1" stop-color="#a7d4f5"/></radialGradient>
+ <pattern id="bricks" width="21" height="14" patternUnits="userSpaceOnUse"><path d="M0 0H21M0 7h21M8 0v7M18 7v7" stroke="#6b8aa0" stroke-width=".5" opacity=".65" fill="none"/></pattern>
+</defs>
+<rect width="330" height="440" fill="url(#night)"/>
+<circle cx="279" cy="177" r="27" fill="url(#moon)"/>
+<path d="M0 272Q55 261 120 277T250 268T330 278V440H0Z" fill="#061b31"/>
+<path d="M0 265C20 206 25 168 17 133C-1 112 -5 91 4 65M20 174C35 142 60 125 89 114M20 144C-1 113 29 100 46 84M24 185C53 172 72 155 98 150M4 102C36 107 45 71 64 60" stroke="#030e20" stroke-width="8" fill="none" stroke-linecap="round"/>
+<path d="M72 365V253L171 193L278 253V365Z" fill="url(#stone)" stroke="#99b5c7" stroke-width="2"/>
+<path d="M72 365V253L171 193L278 253V365Z" fill="url(#bricks)" opacity=".65"/>
+<path d="M56 257L169 183L292 257" fill="none" stroke="#0c1626" stroke-width="12" stroke-linejoin="round"/>
+<path d="M82 244L171 188L279 244" fill="none" stroke="#8ca8c5" stroke-width="2"/>
+<rect x="240" y="210" width="20" height="42" fill="#254562" stroke="#9bb6cc" stroke-width="2"/>
+<path d="M250 209v-16M247 193h9" stroke="#9bb6cc" stroke-width="2"/>
+<rect x="104" y="268" width="38" height="50" fill="#071b32" stroke="#a7c4d8" stroke-width="2"/>
+<path d="M123 268v50M104 293h38" stroke="#8ca8c5" stroke-width="1.3"/>
+<rect x="199" y="268" width="41" height="50" fill="#071b32" stroke="#a7c4d8" stroke-width="2"/>
+<path d="M220 268v50M199 293h41" stroke="#8ca8c5" stroke-width="1.3"/>
+<rect x="157" y="230" width="32" height="41" fill="url(#light)" stroke="#f3db97" stroke-width="2.5"/>
+<path d="M173 230v41M157 249h32" stroke="#986f40" stroke-width="2"/>
+<path d="M152 365v-58q0-12 16-12h11q16 0 16 12v58" fill="#0a192e" stroke="#9fb7cf" stroke-width="2"/>
+<circle cx="187" cy="337" r="2.5" fill="#efc375"/>
+<path d="M54 350h238M82 358l-25 54m223-54 25 54" stroke="#aecce3" stroke-width="2" opacity=".7"/>
+<path d="M32 365V301m266 64v-64M32 301h266M32 365h266" fill="none" stroke="#94bbd6" stroke-width="2"/>
+<g stroke="#8aafc8" stroke-width="1.8" fill="none"><path d="M50 303v63m20-63v63m20-63v63m20-63v63m20-63v63m20-63v63m20-63v63m20-63v63m20-63v63m20-63v63m20-63v63m20-63v63"/></g>
+<path d="M0 379h330v61H0Z" fill="#04112a" opacity=".6"/>
+<g fill="#f5e8d7" font-family="serif" text-anchor="middle">
+ <text x="165" y="35" font-size="18">WorldVoice Library</text>
+ <text x="165" y="84" font-size="39" font-style="italic">The Empty</text>
+ <text x="165" y="125" font-size="39" font-style="italic">House</text>
+ <text x="165" y="151" font-size="16" font-style="italic">A Mystery Story</text>
+ <text x="205" y="424" font-size="14.5">Ahmed Al-Qashar</text>
+</g>
+<path d="M75 103h180M125 158h80M70 46h190" stroke="#72c9f1" stroke-width="1.2"/>
+<rect x="9" y="385" width="62" height="44" rx="4" fill="#155c9c"/>
+<text x="40" y="418" fill="#fff5e4" font-size="30" font-family="serif" text-anchor="middle">A1</text>
+</svg>
