@@ -81,25 +81,20 @@ class _StoryNovelPdfReaderScreenState
     if (_importing) return;
     setState(() => _importing = true);
     try {
-      final selected = await FilePicker.platform.pickFiles(
+      // file_picker 13.x: use the single-file static picker.
+      final PlatformFile? chosen = await FilePicker.pickFile(
         type: FileType.custom,
         allowedExtensions: const ['pdf'],
-        allowMultiple: false,
-        withData: true,
       );
-      if (!mounted || selected == null || selected.files.isEmpty) return;
-      final chosen = selected.files.single;
+      if (!mounted || chosen == null) return;
       final String? selectedPath = chosen.path;
-      final Uint8List? bytes = chosen.bytes;
-      if (selectedPath == null && bytes == null) {
-        throw const FormatException('PDF file could not be read.');
-      }
       final target = File(await _localPath());
       final temp = File(target.path + '.part');
       if (selectedPath != null) {
         await File(selectedPath).copy(temp.path);
       } else {
-        await temp.writeAsBytes(bytes!, flush: true);
+        final Uint8List bytes = await chosen.readAsBytes();
+        await temp.writeAsBytes(bytes, flush: true);
       }
       if (!await _validPdf(temp)) {
         await temp.delete();
