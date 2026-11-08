@@ -4,7 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../data/story_library_repository.dart';
 import '../domain/models/story_library_models.dart';
 import 'story_textbook_reader_screen.dart';
-import 'story_novel_book_reader_screen.dart';
+import 'story_novel_pdf_reader_screen.dart';
 
 /// Independent illustrated story reader. Synchronized audio and XP are
 /// implemented separately in later phases.
@@ -54,7 +54,7 @@ class _StoryLibraryReaderScreenState extends State<StoryLibraryReaderScreen> {
         entry: widget.entry, repository: widget.repository);
     }
     if (widget.entry.format == 'novel') {
-      return StoryNovelBookReaderScreen(entry: widget.entry);
+      return StoryNovelPdfReaderScreen(entry: widget.entry);
     }
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     final accent = Theme.of(context).brightness == Brightness.dark
