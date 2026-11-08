@@ -287,7 +287,7 @@ class _StoryLibrarySectionState extends State<StoryLibrarySection> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(13),
                           side: BorderSide(
-                            color: scheme.outlineVariant.withValues(alpha: .6)),
+                            color: scheme.outlineVariant.withValues(alpha: 0.6)),
                         ),
                         child: InkWell(
                           key: ValueKey('stories-novel-open-' + novel.id),
