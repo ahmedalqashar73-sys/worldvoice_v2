@@ -13,23 +13,23 @@
   "characters": [
     {
       "name": "Daniel Ellis",
-      "description": "A young man traveling to Lakeview to visit his sister."
+      "description": "A young man traveling to Lakeview to visit his sister. He likes asking questions and wants to do the right thing."
     },
     {
       "name": "Mr Harris",
-      "description": "The careful conductor of the last train."
+      "description": "The careful conductor of the last train. He checks tickets and keeps the passengers safe."
     },
     {
       "name": "Thomas Shaw",
-      "description": "A quiet man in a grey coat who is looking for his brother."
+      "description": "A quiet man in a grey coat. He is looking for his brother and an important brown bag."
     },
     {
       "name": "Ernest Shaw",
-      "description": "A railway worker who checks the river bridge."
+      "description": "A railway worker who checks the old river bridge. He knows the meaning of the warning."
     },
     {
       "name": "Emily Ellis",
-      "description": "Daniel's sister, waiting for him in Lakeview."
+      "description": "Daniel’s sister. She lives in Lakeview and is waiting for him at the end of his journey."
     }
   ],
   "chapters": [
@@ -37,10 +37,8 @@
       "number": 1,
       "title": "The Last Platform",
       "title_ar": "الرصيف الأخير",
-      "image": "assets/stories/en/A1/illustrations/the_last_train_ch1.svg",
       "paragraphs": [
-        "On a wet Friday evening, Daniel Ellis stood at Riverford Station.",
-        "He was twenty-three years old. He had one small case and a blue ticket. He was going to Lakeview to see his sister, Emily. He had not seen her for six months.",
+        "On a wet Friday evening, Daniel Ellis stood at Riverford Station. He was twenty-three years old. He had one small case and a blue ticket. He was going to Lakeview to see his sister, Emily. He had not seen her for six months.",
         "The station was almost empty. A yellow lamp shone above the door. Rain ran down the glass windows. A large round clock showed ten thirty. The last train was due to leave at ten forty-five.",
         "Daniel looked at the dark rails. Beyond the station, he could see the mountains. The clouds were low over the hills. There was a cold wind, and the trees moved from side to side.",
         "An old man sat on a bench near the clock. A woman carried a basket to the train. Two railway workers walked past with a lamp. Nobody spoke loudly. The evening was quiet, except for the rain.",
@@ -58,13 +56,13 @@
         "It was not his bag. No one was sitting in the seat. Daniel leaned forward. The bag had two strong straps and a little metal lock. A name was written on a white card tied to its handle.",
         "Daniel could read only two words in the weak light: E. SHAW. Under the name were three more words, written in dark red ink: RIVER BRIDGE TWELVE.",
         "The rain grew stronger. Daniel looked at the words once more. The train was going toward the river bridge. He did not know why, but he felt that the bag was important."
-      ]
+      ],
+      "image": "assets/stories/en/A1/illustrations/the_last_train_ch1.jpg"
     },
     {
       "number": 2,
       "title": "The Forgotten Bag",
       "title_ar": "الحقيبة المنسية",
-      "image": "assets/stories/en/A1/illustrations/the_last_train_ch2.svg",
       "paragraphs": [
         "Daniel waited for a few minutes. People in the carriage read newspapers or looked out of the windows. A young couple spoke quietly. No one asked about the brown bag.",
         "He looked at the white name card again. Its string was wet, as if the bag had stood in the rain. A small piece of paper was caught under one strap. Daniel could see black letters on it.",
@@ -84,13 +82,13 @@
         "At last Thomas said, 'My brother left home very early this morning. He was going to the bridge. He said he had to check something after the storm.'",
         "'The storm was last night?' Daniel asked. Thomas nodded. 'The river is very high. Ernest does not like that old bridge when the water is high.'",
         "Daniel looked at the paper and the black cross. He had wanted a simple journey to Lakeview. Now he wondered if the train was moving toward danger."
-      ]
+      ],
+      "image": "assets/stories/en/A1/illustrations/the_last_train_ch2.jpg"
     },
     {
       "number": 3,
       "title": "A Warning on the Map",
       "title_ar": "تحذير على الخريطة",
-      "image": "assets/stories/en/A1/illustrations/the_last_train_ch3.svg",
       "paragraphs": [
         "Mr Harris went along the moving train to the engine. He held the folded note inside his coat so that it would stay dry. The driver, Mr Bell, listened carefully while the train ran through the hills.",
         "'There is a warning about Bridge Twelve,' the conductor said. 'I want us to stop at Glenbrook Station and ask for news.' The driver looked at the note and then at the dark line ahead.",
@@ -104,19 +102,19 @@
         "'But why is the name E. Shaw on the bag?' Daniel asked. Thomas gave a small smile. 'Because Ernest never buys a new bag. This old one was our father's.'",
         "The conductor kept the map on the table in front of them. He did not put it away. Every few minutes he read the warning again. Daniel could see a small mark near the corner of the paper.",
         "The mark looked like a number: 6. Beside it were two short words, partly washed away by the rain. Thomas leaned close. 'Six in the evening,' he said. 'That is when Ernest finished his last check.'",
-        "'He checked the bridge today?' Daniel asked. 'It looks that way,' said Mr Harris. 'But we need to hear from him or from another",
+        "'He checked the bridge today?' Daniel asked. 'It looks that way,' said Mr Harris. 'But we need to hear from him or from another railway worker.'",
         "A woman near the window was listening. She asked if there was a problem. Mr Harris spoke calmly. 'We have a report to check. We will stop at the next station. Please remain seated.'",
         "The woman nodded. Daniel saw that calm words could help people feel safe. He was glad Mr Harris had not ignored the note or the map.",
         "The train passed a small farm. A light burned in one window. Beyond it, the mountain road disappeared into the rain. Daniel tried to see the river but could not.",
         "Then a bell sounded in the carriage. A lamp above the door moved gently. The train went around a long turn, and the lights of Glenbrook came into view.",
         "Mr Harris stood with the map in his hand. 'We are nearly there,' he said. 'Whatever the warning means, we will find out before we cross that bridge.'"
-      ]
+      ],
+      "image": "assets/stories/en/A1/illustrations/the_last_train_ch3.jpg"
     },
     {
       "number": 4,
       "title": "The Man in the Next Car",
       "title_ar": "الرجل في العربة المجاورة",
-      "image": "assets/stories/en/A1/illustrations/the_last_train_ch4.svg",
       "paragraphs": [
         "The train stopped at Glenbrook, a small station between two high hills. Only one lamp burned on the platform. Rain fell from the roof in long lines. There were no people waiting for the train.",
         "Mr Bell stayed in the engine. He sent a railway worker to the station office. The worker tried to send a message to the next station, but the old wire did not work.",
@@ -130,20 +128,19 @@
         "The three men stepped onto the platform. The cold air smelled of rain and smoke. Daniel could hear water running somewhere below the station wall. Thomas looked down the empty track.",
         "Inside the office, a small stove gave off heat. A table held a lamp, a cup, and an open book. The station worker was reading old messages. He looked up when Mr Harris entered.",
         "'Is there any word from Ernest Shaw?' Mr Harris asked. The worker shook his head. 'Not tonight. But there is a note in the book from this afternoon.'",
-        "He turned the book toward them. The note said: SHAW AT BRIDGE 12. CHECK NORTH SIDE. RETURN BEFORE",
-        "DARK. Under the words was the time: 4:15.",
+        "He turned the book toward them. The note said: SHAW AT BRIDGE 12. CHECK NORTH SIDE. RETURN BEFORE DARK. Under the words was the time: 4:15.",
         "'That is his work,' Thomas said quietly. His finger rested on his brother's name. 'He was there today. We must find him.'",
         "Mr Harris asked the station worker to send two men along the safe service path to the small shed. They had strong lamps and knew the road. They did not need to go onto the bridge.",
         "Daniel stayed in the warm office with Thomas. In the silence he heard the station clock tick. He thought about Emily waiting at Lakeview. He wanted to tell her that he was safe.",
         "After twenty minutes, a light moved outside. One of the railway workers came back alone. His coat was wet, and he carried a small blue notebook.",
         "'We found this in the shed,' he said. 'And we found a message on the door. It says: DO NOT SEND THE TRAIN.'"
-      ]
+      ],
+      "image": "assets/stories/en/A1/illustrations/the_last_train_ch4.jpg"
     },
     {
       "number": 5,
       "title": "The Bridge in the Rain",
       "title_ar": "الجسر تحت المطر",
-      "image": "assets/stories/en/A1/illustrations/the_last_train_ch5.svg",
       "paragraphs": [
         "Mr Harris read the message twice. Thomas put his hands on the office table. 'Ernest wrote that,' he said. 'He always uses large letters when the news is important.'",
         "'Where is he now?' asked Daniel. The worker did not know. 'There is a path from the shed to the river,' he said. 'He may be checking the bridge with the other men.'",
@@ -163,13 +160,13 @@
         "'I found it,' Daniel said. Ernest turned to him. 'Then you helped stop the train,' he answered. 'You did the right thing when you told the conductor.'",
         "The rain fell softly now. In the quiet station, everyone understood the danger. Nobody had to see the train on the bridge to know that it must stay where it was.",
         "Mr Bell returned to the passengers with clear news: the bridge was closed until the railway could repair it. For tonight, the last train was going no farther."
-      ]
+      ],
+      "image": "assets/stories/en/A1/illustrations/the_last_train_ch5.jpg"
     },
     {
       "number": 6,
       "title": "A Long Night at Glenbrook",
       "title_ar": "ليلة طويلة في غلينبروك",
-      "image": "assets/stories/en/A1/illustrations/the_last_train_ch6.svg",
       "paragraphs": [
         "The train stood beside the platform. Its lights were warm in the wet night. Mr Harris walked from carriage to carriage and explained why they had stopped. Some passengers were tired. Others were afraid.",
         "'We are safe here,' he told them. 'There is a problem with the old bridge. The railway workers are checking it. We will stay at Glenbrook tonight and travel again when the line is safe.'",
@@ -181,8 +178,7 @@
         "'The bag reached him for you,' Thomas said. Ernest shook his head. 'Not by itself. Daniel saw it and spoke up. Mr Harris listened. The driver stopped. Many people made the right choice.'",
         "Daniel sat near the station window and looked at the mountains. He was thinking about his sister. He had promised to be in Lakeview before midnight, and now he would not arrive until morning.",
         "A station worker said he could send a message from the town office. The main wire to Lakeview was broken, but a road worker was going there before daybreak. He could take a short written note.",
-        "Daniel wrote: DEAR EMILY, THE TRAIN HAS STOPPED AT GLENBROOK. I AM SAFE. THE OLD BRIDGE NEEDS",
-        "WORK. I WILL COME WHEN THE ROAD IS OPEN. LOVE, DANIEL.",
+        "Daniel wrote: DEAR EMILY, THE TRAIN HAS STOPPED AT GLENBROOK. I AM SAFE. THE OLD BRIDGE NEEDS WORK. I WILL COME WHEN THE ROAD IS OPEN. LOVE, DANIEL.",
         "The worker put the note in his coat. Daniel thanked him. He felt better. Emily would be worried when the train did not come, but soon she would know why.",
         "At two in the morning, the rain stopped. There were stars over the hills. The station clock made a small sound each hour. Daniel closed his eyes and slept for a short time.",
         "When he woke, a pale light was in the sky. The old hills were blue and grey. Far away, the river moved through the valley. Glenbrook looked different in the morning.",
@@ -190,13 +186,13 @@
         "Daniel helped people carry their cases to the bus. Thomas and Ernest said goodbye beside the station gate. Ernest was going back to the bridge with the other railway workers.",
         "'Will the bridge be safe again?' Daniel asked. 'Yes,' Ernest answered. 'But not before we repair it and check it carefully. A train can wait. People cannot be replaced.'",
         "Daniel looked at the quiet train one last time. The engine was cold now. The big lamps were dark. It had been a strange journey, but the train had brought everyone as far as it safely could."
-      ]
+      ],
+      "image": "assets/stories/en/A1/illustrations/the_last_train_ch6.jpg"
     },
     {
       "number": 7,
       "title": "Morning at Lakeview",
       "title_ar": "صباح في ليكفيو",
-      "image": "assets/stories/en/A1/illustrations/the_last_train_ch7.svg",
       "paragraphs": [
         "The bus moved slowly through the mountains. The road was narrow, and the hills were high. Daniel sat by the window. He could see green fields, small houses, and the river far below.",
         "The sun came out between the clouds. There was fresh snow on the highest mountain. Birds flew over the trees. After the long night, the world looked new and quiet.",
@@ -215,169 +211,210 @@
         "Daniel put the letter inside his travel book. He kept it next to his blue ticket. The ticket reminded him of the long night, the warm tea, and the people on the train.",
         "On his last evening in Lakeview, Daniel and Emily sat near the water. A train sounded somewhere in the hills. Daniel looked up and smiled. 'I think I will always remember the last train,' he said.",
         "'Because it was late?' Emily asked. 'No,' Daniel answered. 'Because everyone got home safely.' The last light of the day lay on the lake, and for a little while they listened to the distant train."
-      ]
+      ],
+      "image": "assets/stories/en/A1/illustrations/the_last_train_ch7.jpg"
     }
   ],
   "vocabulary": [
     {
       "word": "arrive",
-      "meaning": "to get to a place"
+      "meaning": "to get to a place",
+      "example": "The bus arrives in Lakeview in the morning."
     },
     {
       "word": "bag",
-      "meaning": "a thing used to carry objects"
+      "meaning": "something used to carry things",
+      "example": "Daniel sees a brown leather bag."
     },
     {
       "word": "bell",
-      "meaning": "a thing that makes a ringing sound"
+      "meaning": "a thing that makes a ringing sound",
+      "example": "A bell sounds in the carriage."
     },
     {
       "word": "bench",
-      "meaning": "a long seat"
+      "meaning": "a long seat",
+      "example": "An old man sits on a bench."
     },
     {
       "word": "bridge",
-      "meaning": "a way over water or a road"
+      "meaning": "a road or railway over water",
+      "example": "The train must not cross the old bridge."
     },
     {
       "word": "carriage",
-      "meaning": "a part of a train for people"
+      "meaning": "a part of a train for people",
+      "example": "Daniel sits in the second carriage."
     },
     {
       "word": "case",
-      "meaning": "a bag for clothes"
+      "meaning": "a box or bag for clothes",
+      "example": "He puts his case above his seat."
     },
     {
       "word": "clock",
-      "meaning": "something that tells time"
+      "meaning": "a thing that tells the time",
+      "example": "The clock shows ten thirty."
     },
     {
       "word": "coat",
-      "meaning": "clothes over other clothes"
+      "meaning": "clothes worn over other clothes",
+      "example": "Thomas wears a grey coat."
     },
     {
       "word": "conductor",
-      "meaning": "a worker who helps train passengers"
+      "meaning": "a worker who helps people on a train",
+      "example": "Mr Harris is the conductor."
     },
     {
       "word": "cross",
-      "meaning": "to go from one side to another"
+      "meaning": "to go from one side to the other",
+      "example": "The train does not cross the river."
     },
     {
       "word": "danger",
-      "meaning": "a chance that something bad may happen"
+      "meaning": "the chance of something bad happening",
+      "example": "The broken bridge is a danger."
     },
     {
       "word": "driver",
-      "meaning": "a person who drives"
+      "meaning": "a person who drives a train or car",
+      "example": "Mr Bell is the train driver."
     },
     {
       "word": "engine",
-      "meaning": "the machine that moves a train"
+      "meaning": "the part of a train that makes it move",
+      "example": "Steam rises from the engine."
     },
     {
       "word": "field",
-      "meaning": "an open area of land"
+      "meaning": "an open area of land",
+      "example": "The train passes a small field."
     },
     {
       "word": "flag",
-      "meaning": "cloth used to show a signal"
+      "meaning": "cloth used as a sign",
+      "example": "Ernest carries a red flag."
     },
     {
       "word": "forgotten",
-      "meaning": "left behind by mistake"
+      "meaning": "left behind by mistake",
+      "example": "A forgotten bag is under the seat."
     },
     {
       "word": "hill",
-      "meaning": "land higher than nearby ground"
+      "meaning": "land that is higher than the ground around it",
+      "example": "The bus goes around a hill."
     },
     {
       "word": "journey",
-      "meaning": "a trip from one place to another"
+      "meaning": "a trip from one place to another",
+      "example": "The journey takes all night."
     },
     {
       "word": "key",
-      "meaning": "a small metal thing used to open a lock"
+      "meaning": "a small metal thing that opens a lock",
+      "example": "There is a small key on the bag."
     },
     {
       "word": "lamp",
-      "meaning": "a light"
+      "meaning": "a light",
+      "example": "A yellow lamp shines at the station."
     },
     {
       "word": "letter",
-      "meaning": "a written message"
+      "meaning": "a written message",
+      "example": "Daniel sends Emily a short letter."
     },
     {
       "word": "line",
-      "meaning": "a wire or railway track"
+      "meaning": "a railway track or a wire connection",
+      "example": "The old message line is broken."
     },
     {
       "word": "map",
-      "meaning": "a drawing that shows places"
+      "meaning": "a drawing that shows places",
+      "example": "The map shows Bridge Twelve."
     },
     {
       "word": "message",
-      "meaning": "words sent to another person"
+      "meaning": "words sent to someone",
+      "example": "The worker carries a message to Lakeview."
     },
     {
       "word": "mountain",
-      "meaning": "a very high hill"
+      "meaning": "a very high hill",
+      "example": "There is snow on the mountain."
     },
     {
       "word": "mud",
-      "meaning": "wet earth"
+      "meaning": "wet earth",
+      "example": "The workers have mud on their boots."
     },
     {
       "word": "passenger",
-      "meaning": "a person traveling by train or bus"
+      "meaning": "a person traveling on a train or bus",
+      "example": "Every passenger stays safely on the train."
     },
     {
       "word": "platform",
-      "meaning": "a place where people enter a train"
+      "meaning": "the place where people get on a train",
+      "example": "Daniel waits on the platform."
     },
     {
       "word": "rail",
-      "meaning": "a long metal track for a train"
+      "meaning": "a long metal line for train wheels",
+      "example": "The rails are wet after the rain."
     },
     {
       "word": "repair",
-      "meaning": "to make something work again"
+      "meaning": "to make something work again",
+      "example": "Workers repair the old bridge."
     },
     {
       "word": "river",
-      "meaning": "water moving through the land"
+      "meaning": "water moving across the land",
+      "example": "The river is high after the storm."
     },
     {
       "word": "seat",
-      "meaning": "a place to sit"
+      "meaning": "a place to sit",
+      "example": "The bag is under an empty seat."
     },
     {
       "word": "signal",
-      "meaning": "a sign telling a train to stop or move"
+      "meaning": "a sign telling a train to stop or move",
+      "example": "The driver sees a green signal."
     },
     {
       "word": "station",
-      "meaning": "a place where trains stop"
+      "meaning": "a place where trains stop",
+      "example": "Glenbrook is a small station."
     },
     {
       "word": "steam",
-      "meaning": "hot water in the air"
+      "meaning": "hot water in the form of a cloud",
+      "example": "Steam rises into the cold air."
     },
     {
       "word": "strap",
-      "meaning": "a band used to hold something"
+      "meaning": "a long piece used to hold a bag",
+      "example": "The bag has two strong straps."
     },
     {
       "word": "ticket",
-      "meaning": "paper that allows a journey"
+      "meaning": "paper that lets you travel",
+      "example": "Daniel shows his blue ticket."
     },
     {
       "word": "warning",
-      "meaning": "words telling you about danger"
+      "meaning": "a message that tells you about danger",
+      "example": "There is a warning about the bridge."
     },
     {
       "word": "worker",
-      "meaning": "someone who does a job"
+      "meaning": "a person who does a job",
+      "example": "The railway worker carries a lamp."
     }
   ],
   "questions": [
@@ -396,13 +433,13 @@
       "options": [
         "A coat",
         "A brown bag",
-        "Books",
+        "A box of books",
         "A red flag"
       ],
       "answer": 1
     },
     {
-      "q": "Who works as conductor?",
+      "q": "Who works as the conductor?",
       "options": [
         "Daniel",
         "Thomas",
@@ -416,8 +453,8 @@
       "options": [
         "E. Shaw",
         "Mr Bell",
-        "Lakeview",
-        "Emily"
+        "Lakeview Hall",
+        "Emily Ellis"
       ],
       "answer": 0
     },
@@ -432,7 +469,7 @@
       "answer": 1
     },
     {
-      "q": "Where does the train stop?",
+      "q": "Where does the train stop safely?",
       "options": [
         "Glenbrook",
         "London",
@@ -444,9 +481,9 @@
     {
       "q": "Who is Thomas Shaw?",
       "options": [
-        "Daniel's teacher",
-        "Emily's father",
-        "Ernest's brother",
+        "Daniel’s teacher",
+        "Emily’s father",
+        "Ernest’s brother",
         "The driver"
       ],
       "answer": 2
@@ -454,20 +491,20 @@
     {
       "q": "What does the notebook say?",
       "options": [
-        "Cross now",
+        "Cross the bridge now",
         "Stop trains",
         "Sell the bridge",
-        "Buy a bag"
+        "Buy a new bag"
       ],
       "answer": 1
     },
     {
-      "q": "Why is the bridge unsafe?",
+      "q": "Why is the bridge not safe?",
       "options": [
-        "Its lamps are gone",
+        "Its lamps are missing",
         "One wooden part moved",
         "There is no ticket",
-        "There are no people"
+        "The train is empty"
       ],
       "answer": 1
     },
@@ -475,29 +512,29 @@
       "q": "What does Daniel help carry?",
       "options": [
         "Coal",
-        "Newspapers",
+        "Newspaper",
         "Tea",
         "A heavy engine"
       ],
       "answer": 2
     },
     {
-      "q": "How do passengers reach Lakeview?",
+      "q": "How do the passengers reach Lakeview?",
       "options": [
-        "By bus on a safe road",
+        "By a safe road on a bus",
         "Across the old bridge",
         "By boat",
-        "By the river"
+        "On foot in the river"
       ],
       "answer": 0
     },
     {
-      "q": "What does Daniel learn?",
+      "q": "What is the main lesson of the story?",
       "options": [
-        "Ignore warnings",
+        "Ignore small signs",
         "Travel alone",
-        "Speak when something may be wrong",
-        "Stop reading"
+        "Speak up when something may be wrong",
+        "Go to sleep"
       ],
       "answer": 2
     }
@@ -506,7 +543,7 @@
     {
       "q": "A platform is a place where people...",
       "options": [
-        "cook",
+        "cook food",
         "get on trains",
         "buy flowers",
         "read letters"
@@ -514,32 +551,32 @@
       "answer": 1
     },
     {
-      "q": "You need a ___ to travel by train.",
+      "q": "What do you use to travel by train?",
       "options": [
-        "ticket",
-        "lamp",
-        "plate",
-        "hat"
+        "A ticket",
+        "A knife",
+        "A lamp",
+        "A plate"
       ],
       "answer": 0
     },
     {
-      "q": "A very high hill is a...",
+      "q": "What do you call a very high hill?",
       "options": [
-        "bench",
-        "river",
-        "mountain",
-        "door"
+        "A bench",
+        "A river",
+        "A mountain",
+        "A door"
       ],
       "answer": 2
     },
     {
-      "q": "A sign of danger is a...",
+      "q": "Which word means a sign about danger?",
       "options": [
         "warning",
+        "ticket",
         "coat",
-        "clock",
-        "case"
+        "clock"
       ],
       "answer": 0
     },
@@ -576,35 +613,35 @@
     {
       "q": "The bridge has a problem after...",
       "options": [
-        "a sunny day",
+        "a hot day",
         "strong rain",
         "a party",
-        "a picnic"
+        "a snow holiday"
       ],
       "answer": 1
     },
     {
-      "q": "Who stops before the bridge?",
+      "q": "Who decides to stop before the bridge?",
       "options": [
         "The driver and conductor",
         "Emily",
-        "An old man",
+        "The old man",
         "A shopkeeper"
       ],
       "answer": 0
     },
     {
-      "q": "Does the train cross the bridge that night?",
+      "q": "Does the train cross the unsafe bridge that night?",
       "options": [
         "Yes",
         "Only once",
         "No",
-        "We do not know"
+        "Nobody knows"
       ],
       "answer": 2
     },
     {
-      "q": "Daniel is going to...",
+      "q": "Where is Daniel going?",
       "options": [
         "Glenbrook",
         "Riverford",
@@ -614,10 +651,10 @@
       "answer": 2
     },
     {
-      "q": "What is the right order?",
+      "q": "What is the best order?",
       "options": [
         "Bag, warning, safe stop",
-        "Stop, bag, warning",
+        "Safe stop, bag, warning",
         "Warning, sunrise, bag",
         "Sunrise, train, bag"
       ],
@@ -626,49 +663,49 @@
     {
       "q": "Who carries a red flag?",
       "options": [
-        "Ernest",
+        "Ernest Shaw",
         "Emily",
         "The baker",
-        "Daniel's mother"
+        "Daniel’s mother"
       ],
       "answer": 0
     },
     {
       "q": "When does Daniel meet Emily?",
       "options": [
-        "Before leaving",
-        "At midnight",
+        "Before the train leaves",
+        "At midnight on the bridge",
         "After the bus arrives",
-        "On the bridge"
+        "On the old platform"
       ],
       "answer": 2
     },
     {
-      "q": "One week later, the bridge is...",
+      "q": "What happens one week later?",
       "options": [
-        "repaired",
-        "closed forever",
-        "lost",
-        "gone"
+        "The bridge is repaired",
+        "The railway closes forever",
+        "Daniel loses his case",
+        "The station disappears"
       ],
       "answer": 0
     },
     {
-      "q": "Why is it good to speak up?",
+      "q": "Why is speaking up important?",
       "options": [
-        "It helps keep people safe",
-        "It makes trains loud",
-        "It changes weather",
-        "It closes stations"
+        "It can help keep people safe",
+        "It makes the train louder",
+        "It changes the weather",
+        "It closes the station"
       ],
       "answer": 0
     }
   ],
   "discussion": [
-    "Why did Daniel tell Mr Harris about the bag?",
+    "Why did Daniel decide to tell Mr Harris about the bag?",
     "How did Mr Harris help the passengers feel calm?",
     "What would you do if you found an important warning?",
-    "Which character made the most important choice?",
+    "Which character made the most important choice? Explain why.",
     "Write five sentences about a journey you remember."
   ]
 }

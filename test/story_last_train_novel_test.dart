@@ -31,13 +31,14 @@ void main() {
       for (final paragraph in paragraphs) {
         totalWords += (paragraph as String).trim().split(RegExp(r'\s+')).length;
       }
-      expect(await rootBundle.loadString(chapter['image'] as String),
-          contains('<svg'));
+      final drawing = await rootBundle.load(chapter['image'] as String);
+      expect(drawing.lengthInBytes, greaterThan(1000));
     }
     expect(totalWords, greaterThan(3500));
     expect((decoded['vocabulary'] as List).length, 40);
     expect((decoded['questions'] as List).length, 12);
     expect((decoded['final_test'] as List).length, 16);
-    expect(await rootBundle.loadString(novel.coverImage!), contains('<svg'));
+    final cover = await rootBundle.load(novel.coverImage!);
+    expect(cover.lengthInBytes, greaterThan(1000));
   });
 }

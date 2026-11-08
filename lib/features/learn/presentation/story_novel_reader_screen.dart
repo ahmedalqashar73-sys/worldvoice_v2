@@ -68,8 +68,11 @@ class _StoryNovelReaderScreenState extends State<StoryNovelReaderScreen> {
     if (_section == -1) {
       children.addAll([
         if (widget.entry.coverImage != null)
-          SvgPicture.asset(widget.entry.coverImage!,
-            height: 260, fit: BoxFit.contain),
+          widget.entry.coverImage!.endsWith('.svg')
+              ? SvgPicture.asset(widget.entry.coverImage!,
+                  height: 260, fit: BoxFit.contain)
+              : Image.asset(widget.entry.coverImage!,
+                  height: 260, fit: BoxFit.contain),
         _heading(novel['title'] as String, size: 29),
         Center(child: Text(novel['author'] as String,
           style: const TextStyle(color: Colors.black87))),
@@ -96,8 +99,12 @@ class _StoryNovelReaderScreenState extends State<StoryNovelReaderScreen> {
         for (var i = 0; i < (ch['paragraphs'] as List).length; i++) ...[
           if (i == 3) ...[
             const SizedBox(height: 9),
-            SvgPicture.asset(ch['image'] as String,
-              height: 180, fit: BoxFit.contain),
+            if ((ch['image'] as String).endsWith('.svg'))
+              SvgPicture.asset(ch['image'] as String,
+                height: 180, fit: BoxFit.contain)
+            else
+              Image.asset(ch['image'] as String,
+                height: 180, fit: BoxFit.contain),
             const SizedBox(height: 19),
           ],
           _p(ch['paragraphs'][i] as String),

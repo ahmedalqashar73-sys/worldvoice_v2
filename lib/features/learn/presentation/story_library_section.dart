@@ -264,8 +264,11 @@ class _StoryLibrarySectionState extends State<StoryLibrarySection> {
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: novel.coverImage != null
-                          ? SvgPicture.asset(novel.coverImage!,
-                              height: 115, width: 86, fit: BoxFit.cover)
+                          ? (novel.coverImage!.endsWith('.svg')
+                              ? SvgPicture.asset(novel.coverImage!,
+                                  height: 115, width: 86, fit: BoxFit.cover)
+                              : Image.asset(novel.coverImage!,
+                                  height: 115, width: 86, fit: BoxFit.cover))
                           : const SizedBox(width: 86, height: 115,
                               child: Icon(Icons.menu_book_rounded)),
                       ),
