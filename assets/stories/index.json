@@ -35,6 +35,17 @@
       "cover_image": "assets/stories/en/A1/illustrations/the_last_train_cover.jpg"
     },
     {
+      "id": "the_red_umbrella",
+      "language": "en",
+      "level": "A1",
+      "title": "The Red Umbrella",
+      "title_ar": "المظلة الحمراء",
+      "format": "novel",
+      "chapter_count": 7,
+      "asset": "assets/stories/en/A1/the_red_umbrella.json",
+      "cover_image": "assets/stories/en/A1/illustrations/the_red_umbrella_cover.jpg"
+    },
+    {
       "id": "the_small_green_bag",
       "language": "en",
       "level": "A1",

@@ -1,0 +1,796 @@
+{
+  "id": "the_red_umbrella",
+  "title": "The Red Umbrella",
+  "title_ar": "المظلة الحمراء",
+  "language": "en",
+  "level": "A1",
+  "format": "novel",
+  "author": "Ahmed Al-Qashar",
+  "publisher": "WorldVoice Library",
+  "status": "editorial_review",
+  "subtitle": "A Paris Drama",
+  "synopsis": "Alice lives in Paris and has a hard choice to make about her work. One rainy afternoon, she takes the wrong red umbrella from a café. She meets Nora, a woman who is trying to save a little theatre. Alice can help, but she is afraid to play music in front of people. The umbrella brings new friends, a difficult evening, and a chance to begin again.",
+  "characters": [
+    {
+      "name": "Alice Moreau",
+      "description": "A thirty-two-year-old artist in Paris. She is making an important choice about work and wants to play music again."
+    },
+    {
+      "name": "Claire",
+      "description": "Alice’s friend, a newspaper writer who helps other people."
+    },
+    {
+      "name": "Nora",
+      "description": "The director of a small Paris theatre. She wants to keep telling stories."
+    },
+    {
+      "name": "Marc",
+      "description": "A friendly theatre worker who looks after sound and lights."
+    },
+    {
+      "name": "Anna",
+      "description": "Alice’s mother. She listens carefully and gives honest advice."
+    },
+    {
+      "name": "Marcel",
+      "description": "The owner of a café near the river."
+    },
+    {
+      "name": "Paul and Jeanne",
+      "description": "Two adult actors in the final play."
+    }
+  ],
+  "chapters": [
+    {
+      "number": 1,
+      "title": "Rain on the Boulevard",
+      "title_ar": "المطر على الشارع",
+      "image": "assets/stories/en/A1/illustrations/the_red_umbrella_ch1.jpg",
+      "paragraphs": [
+        "On Monday afternoon, rain fell over Paris. Alice Moreau stood at the window of her small art shop. Cars moved slowly on the wet road. People walked under black and blue umbrellas. Alice had a bright red umbrella by the door.",
+        "Alice was thirty-two years old. She made pictures for books and shops. She liked her work, but money was sometimes a problem. This month she had only two small jobs. On her desk there was a letter about a new job in another city.",
+        "The letter came from an office in Lyon. The job was good. It paid well, and the people seemed kind. But Alice loved Paris. Her friends lived here, and her mother lived two streets away. She did not know what to do.",
+        "Her friend Claire came into the shop with wet shoes. Claire worked at a newspaper. She carried a brown bag and a little notebook. 'You are still looking at that letter,' Claire said. Alice put the paper face down.",
+        "'It is a good job,' Alice answered. 'I know that. But my whole life is here.' Claire took off her coat. 'You do not have to decide today,' she said. 'Come and have a cup of tea with me.'",
+        "They went to Café Marcel near the river. It was warm inside. A small yellow lamp stood on each table. Old pictures covered the walls. A man played soft music on a little radio behind the counter.",
+        "Alice put her red umbrella in the wooden stand by the door. Another red umbrella stood there already. They looked almost the same. Alice did not see the second one. She was thinking about the new job.",
+        "Marcel, the café owner, knew Alice well. He brought two cups of tea and a plate of bread. 'You look tired,' he said. Alice smiled. 'I have many things in my head today.'",
+        "Claire looked at the people around them. A woman in a dark green coat sat alone by the window. She had short brown hair and a book in her hand. She looked at her watch, closed her book, and left the café quickly.",
+        "The rain became heavy. Water ran along the street. Alice and Claire talked for almost an hour. They talked about work, family, and the small things that make a day good. Alice began to feel better.",
+        "At five, Claire had to go back to the newspaper. 'Call me tonight,' she said. 'And remember: a new job is not your whole life.' Alice thanked her and went to the door.",
+        "The umbrella stand was in a dark corner. Alice picked up a red umbrella. Its handle felt different, but her hands were cold, and she did not look at it carefully. She opened it outside and walked toward home.",
+        "Near the river, a strong wind moved the umbrella. Alice held the handle with both hands. Then she saw a small piece of white cloth on the strap. There were blue words on it: RUE VALETTE THEATRE.",
+        "Alice stopped under a shop roof. Her own umbrella had a little white star near the handle. This one did not. She had taken the wrong red umbrella from the café.",
+        "She looked back down the long wet street. The café was not far away, but she was late for dinner with her mother. 'I can return it tomorrow,' she said to herself. She closed the umbrella and ran across the road.",
+        "That evening, Alice ate soup with her mother, Anna. Anna asked about the job in Lyon. Alice told her that she was not ready to decide. Her mother listened, then said, 'A good life needs money. But it needs people too.'",
+        "When Alice went home, she put the strange umbrella beside the door. The cloth label was clean and new. The words looked like the name of a place, not the name of a person.",
+        "Alice took out her phone and found a small theatre on Rue Valette. There was a picture of a blue door and a sign: THE LITTLE STAGE. Under the picture were the words: OUR LAST SHOW - FRIDAY.",
+        "She looked at the red umbrella again. She did not know who owned it. But the words 'last show' stayed in her mind as she turned off the light."
+      ]
+    },
+    {
+      "number": 2,
+      "title": "The Other Red Umbrella",
+      "title_ar": "المظلة الحمراء الأخرى",
+      "image": "assets/stories/en/A1/illustrations/the_red_umbrella_ch2.jpg",
+      "paragraphs": [
+        "On Tuesday morning, the rain was gone. Alice opened her shop at nine. She made two small pictures for a baker and sent them by email. But she kept looking at the red umbrella near the door.",
+        "At ten, she called Café Marcel. 'Did anyone leave a red umbrella yesterday?' she asked. Marcel laughed softly. 'Two people left with red umbrellas. One came back looking for hers. Her name is Nora. She works at the little theatre on Rue Valette.'",
+        "'Is my umbrella at the café?' Alice asked. 'Yes,' said Marcel. 'Nora brought it back this morning. I put it behind the counter. She asked me to keep hers safe too.'",
+        "Alice thanked him. She walked to the café and found her umbrella behind the counter. The little white star was still on the handle. Marcel gave her a cup of water and asked about her shop.",
+        "'It is quiet,' Alice said. 'Too quiet sometimes.' Marcel nodded. 'Many small places have hard days now. My café has hard days too.' He pointed to an old photograph on the wall. 'My father opened this place.'",
+        "Alice looked at the photograph. She remembered coming here as a child with her mother. The tables were different then, but the windows were the same. She could almost hear her mother's voice from those old days.",
+        "'Can I take Nora's umbrella to the theatre?' Alice asked. Marcel smiled. 'That would be kind. I can call her first.' He took out his phone and spoke to Nora for a minute.",
+        "When he finished, he said, 'She is there today. But she is busy. The theatre has a show on Friday, and there is a problem with the music.' Alice did not ask more questions. She took the umbrella and left.",
+        "Rue Valette was a short walk from the river. Alice passed a bookshop, a flower stand, and a small square. Children played near a fountain. A man washed the window of a bakery.",
+        "The theatre stood between two tall buildings. It was not a grand place. Its blue door was old, and some paint was missing. A red poster on the wall said: ONE MORE EVENING - FRIDAY, 7 P.M.",
+        "Alice rang the bell. A woman opened the door. She wore a dark green coat, just like the woman Alice had seen in Café Marcel. 'You found my umbrella!' the woman said. 'I am Nora.'",
+        "'I am Alice. I am sorry I took it.' Nora shook her head. 'We both made the same mistake. Thank you for coming.' She took the umbrella, but did not close the door.",
+        "From inside came the sound of a piano. Someone played three notes, stopped, and played them again. Then there was silence. Nora looked over her shoulder with a worried face.",
+        "'Are you all right?' Alice asked. Nora tried to smile. 'We have a small show on Friday. Our piano player is ill. It is too late to find another one. We may have to stop the show.'",
+        "Alice looked through the open door. She could see red seats and a little stage. 'A real theatre,' she said quietly. Nora laughed. 'A very small real theatre. But many people love it.'",
+        "Alice had played the piano when she was young. She had not played for people for many years. Her hands moved a little when she heard the notes again. She did not tell Nora.",
+        "'I hope you find someone,' Alice said. 'Do you have a poster I can put in my shop?' Nora went to a table and brought back a red paper. 'Of course. Thank you.'",
+        "Alice walked home with the poster in her bag. The wrong umbrella was back with its owner. The problem should have ended there. But that evening, Alice looked at the poster again and thought about the little stage.",
+        "She called Claire. 'I went to a theatre today,' she said. 'They need a piano player.' Claire was quiet for one second. 'Alice,' she asked, 'why do you sound as if you want to help?'"
+      ]
+    },
+    {
+      "number": 3,
+      "title": "The Little Stage",
+      "title_ar": "المسرح الصغير",
+      "image": "assets/stories/en/A1/illustrations/the_red_umbrella_ch3.jpg",
+      "paragraphs": [
+        "Alice did not answer Claire at once. She stood beside the piano in her small sitting room. It was old, and one key made a strange sound. Her father had bought it when she was sixteen.",
+        "'I used to play every day,' she said at last. 'Now I only play when no one is here.' Claire knew that Alice could play well. She also knew that Alice did not like people looking at her when she played.",
+        "'You can go and listen,' Claire said. 'You do not have to say yes.' Alice looked at the red theatre poster. 'That is a good idea,' she answered. 'I will go tomorrow.'",
+        "On Wednesday morning, Alice finished her work early. She closed the shop at noon and walked to Rue Valette. The sky was grey, but there was no rain. She could see the blue theatre door from the end of the street.",
+        "Inside, Nora stood beside a wooden table. A man with glasses was putting lights above the stage. 'This is Marc,' Nora said. 'He looks after the lights and the sound.' Marc climbed down from his ladder and shook Alice's hand.",
+        "'You came back,' Nora said. 'Did you forget something?' Alice felt her face get warm. 'No. I came because I heard the piano yesterday. I used to play. Perhaps I can try.'",
+        "Nora looked surprised. Then she smiled for the first time that day. 'Please come in.' She led Alice past the small rows of seats. There were only sixty seats, and many had dark red covers.",
+        "The stage was little, but clean. Two wooden chairs stood near a window. A tall plant waited in a pot. At the back was a painted picture of a street in Paris. Alice liked the picture immediately.",
+        "'A story about two old friends,' Nora explained. 'They meet after many years. They talk about the work they did, the people they lost, and the days they still have.' Alice listened carefully. This was not a children's show.",
+        "'Is it a happy story?' Alice asked. Nora thought for a moment. 'It has sad parts and kind parts. I think it is a true kind of happiness.' She placed three pages of music on the piano.",
+        "Alice sat on the piano chair. Her hands felt cold. She looked at the first line. The notes were easy. Slowly she began to play. The sound filled the empty theatre.",
+        "Marc stopped moving a chair. Nora stood very still. Alice played the first page, then the second. On the third page, her hand made a small mistake. She stopped and looked down.",
+        "'I am sorry,' she said. Nora shook her head. 'Please do not stop. A small mistake is not the end.' Alice took a breath and began again. This time she played the whole piece.",
+        "When she finished, Marc smiled. 'That was lovely,' he said. Nora sat in the first row. For a moment she did not speak. Then she said, 'Will you play for our show? We can practise every evening.'",
+        "Alice thought about her shop and the letter from Lyon. She had work to finish. She also had dinner with her mother on Thursday. Friday was only two days away.",
+        "'I can try,' she said. 'But I have not played in front of people for a long time.' Nora walked to the piano. 'Then we will be afraid together,' she said. They both laughed.",
+        "Nora showed Alice the rest of the music. There were six short pieces. Alice knew two of them. The other four were new, but not hard. They spoke about a time for practice that evening.",
+        "Before Alice left, she asked why the poster said 'our last show'. Nora looked toward the empty seats. 'The man who owns this building wants to sell it. We have until the end of the month. After that, we may have no theatre.'",
+        "Alice stood in silence. She had walked in to return an umbrella. Now she was part of a story much bigger than an umbrella. She took the music home and practised until the room grew dark."
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Two Difficult Choices",
+      "title_ar": "قراران صعبان",
+      "image": "assets/stories/en/A1/illustrations/the_red_umbrella_ch4.jpg",
+      "paragraphs": [
+        "On Thursday, Alice woke before the sun came up. The music was still on the piano. Her shop was full of pictures she had not finished. On the table lay the letter about the job in Lyon.",
+        "She opened the letter again. The office wanted an answer by Saturday. The job was good and safe. Alice could pay her bills without worry. But she had to move away from Paris.",
+        "At nine, her mother came to the shop. Anna was sixty-four years old. She had worked in a hospital for many years. Now she liked to walk in the park and read in the afternoon.",
+        "Alice showed her the letter. Then she told her about the theatre. Anna listened without speaking. She put her hand over Alice's hand. 'You have two important things to think about,' she said.",
+        "'One is a good job,' Alice said. 'The other is only a little show.' Anna shook her head. 'Do not call a thing little because it does not bring much money. But do not forget your work either.'",
+        "They sat by the window and watched people go to the market. Alice remembered the music lessons her father had paid for when money was short. He had said that work and beauty could live in the same home.",
+        "'You do not need to decide everything at once,' Anna said. 'Answer the theatre first. You made a promise.' Alice nodded. She picked up her bag and went to the theatre.",
+        "Nora and Marc were already there. Two actors were reading lines on the stage. Their names were Paul and Jeanne. They were both older than Alice. Paul had a quiet voice. Jeanne had a warm smile.",
+        "Alice began to play while they spoke. The story was simple but strong. Two friends met at an old railway station. One was leaving the city, and one was staying. They did not know if they would meet again.",
+        "The words felt close to Alice's own life. She looked at the page of music and thought of the letter from Lyon. For a moment she played too slowly. Paul waited and then started his line again.",
+        "'It is all right,' Paul said. 'We are practising.' Alice thanked him. She was surprised by how kind everyone was. No one laughed at her mistakes. They were working together.",
+        "At four, a man came into the theatre. He wore a good black coat and carried a small leather case. Nora went to speak to him by the door. Their voices were low.",
+        "After the man left, Nora looked pale. 'That was the owner of the building,' she said. 'He wants the theatre empty in three weeks. He will not change his mind.'",
+        "Marc stood beside the stage. 'Then Friday is important,' he said. 'We should make it a good evening.' Nora looked at the empty seats. 'Some tickets are still here. We need people to come.'",
+        "Alice thought of Claire and her newspaper. 'Perhaps my friend can put a small notice in the paper,' she said. Nora looked at her. 'Would she really do that?' 'I can ask,' Alice answered.",
+        "Claire answered the phone at once. She listened to Alice's story and said, 'I can write about the show today. I cannot promise many people, but I can tell them it is here.' Alice thanked her.",
+        "That evening, Alice went to her mother's home. She ate soup, washed the cups, and then practised the music on Anna's old piano. Anna sat nearby with her knitting and listened.",
+        "When Alice stopped, Anna said, 'Your father would be pleased to hear you again.' Alice looked at the piano. She missed her father, but the memory was warm, not only sad.",
+        "Before going home, Alice looked out at the wet street. A red umbrella passed under the streetlight. She smiled. A wrong umbrella had brought her to a right place. She hoped she could help it stay open."
+      ]
+    },
+    {
+      "number": 5,
+      "title": "The Evening Before Friday",
+      "title_ar": "الليلة السابقة للجمعة",
+      "image": "assets/stories/en/A1/illustrations/the_red_umbrella_ch5.jpg",
+      "paragraphs": [
+        "Friday morning began with blue sky and cold wind. Alice opened her shop early. On the door she placed a small poster for The Little Stage. Two people stopped to read it. One woman asked about the tickets.",
+        "At noon, Claire came with the newspaper. A small story about the theatre was on page six. It showed a photograph of Nora standing in the blue doorway. Alice read the story twice and felt happy.",
+        "'It is a good story,' she said. Claire smiled. 'You gave me the idea. Now go and finish your work. You have a show tonight.' She left a copy of the newspaper on the counter.",
+        "Alice finished her last picture for the baker. She sent it before three. Then she put on a dark coat and took the music in a flat black bag. She walked quickly through the streets.",
+        "At the theatre, people moved chairs and cleaned windows. Marc checked every lamp. Nora had flowers for the little table on stage. Paul and Jeanne stood in the corner and practised their lines quietly.",
+        "'Alice, we have a problem,' Marc said. One of the stage lamps did not work. He had a new bulb, but the lamp stayed dark. 'I can move another lamp here,' he said. 'But it will take some time.'",
+        "Nora looked at her watch. The doors would open in an hour. Alice put down her music. 'Can I help?' she asked. Marc gave her a box of clips and asked her to hold a long wire while he moved the lamp.",
+        "For twenty minutes they worked in silence. At last the new light shone across the stage. It was not perfect, but it was enough. Marc climbed down and said, 'Sometimes enough is beautiful.'",
+        "The actors came out for a final practice. Alice played two pieces. Then she heard loud voices in the lobby. Several people had come early. Some had read the newspaper story. Others knew Nora from the street.",
+        "Nora went to the front door. Alice could hear her talking to an older couple. 'We have come to every show for ten years,' the woman said. 'We could not miss this one.'",
+        "Alice went into the little room behind the stage. A mirror hung above a table. On the table were a cup of water, a clock, and a red flower. She sat down and looked at her hands.",
+        "Her hands were shaking. She thought about all the people who would sit outside. What if she forgot the notes? What if she stopped in the middle of a scene?",
+        "Jeanne came into the room. She had already put on her stage clothes. She sat beside Alice. 'The first time I spoke on stage, I forgot my first line,' she said. 'I thought I would never come back.'",
+        "'What did you do?' Alice asked. 'I said the line again,' Jeanne answered. 'Then I looked at the person beside me. We helped each other. That is what a theatre is for.'",
+        "Alice smiled a little. She drank some water and opened the music. The pages were marked with small pencil lines. She could see the places where she had made mistakes in practice.",
+        "Nora appeared at the door. 'The seats are almost full,' she said. 'We can begin in ten minutes.' She looked tired, but her eyes were bright.",
+        "Alice went to the piano. Through the open door, she saw Claire in the third row. Her mother sat beside Claire. Marcel from the café was there too. He held a small red flower in his hand.",
+        "For the first time that day, Alice did not want to run away. She put her hands on the keys. The light above the stage grew soft. The room became quiet, and the first scene began."
+      ]
+    },
+    {
+      "number": 6,
+      "title": "A Song for Two Friends",
+      "title_ar": "أغنية لصديقين",
+      "image": "assets/stories/en/A1/illustrations/the_red_umbrella_ch6.jpg",
+      "paragraphs": [
+        "The first piece was slow and gentle. Alice watched Paul walk onto the stage and place a bag beside a bench. Jeanne followed him a moment later. Their voices were calm, and the story began.",
+        "The two characters had been friends when they were young. Now they were older. One had a family in another city. The other had a small shop near the station. They spoke about the lives they had made.",
+        "Alice played softly when they spoke. She had practised the music many times, but tonight it sounded different. The words of the actors gave the notes a new meaning.",
+        "In the second scene, the friends argued. One said, 'You left and did not write.' The other answered, 'I did not know what to say.' The room was very quiet. No one moved in the seats.",
+        "Alice missed one note. Her heart beat fast, but she remembered Jeanne's words. She did not stop. She played the next note and kept going. Nobody looked at her in surprise.",
+        "At the end of the scene, Paul put his hand on the bench. 'We lost many years,' he said. Jeanne answered, 'But we are here now.' Alice played three soft notes. Then the lights went down.",
+        "People in the audience clapped. It was only the middle of the show, but Alice could feel their kindness. She looked at Nora near the door. Nora gave her a small smile.",
+        "The last scene was about a choice. One friend had a train ticket, but did not know if she wanted to leave. The other friend said, 'I cannot decide for you. I can only tell you that I will be your friend.'",
+        "Alice thought about her own letter again. It was different from the story on stage, but the feeling was the same. A person could choose a new road and still love the people at home.",
+        "The last piece of music was a little faster. Alice played it without looking at her hands. She listened to the actors, watched the lights, and let the music follow the words.",
+        "When the story ended, Paul and Jeanne stood together at the front of the stage. For a moment there was silence. Then the audience stood up and clapped. Alice was surprised to see her mother standing too.",
+        "Nora took Alice's hand and led her to the front. 'Our piano player,' she said to the room. Alice felt warm in the face. She made a small bow. Claire waved from her seat.",
+        "After the show, people stayed to talk. Some wanted to know when the next performance would be. Nora explained that the theatre might close at the end of the month. The room became quiet.",
+        "Then Marcel said, 'Could we have more shows in another room? My café has a large back room on Sundays.' A woman from the audience said her school had a small hall. People began to talk again.",
+        "Nora wrote down names and numbers. She did not promise that the theatre could stay in its old home. But she saw that the stories could live in other places. For the first time in weeks, she felt hopeful.",
+        "Alice sat with her mother and Claire. 'You played beautifully,' Anna said. Alice laughed. 'I made a mistake.' 'Of course you did,' Anna answered. 'Everyone does. You kept playing.'",
+        "Near the door, Nora held her red umbrella. She looked at Alice. 'You brought this back to me,' she said. 'And then you came back again. Thank you.' Alice looked at the umbrella and smiled.",
+        "Outside, the street was wet with new rain. Inside, people were still talking about the play. Alice could hear music in her head. She no longer felt afraid of it."
+      ]
+    },
+    {
+      "number": 7,
+      "title": "After the Rain",
+      "title_ar": "بعد المطر",
+      "image": "assets/stories/en/A1/illustrations/the_red_umbrella_ch7.jpg",
+      "paragraphs": [
+        "On Saturday morning, Alice woke late. The red theatre poster was on her desk beside the letter from Lyon. She made coffee, opened the window, and listened to the city below.",
+        "The night before had been wonderful. She had played for a room full of people. She had made mistakes and kept going. She had helped people she did not know a week ago.",
+        "But there was still a decision to make. The office in Lyon wanted her answer today. She read the letter again and thought carefully about what she wanted from her work.",
+        "Alice liked drawing. She wanted to work with other people and learn new things. She also wanted time for friends, music, and her mother. A job could be important without being the whole of her life.",
+        "She sat at her computer and wrote a short answer. She thanked the office for the offer. Then she asked if she could work on some pictures from Paris for three months before making a final choice about moving.",
+        "She did not know what the office would say. Perhaps they would say no. But she had asked an honest question. She sent the message and closed the computer.",
+        "At eleven, Claire called. 'I have news,' she said. 'The newspaper wants another story about the theatre. Nora is talking with a school about using its hall next month.' Alice smiled. 'That is good. They may have another show.'",
+        "'Will you play again?' Claire asked. Alice looked at her piano. 'Yes,' she answered. 'If they want me, I will.' She was surprised by how easy the words felt.",
+        "In the afternoon, Alice went to Café Marcel. The café was busy. Marcel carried cups from table to table. When he saw her, he stopped and smiled. 'Our famous piano player!' he said.",
+        "'Not famous,' Alice answered, laughing. 'Only happy.' Marcel gave her a cup of tea. He told her that several people had asked about the theatre after reading the newspaper.",
+        "Nora came into the café a few minutes later. She carried her red umbrella, though the sun was out. 'I am going to see the school hall,' she said. 'Would you like to come?' Alice put down her cup and stood up.",
+        "They walked along the river. The wet stones shone under the light. Paris was full of people going home with bread, flowers, and bags. A boat moved slowly under the bridge.",
+        "'I was afraid on Friday,' Nora said. 'Not only about the show. I was afraid that years of work would be lost.' Alice listened. 'The old room may close,' Nora continued. 'But people remember what they saw there.'",
+        "Alice nodded. 'And we can begin again in a new room.' Nora smiled. 'That is what I hope.' They turned into a quiet street with a little school at the end.",
+        "At the school, a woman showed them a warm hall with a wooden floor and good windows. It had no real stage, but it had chairs and a piano. Alice sat down and touched one of the keys.",
+        "'We could tell stories here,' Nora said. Alice looked around. She imagined Paul and Jeanne standing by the window, with an audience sitting close to them. It was different from the old theatre, but it could work.",
+        "On Monday, the office in Lyon answered Alice. They could give her a short project from Paris. After three months, they would speak again about a full job. It was not a promise for the future, but it was a good beginning.",
+        "Alice told her mother and Claire. Then she went back to her shop and began a new picture. It showed a Paris street after rain, a blue theatre door, and a bright red umbrella beside it.",
+        "When the picture was finished, Alice put it in the shop window. People stopped to look. Some smiled at the red umbrella. They did not know the whole story, but Alice did. For her, it was a picture of a new beginning."
+      ]
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "audience",
+      "meaning": "people who watch a show",
+      "example": "The audience claps after the play."
+    },
+    {
+      "word": "actor",
+      "meaning": "a person who acts in a play",
+      "example": "Paul is an actor."
+    },
+    {
+      "word": "answer",
+      "meaning": "something you say or write after a question",
+      "example": "Alice sends an answer to Lyon."
+    },
+    {
+      "word": "argue",
+      "meaning": "to speak angrily because you do not agree",
+      "example": "The two friends argue on stage."
+    },
+    {
+      "word": "bench",
+      "meaning": "a long seat",
+      "example": "Paul puts a bag by a bench."
+    },
+    {
+      "word": "bill",
+      "meaning": "money you must pay",
+      "example": "Alice must pay her bills."
+    },
+    {
+      "word": "bow",
+      "meaning": "to move your head and body forward",
+      "example": "Alice makes a small bow."
+    },
+    {
+      "word": "bridge",
+      "meaning": "a road or path over water",
+      "example": "They walk near the bridge."
+    },
+    {
+      "word": "bulb",
+      "meaning": "a glass part of a lamp that makes light",
+      "example": "Marc changes the bulb."
+    },
+    {
+      "word": "choice",
+      "meaning": "something you decide",
+      "example": "Alice has a difficult choice."
+    },
+    {
+      "word": "coat",
+      "meaning": "clothes you wear over other clothes",
+      "example": "Nora wears a green coat."
+    },
+    {
+      "word": "company",
+      "meaning": "a business",
+      "example": "A company offers Alice a job."
+    },
+    {
+      "word": "concert",
+      "meaning": "music played for people",
+      "example": "The concert room is small."
+    },
+    {
+      "word": "count",
+      "meaning": "to say how many things there are",
+      "example": "Nora counts the seats."
+    },
+    {
+      "word": "curtain",
+      "meaning": "cloth that can cover a window or stage",
+      "example": "The curtain is red."
+    },
+    {
+      "word": "decide",
+      "meaning": "to choose what you will do",
+      "example": "Alice must decide about work."
+    },
+    {
+      "word": "doorway",
+      "meaning": "an open place where a door is",
+      "example": "Nora stands in the doorway."
+    },
+    {
+      "word": "email",
+      "meaning": "a message sent by computer",
+      "example": "Alice sends an email."
+    },
+    {
+      "word": "flower",
+      "meaning": "the colourful part of a plant",
+      "example": "Marcel carries a red flower."
+    },
+    {
+      "word": "gentle",
+      "meaning": "soft and kind",
+      "example": "The music is gentle."
+    },
+    {
+      "word": "handle",
+      "meaning": "the part of something you hold",
+      "example": "The umbrella has a black handle."
+    },
+    {
+      "word": "hall",
+      "meaning": "a large room or space",
+      "example": "The school has a hall."
+    },
+    {
+      "word": "important",
+      "meaning": "something that matters a lot",
+      "example": "The show is important to Nora."
+    },
+    {
+      "word": "kind",
+      "meaning": "good and helpful to others",
+      "example": "Claire is kind to Alice."
+    },
+    {
+      "word": "lamp",
+      "meaning": "a light in a room or street",
+      "example": "A lamp stands on the table."
+    },
+    {
+      "word": "letter",
+      "meaning": "a written message",
+      "example": "Alice reads the job letter."
+    },
+    {
+      "word": "mirror",
+      "meaning": "glass in which you see yourself",
+      "example": "Alice looks in the mirror."
+    },
+    {
+      "word": "mistake",
+      "meaning": "something you do incorrectly",
+      "example": "Alice makes a small mistake."
+    },
+    {
+      "word": "move",
+      "meaning": "to go to live or work somewhere else",
+      "example": "Alice may move to Lyon."
+    },
+    {
+      "word": "newspaper",
+      "meaning": "papers with news for people",
+      "example": "Claire works at a newspaper."
+    },
+    {
+      "word": "owner",
+      "meaning": "the person who has something",
+      "example": "Marcel is the café owner."
+    },
+    {
+      "word": "paint",
+      "meaning": "to put colour on a wall or picture",
+      "example": "Alice paints a new picture."
+    },
+    {
+      "word": "performance",
+      "meaning": "a play or music show for people",
+      "example": "The performance starts at seven."
+    },
+    {
+      "word": "piano",
+      "meaning": "a large musical instrument with keys",
+      "example": "Alice plays the piano."
+    },
+    {
+      "word": "practice",
+      "meaning": "to do something often so you get better",
+      "example": "They practice before the show."
+    },
+    {
+      "word": "promise",
+      "meaning": "to say you will do something",
+      "example": "Alice makes a promise to Nora."
+    },
+    {
+      "word": "quiet",
+      "meaning": "with little sound",
+      "example": "The theatre is quiet."
+    },
+    {
+      "word": "seat",
+      "meaning": "a place where someone can sit",
+      "example": "There are sixty seats."
+    },
+    {
+      "word": "stage",
+      "meaning": "a place where actors perform",
+      "example": "Paul stands on the stage."
+    },
+    {
+      "word": "umbrella",
+      "meaning": "something you hold to keep off rain",
+      "example": "Alice has a red umbrella."
+    }
+  ],
+  "questions": [
+    {
+      "q": "Where does Alice work?",
+      "options": [
+        "At an art shop",
+        "At a station",
+        "At a hospital",
+        "At a hotel"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "Why does Alice feel unsure on Monday?",
+      "options": [
+        "She has lost her phone",
+        "She has a job offer in Lyon",
+        "She wants to buy a car",
+        "She cannot find Claire"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "Where do Alice and Claire drink tea?",
+      "options": [
+        "At Café Marcel",
+        "At the theatre",
+        "At the school",
+        "At Anna’s home"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What does Alice take by mistake?",
+      "options": [
+        "A coat",
+        "A red umbrella",
+        "A book",
+        "A black bag"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "Who owns the other red umbrella?",
+      "options": [
+        "Anna",
+        "Claire",
+        "Nora",
+        "Jeanne"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "What is the name of Nora’s theatre?",
+      "options": [
+        "The Big House",
+        "The Little Stage",
+        "The River Hall",
+        "The Blue Train"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "What is wrong at the theatre?",
+      "options": [
+        "A window is missing",
+        "The piano player is ill",
+        "There are no chairs",
+        "The actors are gone"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "What does Alice offer to do?",
+      "options": [
+        "Paint the walls",
+        "Play the piano",
+        "Sell tea",
+        "Drive the actors"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "Who looks after the lights?",
+      "options": [
+        "Marc",
+        "Marcel",
+        "Paul",
+        "Anna"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What is the play about?",
+      "options": [
+        "Two old friends",
+        "A lost dog",
+        "A football team",
+        "A hotel"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "Who writes a newspaper story about the theatre?",
+      "options": [
+        "Anna",
+        "Claire",
+        "Nora",
+        "Jeanne"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "What goes wrong before the show?",
+      "options": [
+        "A stage lamp does not work",
+        "The café closes",
+        "Alice loses her ticket",
+        "A window breaks"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "How does Alice feel before the show?",
+      "options": [
+        "Hungry",
+        "Afraid",
+        "Angry",
+        "Sleepy"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "What does Alice do after a wrong note?",
+      "options": [
+        "She stops forever",
+        "She leaves",
+        "She keeps playing",
+        "She runs home"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "Where might the theatre work next month?",
+      "options": [
+        "In a school hall",
+        "In a train",
+        "In Lyon",
+        "In a museum"
+      ],
+      "answer": 0
+    }
+  ],
+  "final_test": [
+    {
+      "q": "The theatre has sixty ...",
+      "options": [
+        "seats",
+        "boats",
+        "bridges",
+        "buses"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "A piano is used for ...",
+      "options": [
+        "cooking",
+        "music",
+        "painting walls",
+        "travel"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "An umbrella helps in the ...",
+      "options": [
+        "rain",
+        "kitchen",
+        "night only",
+        "summer only"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "A person who owns a café is its ...",
+      "options": [
+        "actor",
+        "owner",
+        "driver",
+        "teacher"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "A mistake is something you do ...",
+      "options": [
+        "correctly",
+        "incorrectly",
+        "tomorrow",
+        "quickly"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "To practise is to ...",
+      "options": [
+        "forget",
+        "try again to improve",
+        "leave a room",
+        "sleep"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "What colour is Nora’s coat?",
+      "options": [
+        "Yellow",
+        "Green",
+        "Red",
+        "White"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "What day is the theatre show?",
+      "options": [
+        "Monday",
+        "Tuesday",
+        "Friday",
+        "Sunday"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "Which city offers Alice a new job?",
+      "options": [
+        "Rome",
+        "Lyon",
+        "Berlin",
+        "London"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "Who is Alice’s mother?",
+      "options": [
+        "Claire",
+        "Jeanne",
+        "Anna",
+        "Nora"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "What do people do at the end of the play?",
+      "options": [
+        "They stand and clap",
+        "They shout at Alice",
+        "They leave early",
+        "They turn off the music"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What does Nora fear?",
+      "options": [
+        "Losing the theatre building",
+        "Missing a train",
+        "Losing her umbrella again",
+        "Buying a new piano"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What is on Alice’s poster?",
+      "options": [
+        "A small theatre show",
+        "A football game",
+        "A lost cat",
+        "A new hotel"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "How does Alice help Marc?",
+      "options": [
+        "She holds a wire",
+        "She buys a bus ticket",
+        "She cooks dinner",
+        "She paints a train"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What is in the school hall?",
+      "options": [
+        "A boat",
+        "A piano",
+        "A kitchen garden",
+        "A train"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "What does Alice ask the office in Lyon?",
+      "options": [
+        "For a short project from Paris",
+        "For more money today",
+        "For a new umbrella",
+        "For a car"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "Does the office promise Alice a full job now?",
+      "options": [
+        "Yes, forever",
+        "No, they agree to talk again later",
+        "Yes, in Paris only",
+        "No, they close"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "What is Alice’s new picture about?",
+      "options": [
+        "A red umbrella and theatre door",
+        "A black dog",
+        "A mountain train",
+        "A white car"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "Why do Alice and Nora become friends?",
+      "options": [
+        "They help each other",
+        "They work at the same bank",
+        "They are sisters",
+        "They study together"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What does the red umbrella mean to Alice by the end?",
+      "options": [
+        "Only a problem",
+        "A new beginning",
+        "A lost job",
+        "A train ticket"
+      ],
+      "answer": 1
+    }
+  ],
+  "discussion": [
+    "Why is it hard for Alice to choose a job?",
+    "What makes Nora a good friend?",
+    "How does Alice change between Monday and Saturday?",
+    "Can a small place be important to many people? Why?"
+  ],
+  "writing_task": "Write 5 to 8 simple sentences about a time you helped someone, or when someone helped you.",
+  "source": "Original WorldVoice Library A1 editorial review, November 2026."
+}
