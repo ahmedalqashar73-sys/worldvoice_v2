@@ -46,6 +46,16 @@
       "cover_image": "assets/stories/en/A1/illustrations/the_red_umbrella_cover.jpg"
     },
     {
+      "id": "daniel_carter",
+      "title": "Daniel Carter: The Kidnapping Case",
+      "title_ar": "دانيال كارتر: قضية الاختطاف",
+      "language": "en",
+      "level": "A1",
+      "format": "novel",
+      "chapter_count": 5,
+      "asset": "assets/stories/en/A1/daniel_carter.json"
+    },
+    {
       "id": "the_small_green_bag",
       "language": "en",
       "level": "A1",

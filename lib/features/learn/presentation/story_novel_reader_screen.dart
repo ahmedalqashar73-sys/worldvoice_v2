@@ -97,7 +97,8 @@ class _StoryNovelReaderScreenState extends State<StoryNovelReaderScreen> {
         _heading(ch['title'] as String),
         const Divider(color: Colors.black38),
         for (var i = 0; i < (ch['paragraphs'] as List).length; i++) ...[
-          if (i == 3) ...[
+          if (i == 3 && ch['image'] is String &&
+              (ch['image'] as String).isNotEmpty) ...[
             const SizedBox(height: 9),
             if ((ch['image'] as String).endsWith('.svg'))
               SvgPicture.asset(ch['image'] as String,

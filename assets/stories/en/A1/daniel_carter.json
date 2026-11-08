@@ -1,0 +1,724 @@
+{
+  "id": "daniel_carter",
+  "title": "Daniel Carter: The Kidnapping Case",
+  "title_ar": "دانيال كارتر: قضية الاختطاف",
+  "language": "en",
+  "level": "A1",
+  "format": "novel",
+  "author": "Ahmed Al-Qashar",
+  "publisher": "WorldVoice Library",
+  "status": "editorial_review",
+  "subtitle": "A London Crime and Mystery Story",
+  "setting": {
+    "city": "London",
+    "year": 1980
+  },
+  "synopsis": "London, 1980. A young woman calls private detective Daniel Carter for help. Soon her uncle is found murdered and she is missing. A small piece of paper, a blue account book, and a number lead Daniel and Inspector Helen Brooks through the dark streets beside the River Thames. Can they find Ruth before it is too late?",
+  "characters": [
+    {
+      "name": "Daniel Carter",
+      "description": "A private detective in London. He wears an old hat, listens carefully, and works with the police."
+    },
+    {
+      "name": "Ruth Bell",
+      "description": "A twenty-nine-year-old woman who works for Bell Printing and finds something wrong in the company accounts."
+    },
+    {
+      "name": "Inspector Helen Brooks",
+      "description": "A police inspector who leads the investigation and keeps people safe."
+    },
+    {
+      "name": "Arthur Bell",
+      "description": "Ruth's uncle and the owner of a printing company. He wants to do the right thing."
+    },
+    {
+      "name": "Martin Vale",
+      "description": "The company accountant, who keeps the financial books."
+    },
+    {
+      "name": "George Kent",
+      "description": "The family driver who knows the company van and the city streets."
+    },
+    {
+      "name": "Margaret Bell",
+      "description": "Arthur's sister and Ruth's aunt. She cares deeply for her family."
+    }
+  ],
+  "chapters": [
+    {
+      "number": 1,
+      "title": "The House by the River",
+      "title_ar": "المنزل قرب النهر",
+      "paragraphs": [
+        "London, 1980. It was nine o'clock on a cold November night. Rain moved across the streets. Daniel Carter stood beside a red telephone box near the River Thames. He wore a dark coat and an old brown hat. A black taxi stopped near him, but he did not get in. He was waiting for a call.",
+        "The telephone rang. Daniel opened the door and picked it up. A woman's voice said, 'Mr Carter? This is Ruth Bell. Do you remember me?' Daniel did. Ruth was twenty-nine. She worked with her uncle at Bell Printing, a large family business. She had come to his office on Monday with a worried face.",
+        "'I need to speak to you,' Ruth said. 'There is something wrong at my uncle's house.' Daniel could hear a door close behind her. Then she spoke very quietly. 'He has found something in the company books. Someone is afraid of those books.' Daniel asked where she was. 'At Bell House. Please come tonight.' The line went dead.",
+        "Daniel took a taxi to the house. Bell House stood on a quiet road south of the river. It was large, with a high front door and three dark windows above it. Yellow light shone through the hall. A police car stood near the gate. Daniel paid the driver and went quickly up the stone steps.",
+        "A police officer opened the door. 'You cannot go in,' he said. Daniel gave his name. 'Ruth Bell called me a few minutes ago. I am a private detective.' The officer went inside. A short time later, Inspector Helen Brooks came to the door. She knew Daniel from an old case. Her eyes were tired.",
+        "'You had a call from Ruth?' she asked. Daniel nodded. Helen looked back at the hall. 'Then come in. There has been a murder.' Daniel took off his wet hat. He followed her past a long table and a clock on the wall. In the study, a man lay on the floor near his desk. A doctor stood beside him.",
+        "'Arthur Bell,' Helen said. 'He owned the printing company. He is dead. Someone hit him during an argument. We do not yet know who did it.' Daniel looked at the open desk drawer. Papers lay on the carpet. The window was closed, and a lamp was still on. There was no need to touch anything. The police were already at work.",
+        "'There is something else,' Helen said. 'Ruth is missing.' Daniel turned toward her. 'When did she leave?' Helen shook her head. 'Nobody saw her leave. Her coat is here. Her bag is here. We found no note from her.' Daniel told Helen about the telephone call. For a moment they were both silent.",
+        "A tall man came into the doorway. He was in his late forties and wore a grey suit. 'I am Martin Vale,' he said. 'I work with the company accounts. Arthur was my friend.' He looked at the floor but not at Arthur. 'Ruth may have gone away. She was upset this afternoon.' Helen asked him to wait in the hall.",
+        "A second man stood near the stairs. He was George Kent, the family driver. His hands were dark with oil. 'I took Mr Bell to work this morning,' he told Daniel. 'Tonight I stayed in the garage. I heard a loud sound at about eight forty-five. Then I saw a white van turn out of the back lane.' Daniel asked if he had seen its driver. George had not.",
+        "Daniel walked back to the hall with Helen. Arthur's sister, Margaret, sat beside the fire. Her face was pale. 'Ruth was happy yesterday,' she said. 'She has a new job in the art room. She would not leave without a word.' Margaret held Ruth's blue scarf. 'She always takes this when the night is cold.' Daniel knew she was right. Ruth had planned to meet him.",
+        "Helen showed him the last thing the police had found in Arthur's hand: a small piece of white paper. On it were the words NORTH QUAY. Under them was the number 17. The writing was very clear. Daniel did not know what it meant, but he remembered it. He asked Helen if the paper was from the company.",
+        "'We are checking that,' she said. 'There are old company buildings near the river.' Martin Vale came back into the hall. He heard the words 'North Quay' and stopped for a second. Then he asked, 'Can I help?' Helen told him the police would speak to everyone. Daniel noticed the quick change in Martin's face.",
+        "At ten o'clock Daniel and Helen went outside. Rain struck the glass above the door. The street was quiet again. Daniel looked at the dark roof of Bell House. One man was dead. One woman was gone. Only an hour earlier, Ruth had called him for help. Somewhere in London, someone knew what had happened.",
+        "'We need to find her before morning,' Daniel said. Helen closed her notebook. 'We will,' she answered. 'But first we must learn why Arthur died.' Far away across the river, a church bell rang ten times. The sound moved through the wet streets, and the long night began."
+      ]
+    },
+    {
+      "number": 2,
+      "title": "The Voice on the Telephone",
+      "title_ar": "الصوت عبر الهاتف",
+      "paragraphs": [
+        "At eleven thirty, Daniel was back at Bell House. Helen stood by the hall telephone. Margaret waited beside her with a glass of water that she did not drink. George sat near the kitchen door. Martin Vale had left just after eleven. He said he was tired and wanted to go home. Nobody in the house looked ready for sleep.",
+        "The telephone rang at midnight. Helen picked it up first. She listened, then gave the telephone to Margaret. A low voice spoke from far away. 'We have Ruth. She is alive. Give us the blue account book by six tomorrow morning. Do not tell the police.' Margaret covered her mouth with one hand. Daniel saw that she was shaking.",
+        "'Where is she?' Margaret asked. The voice gave no answer. 'The book first,' it said. 'Leave it under the old stone clock at the river market.' Then there was a click. The call ended. Helen spoke gently to Margaret. 'We are here. We will work together. Please tell us everything you know about that book.'",
+        "Margaret shook her head. 'Arthur kept many books. They were all in his office.' She looked at Daniel. 'Why does anyone want one blue book?' Daniel remembered Ruth's words: someone was afraid of the company books. He asked if Ruth had worked with Arthur's accounts. Margaret nodded. 'For two months. She said some numbers were wrong.'",
+        "Helen called the station and asked officers to watch the river market. She did not promise to give the book to the caller. Daniel respected that. Ruth's safety was the first thing, and the police had to make the plan. He asked Helen if he could look at the company's old papers while she spoke to the officers.",
+        "In the office room, he found a photograph of Arthur and his workers outside a printing shop. The photograph was from 1965. Below it was an old company map. Two buildings stood by the river: Bell Printing, still open, and North Quay Works, closed several years ago. Small numbers marked the rooms. One of them was Room 17.",
+        "Margaret came into the office with two cups of tea. When Daniel asked about North Quay Works, she said, 'Martin told me that place is empty. Nobody has used it for years.' Daniel asked how Martin knew. 'He works with the company money,' Margaret answered. 'He knows every building. He also said Ruth often makes trouble about little things.' Daniel looked again at the map.",
+        "Daniel did not answer. He looked at the old map again. Room 17 was on the second floor. A narrow road ran behind the building, down to the water. The back lane of Bell House also went to the river. It was possible to drive between the two places in less than twenty minutes, even on a wet night.",
+        "George Kent came to the door. He had heard someone say 'van'. 'There is a white delivery van at the company,' he said. 'I drove it last week. Martin asked me to put it in the back yard this morning.' Daniel asked if George was sure. 'Yes,' George said. 'When I asked why, Mr Vale told me I was confused. But I remember his words.'",
+        "Helen came in and asked George to give his statement to another officer. Daniel knew that a memory was not proof. People sometimes remembered words in different ways. But the white van was important. Helen sent an officer to the garage. Soon he returned. The van was gone. The yard gate was open, and the lock lay on the wet ground.",
+        "At one in the morning, Daniel and Helen visited Ruth's small flat. It was above a bakery. They entered with Margaret's key and her permission. On Ruth's desk were paper flowers, drawings, and a cup that still held cold tea. A blue pencil lay across a list of workers' names. All the names had a number beside them.",
+        "Daniel read the list aloud. 'Mrs Evans, fifty pounds. Mr White, forty pounds. Mr Singh, sixty pounds.' Helen looked at the dates. 'These people worked for Bell Printing. Ruth is looking at money owed to workers.' Daniel turned the paper over. On the back, Ruth had written: CHECK THE BLUE BOOK. ASK ARTHUR.",
+        "There was no blue book on the desk. Daniel looked at the shelf, but he did not move anything without Helen's permission. Helen opened the desk drawer. Inside was a photograph of Ruth with her uncle. Behind it was an envelope marked FOR DANIEL. Margaret had not known about it. Daniel opened the envelope with Helen watching.",
+        "The letter was short. 'If I cannot speak to you, please look at the old shop by the river. I think the company has taken money from the workers. Uncle Arthur knows. I want to stop it. I do not want anyone to get hurt.' At the bottom, Ruth had drawn a small clock. Beside it stood the number 17.",
+        "Daniel looked at Helen. 'The same number,' he said. Helen put the letter in an evidence bag. 'North Quay,' she answered. 'We need to go there now.' Outside, a truck passed through the rain. The city was dark, but many people still worked by the river. Somewhere among those buildings, Ruth might still be waiting."
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Room Seventeen",
+      "title_ar": "الغرفة السابعة عشرة",
+      "paragraphs": [
+        "The old printing works stood behind a long brick wall at North Quay. Its windows were black, and a metal sign hung from one chain. A narrow river path ran behind the building. Daniel could hear water against the stones. He arrived with Inspector Brooks and two police officers just before two in the morning.",
+        "The front door was closed. Helen showed the officers the map, and they went around the building. Daniel stayed close to her. He did not want to be a hero. Ruth needed a careful plan, not a foolish one. One officer found a side gate that stood open. Behind it were fresh marks from the wheels of a van.",
+        "Inside, the building smelled of old paper and wet wood. Large machines stood under white cloth. Dust covered the floor, but someone had walked through the main room. There were clear marks in the dust. Near the stairs lay a little piece of blue wool. Daniel knew that color. Ruth's scarf was blue.",
+        "'Could she have been here?' he whispered. Helen nodded. 'Maybe. Do not touch it.' An officer took a photograph. Then they went up the stairs. On the second floor, the number 17 was painted above a wooden door. The room was empty. A chair stood in the middle. A cup of water sat on the floor. There was a small piece of bread on a plate.",
+        "On the wall was a message in dark pencil: RIVER GATE 4. The letters were uneven, as if the writer had been afraid. Below them was one more word: HELP. Daniel felt cold. The woman had been there. She had found a way to leave a clue, and somebody had moved her. He could almost hear her voice from the telephone.",
+        "Helen called for more officers. Daniel went to the window. He could see the river and, farther away, lights over a row of boat stores. A large sign said RIVER GATE. Daniel counted four tall metal gates along the road. At the last gate was a small shed with one yellow window. A van could reach it from the old works.",
+        "They did not rush toward the shed. Helen sent officers to both ends of the road. Another team watched the river path. Daniel waited beside a machine while she worked. He looked at the cup in Room 17 and wondered how long Ruth had been alone. He knew that fear could make a minute feel like an hour.",
+        "A police officer found a second clue in the room: a piece of paper from the old printing company. It had a purple mark at one corner. Daniel had seen that mark before. Arthur's office used purple ink on special account papers. On the paper was a name: M. VALE. Under the name was a payment from the workers' fund.",
+        "'He said the building was empty,' Daniel told Helen. 'He said nobody had used it for years.' Helen looked at the paper. 'It does not tell us who brought Ruth here,' she said. 'But it gives us a reason to ask more questions.' Daniel agreed. Suspicion was not the same as proof, and he wanted proof.",
+        "They went back outside. The rain had stopped. The air smelled of the river. A small boat moved slowly under a bridge. The lights at River Gate 4 were still on. Helen listened to the radio in her police car. 'We have a van near the last shed,' an officer said. 'White, with company writing on the side.'",
+        "Daniel looked at the dark road. The white van was a piece of the puzzle. But was Martin Vale the only person who could drive it? George Kent had the keys too. The company had several workers. Daniel would not name the kidnapper without a stronger reason. He asked Helen if anyone had spoken to George after leaving Bell House.",
+        "'He is still there,' she answered. 'He has been with an officer all night.' Daniel nodded. 'Then he cannot be driving that van now.' Helen looked toward the shed. 'No. And Martin Vale left Bell House before midnight. He told us he was going home.' She spoke into her radio again. 'Find out where he is.'",
+        "At three, an officer returned with news. Martin's home was empty. His car was not outside. A neighbor had seen him leave in a hurry with a small black case. Daniel thought about the company books and Ruth's letter. Martin had spent years working with Arthur's money. If the accounts were wrong, he had much to lose.",
+        "Then a sound came from the river road. It was a woman's voice, very distant. 'Help!' The officers looked toward Gate 4. Daniel stood still. He wanted to run, but Helen held up her hand. She gave a short order into the radio. Two officers moved slowly toward the shed. Another stayed near the van.",
+        "A second cry came from the building. 'Please!' Daniel knew Ruth was alive. He put his hand on his hat and waited. The night seemed to grow quiet around him. In the distance, the river moved on through London, while the police prepared to open the last gate."
+      ]
+    },
+    {
+      "number": 4,
+      "title": "The Man at Gate Four",
+      "title_ar": "الرجل عند البوابة الرابعة",
+      "paragraphs": [
+        "Inspector Brooks spoke softly into her radio. The officers were ready at the front and back of the shed. Daniel stood behind a brick wall beside the gate. He could see the white van. Its side carried the name BELL PRINTING in faded blue letters. Someone had left the driver's door half open.",
+        "A man came out of the shed. He wore a dark coat and carried a black case. It was Martin Vale. He looked down the road, then turned back toward the open door. Daniel could not see his hands clearly. He did not move. Helen had already told him that the officers would do their work.",
+        "'Mr Vale,' Helen called from a safe place. 'Police. Please stop where you are.' Martin stood still. His face went white. For a moment he looked at the river. Then he dropped the case. It hit the ground, and papers moved out across the wet stones. Two officers walked forward and took him into custody.",
+        "Helen went to the shed with another officer. Daniel waited by the wall. He heard footsteps, then a woman's voice. A minute later Ruth Bell came outside. She had a blanket around her shoulders. Her eyes were tired, but she was standing. Daniel felt he could breathe again. He took off his hat.",
+        "'Ruth,' he said. She gave him a small smile. 'You found the message,' she answered. Helen asked if she was hurt. Ruth said she needed rest but could walk. A police doctor came to her, and the officers brought her to a warm car. Daniel did not ask questions until she was ready.",
+        "A few minutes later Ruth sat with Helen and Daniel in a quiet room at the police station. She held a cup of tea in both hands. 'I saw Martin in my uncle's study,' she said. 'They were arguing about the company money. Uncle Arthur told him he must tell the police.'",
+        "'I heard a loud sound,' Ruth continued. 'I went to the study and saw my uncle on the floor. Martin was there. I ran to the hall and called you. He found me by the telephone and made me go with him.' Daniel listened without speaking. Ruth looked at the cup. 'I thought I might never see my family again.' Helen gave her time.",
+        "'He took you to North Quay Works?' Helen asked. Ruth nodded. 'At first. He wanted a blue account book. He thought I had it. I did not. He said I knew where it was.' Daniel asked how she had made the message on the wall. Ruth said she had found a short pencil under an old table. She had written when Martin left the room.",
+        "'Why Gate Four?' Daniel asked. Ruth looked up. 'I heard him speaking on a telephone. He said, \"Bring the van to River Gate Four.\" I knew he might take me there. I hoped somebody would look at the wall.' Daniel thought about the uneven pencil letters. Ruth had been frightened, but she had still tried to help herself.",
+        "Helen opened the black case from the shed in front of another officer. It contained several company papers and a small blue book. The first page was marked WORKERS' FUND. Every month, money was taken from the workers' pay. The book said the money was kept safe. But a second page showed that large sums had gone to a different account.",
+        "The name on that account was not a worker's name. It belonged to a little company Martin Vale controlled. He had used the money for himself. Arthur had found the false payments, and Ruth had checked them. When Arthur wanted to tell the police, Martin had tried to stop him. The book did not say everything, but it was an important part of the evidence.",
+        "'Where was the book?' Daniel asked Ruth. 'In Martin's case,' she said. 'He found it in my uncle's office, after I left. He was still afraid that I had a copy.' Helen said the police would check every paper and speak to the bank. 'A book is a clue,' she told them. 'We will need facts from many places.'",
+        "George Kent came to the station in the morning. He was angry because people had thought he was part of the crime. Helen explained that the police had followed the evidence, not gossip. George gave a statement about the van and its keys. He said Martin had asked for the van on Tuesday afternoon, but he had not known why.",
+        "Margaret Bell arrived after sunrise. When she saw Ruth, she began to cry. They held each other for a long time. Daniel looked away to give them a moment. Arthur was dead, and the family would never forget that loss. But Ruth was safe, and the person who had taken her was in police custody.",
+        "Later Helen spoke to Daniel in the hall. 'You did the right thing,' she said. 'You did not run into that building alone. You trusted Ruth's clue and let the officers help her.' Daniel looked at the rain on the station window. 'Ruth did the brave thing,' he answered. 'She made sure we knew where to look.'"
+      ]
+    },
+    {
+      "number": 5,
+      "title": "The Truth in the Blue Book",
+      "title_ar": "الحقيقة في الدفتر الأزرق",
+      "paragraphs": [
+        "Three days later, the rain stopped. London was grey but bright, and the river looked calm. Daniel went to see Ruth at her flat above the bakery. She opened the door with a cup of tea in her hand. She was still tired, but her face was stronger. Margaret sat by the window with a newspaper.",
+        "The newspaper said that police had charged Martin Vale with the murder of Arthur Bell and the kidnapping of Ruth. The investigation was not over, and there would be a trial. Daniel read the report carefully. He was glad that it did not say more than the police knew. A court would decide what happened next.",
+        "Ruth took Daniel to her desk. The blue pencil was still there. The list of workers' names lay beside it. 'I thought my uncle would be angry when I showed him the numbers,' she said. 'But he thanked me. He said every worker had a right to the money.' Daniel nodded. 'You were right to ask questions.'",
+        "Ruth looked out at the street. 'I wish I had spoken to someone sooner.' Daniel shook his head. 'You asked me for help. And you left a message when you could. You did what you could in a very difficult night.' Ruth smiled, but she did not speak for a moment. She looked at Arthur's photograph on the desk.",
+        "Helen Brooks came later that afternoon. She carried a paper bag from the police office. Inside was Ruth's scarf, clean and dry. 'We can return this now,' she said. Ruth took it carefully. 'Thank you.' Helen sat down and told them that the police had found more papers at Martin's home. They matched the false payments in the blue book.",
+        "George Kent had also given the police the old company van records. They showed that Martin had taken the van without a good reason. Officers had found fresh marks on the road near North Quay and River Gate Four. These facts helped the police understand how Ruth had been moved from one place to another.",
+        "'Will the workers get their money?' Ruth asked. Helen answered honestly. 'The company and the court will need time to find out. But the money records are safe now. They will not disappear.' Margaret said Arthur would have wanted that. He had worked with the same families for many years.",
+        "That evening Daniel walked alone beside the river. He passed the red telephone box where Ruth had called him. The glass was clean now, and a young man stood inside talking to someone. Daniel remembered her worried voice and the sudden silence. He looked at the river and thought about the small things that had mattered.",
+        "A piece of paper with a number. A room in an old building. Purple ink on an account form. A message written in pencil. None of these things looked important alone. Together, they had led the police to Ruth. Daniel knew that a good detective needed patience as much as courage.",
+        "Near Westminster, the lights came on one by one. Daniel stopped by a bookshop and saw a little blue notebook in the window. It reminded him of the book of numbers. A simple book could hold an important truth. A person could also hide a great wrong behind ordinary words and a kind smile.",
+        "Daniel went to Bell Printing the next morning. The workers stood together in the main room. Some were worried about their jobs. Others spoke quietly about Arthur. Ruth came with Margaret to meet them. She told the workers that the company would check every account and keep them informed. She did not promise an easy answer.",
+        "An older worker named Mrs Evans held Ruth's hand. 'Thank you for listening to us,' she said. 'We thought nobody cared.' Ruth looked around the room. 'My uncle cared,' she answered. 'And so do I.' Daniel stood near the door. He knew Ruth would have difficult work ahead, but he also knew she was not alone.",
+        "Before he left, Ruth gave him a small card. It showed a drawing of the river and a black hat. Under the picture she had written: THANK YOU FOR COMING WHEN I CALLED. Daniel smiled. 'Keep drawing,' he told her. 'And keep asking questions.' He put the card in his coat pocket.",
+        "At the door, Helen Brooks was waiting. She had come to speak to the workers. 'Another case?' Daniel asked. She shook her head. 'Not today. Today we help people understand what happened.' They went inside together. The sky was clear, and a little winter sun came through the windows.",
+        "That night, Daniel went home and hung his wet coat by the door. He placed his old hat on a shelf. A new case might come tomorrow, or next week. For now, the city was quiet. He sat beside the window, opened a book, and watched the lights of London. The truth had not come easily, but it had been found."
+      ]
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "account",
+      "meaning": "a record of money",
+      "example": "The company has an account book."
+    },
+    {
+      "word": "afraid",
+      "meaning": "feeling fear",
+      "example": "Ruth is afraid in the old room."
+    },
+    {
+      "word": "answer",
+      "meaning": "what someone says to a question",
+      "example": "Helen gives an honest answer."
+    },
+    {
+      "word": "argue",
+      "meaning": "to speak because you do not agree",
+      "example": "Arthur and Martin argue in the study."
+    },
+    {
+      "word": "bank",
+      "meaning": "a place that keeps money",
+      "example": "The police speak to the bank."
+    },
+    {
+      "word": "bell",
+      "meaning": "something that makes a ringing sound",
+      "example": "The church bell rings at ten."
+    },
+    {
+      "word": "book",
+      "meaning": "pages with words in them",
+      "example": "The blue book holds important numbers."
+    },
+    {
+      "word": "case",
+      "meaning": "a problem a detective works on",
+      "example": "Daniel begins a new case."
+    },
+    {
+      "word": "clue",
+      "meaning": "a small fact that helps you find the truth",
+      "example": "The paper is a clue."
+    },
+    {
+      "word": "coat",
+      "meaning": "clothes worn over other clothes",
+      "example": "Daniel wears a dark coat."
+    },
+    {
+      "word": "company",
+      "meaning": "a business",
+      "example": "Arthur owns a printing company."
+    },
+    {
+      "word": "court",
+      "meaning": "a place where the law decides a case",
+      "example": "A court will hear the case."
+    },
+    {
+      "word": "danger",
+      "meaning": "a chance that someone may be hurt",
+      "example": "Ruth is in danger."
+    },
+    {
+      "word": "dead",
+      "meaning": "not alive",
+      "example": "Arthur is dead."
+    },
+    {
+      "word": "detective",
+      "meaning": "a person who finds facts about a crime",
+      "example": "Daniel is a detective."
+    },
+    {
+      "word": "door",
+      "meaning": "something that opens into a room",
+      "example": "The study door is open."
+    },
+    {
+      "word": "driver",
+      "meaning": "a person who drives a car or van",
+      "example": "George is the family driver."
+    },
+    {
+      "word": "empty",
+      "meaning": "with nobody or nothing inside",
+      "example": "Room 17 is empty."
+    },
+    {
+      "word": "evidence",
+      "meaning": "facts that help show what happened",
+      "example": "The book is important evidence."
+    },
+    {
+      "word": "family",
+      "meaning": "people who are related",
+      "example": "Margaret is part of Ruth's family."
+    },
+    {
+      "word": "find",
+      "meaning": "to discover where something is",
+      "example": "Daniel wants to find Ruth."
+    },
+    {
+      "word": "gate",
+      "meaning": "a door in a wall or fence",
+      "example": "The van is near Gate Four."
+    },
+    {
+      "word": "hand",
+      "meaning": "the part at the end of your arm",
+      "example": "Ruth holds the cup in her hand."
+    },
+    {
+      "word": "help",
+      "meaning": "to do something good for another person",
+      "example": "Daniel wants to help Ruth."
+    },
+    {
+      "word": "key",
+      "meaning": "a small metal thing that opens a lock",
+      "example": "Margaret has a key to the flat."
+    },
+    {
+      "word": "kidnap",
+      "meaning": "to take a person away against their will",
+      "example": "The man kidnaps Ruth."
+    },
+    {
+      "word": "letter",
+      "meaning": "a written message",
+      "example": "Ruth leaves Daniel a letter."
+    },
+    {
+      "word": "missing",
+      "meaning": "not where someone should be",
+      "example": "Ruth is missing."
+    },
+    {
+      "word": "money",
+      "meaning": "what people use to pay for things",
+      "example": "The company money is missing."
+    },
+    {
+      "word": "murder",
+      "meaning": "the crime of killing a person",
+      "example": "The police investigate a murder."
+    },
+    {
+      "word": "night",
+      "meaning": "the dark part of the day",
+      "example": "The call comes at night."
+    },
+    {
+      "word": "officer",
+      "meaning": "a person who works for the police",
+      "example": "An officer watches the gate."
+    },
+    {
+      "word": "paper",
+      "meaning": "thin material for writing",
+      "example": "A small paper lies on the floor."
+    },
+    {
+      "word": "police",
+      "meaning": "people whose job is to protect the public",
+      "example": "The police look for Ruth."
+    },
+    {
+      "word": "quiet",
+      "meaning": "making little sound",
+      "example": "The street is quiet."
+    },
+    {
+      "word": "river",
+      "meaning": "water that moves across land",
+      "example": "The Thames is a river."
+    },
+    {
+      "word": "room",
+      "meaning": "a space inside a building",
+      "example": "Room 17 has a wooden door."
+    },
+    {
+      "word": "safe",
+      "meaning": "not in danger",
+      "example": "Ruth is safe at the station."
+    },
+    {
+      "word": "truth",
+      "meaning": "what is real and correct",
+      "example": "Daniel wants to know the truth."
+    },
+    {
+      "word": "worker",
+      "meaning": "a person who does a job",
+      "example": "The workers need their money."
+    }
+  ],
+  "questions": [
+    {
+      "q": "Where is Daniel at the start of the story?",
+      "options": [
+        "At a telephone box",
+        "At the cinema",
+        "On a train",
+        "In a hospital"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "Who calls Daniel for help?",
+      "options": [
+        "Margaret",
+        "Ruth Bell",
+        "Helen Brooks",
+        "George Kent"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "Who is found dead at Bell House?",
+      "options": [
+        "Martin Vale",
+        "George Kent",
+        "Arthur Bell",
+        "Daniel Carter"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "What does Arthur hold in his hand?",
+      "options": [
+        "A small paper",
+        "A gold watch",
+        "A red flower",
+        "A train ticket"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "Which number is written on the paper?",
+      "options": [
+        "4",
+        "8",
+        "17",
+        "40"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "What does the caller want?",
+      "options": [
+        "A black coat",
+        "A blue account book",
+        "A new car",
+        "A photograph"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "What is Ruth worried about?",
+      "options": [
+        "The weather",
+        "A lost dog",
+        "Company money",
+        "A school test"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "Where is Room 17?",
+      "options": [
+        "In a hotel",
+        "At North Quay Works",
+        "In Daniel's office",
+        "Under a bridge"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "What message does Ruth write on the wall?",
+      "options": [
+        "RIVER GATE 4",
+        "COME AT TEN",
+        "READ THE BOOK",
+        "GO TO PARIS"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What color is the company van?",
+      "options": [
+        "Blue",
+        "Green",
+        "White",
+        "Yellow"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "Who goes with Daniel to look for Ruth?",
+      "options": [
+        "Inspector Helen Brooks",
+        "A television reporter",
+        "A doctor",
+        "A bus driver"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "Who comes out of the shed at Gate Four?",
+      "options": [
+        "George Kent",
+        "Arthur Bell",
+        "Martin Vale",
+        "Margaret Bell"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "Where is the blue book found?",
+      "options": [
+        "Under a seat",
+        "In Martin's case",
+        "At the bakery",
+        "In the river"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "What has happened to workers' money?",
+      "options": [
+        "It was used wrongly",
+        "It was all paid back",
+        "It was lost in a fire",
+        "It was sent to Ruth"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What does Ruth give Daniel at the end?",
+      "options": [
+        "A gold ring",
+        "A picture card",
+        "A new hat",
+        "A bag"
+      ],
+      "answer": 1
+    }
+  ],
+  "final_test": [
+    {
+      "q": "A detective looks for ...",
+      "options": [
+        "facts about a case",
+        "a new school",
+        "new shoes",
+        "food"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "A person who is missing is ...",
+      "options": [
+        "not where they should be",
+        "sleeping after work",
+        "reading a paper",
+        "on a train"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "The Thames is a ...",
+      "options": [
+        "mountain",
+        "river",
+        "building",
+        "shop"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "What do people use to open a lock?",
+      "options": [
+        "A key",
+        "A book",
+        "A lamp",
+        "A shoe"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "A bank is a place for ...",
+      "options": [
+        "music",
+        "food",
+        "money",
+        "clothes"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "What is evidence?",
+      "options": [
+        "A kind of hat",
+        "Facts that help show the truth",
+        "A blue coat",
+        "A short holiday"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "Where does Daniel live and work?",
+      "options": [
+        "In London",
+        "In Rome",
+        "In Madrid",
+        "In Paris"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "Who is Arthur to Ruth?",
+      "options": [
+        "Her uncle",
+        "Her son",
+        "Her teacher",
+        "Her driver"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What does Martin do for the company?",
+      "options": [
+        "He keeps accounts",
+        "He paints houses",
+        "He drives buses",
+        "He sells bread"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What place is closed for years?",
+      "options": [
+        "The old printing works",
+        "A city hospital",
+        "A hotel",
+        "A museum"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "Why is Ruth taken away?",
+      "options": [
+        "She is on holiday",
+        "Martin fears she knows about the crime",
+        "She wants to travel",
+        "She loses a ticket"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "Where is the first message from Ruth found?",
+      "options": [
+        "In her flat",
+        "In the river",
+        "On a bus",
+        "At the market"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "Who protects Ruth during the rescue?",
+      "options": [
+        "The police",
+        "The company workers",
+        "A taxi driver",
+        "The doctor alone"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What number is on the river gate?",
+      "options": [
+        "One",
+        "Two",
+        "Three",
+        "Four"
+      ],
+      "answer": 3
+    },
+    {
+      "q": "What is the color of Ruth's scarf?",
+      "options": [
+        "Black",
+        "Blue",
+        "White",
+        "Orange"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "Who is the inspector?",
+      "options": [
+        "Helen Brooks",
+        "Margaret Bell",
+        "Ruth Bell",
+        "Mrs Evans"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What has Martin taken from the workers?",
+      "options": [
+        "Their hats",
+        "Their money",
+        "Their photographs",
+        "Their coats"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "Who gives evidence about the van?",
+      "options": [
+        "George Kent",
+        "A baker",
+        "Daniel's father",
+        "A tourist"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What will decide the murder case?",
+      "options": [
+        "A court",
+        "A shop",
+        "A newspaper alone",
+        "A radio"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What helps Daniel find the truth?",
+      "options": [
+        "Clues, patience and the police",
+        "Luck alone",
+        "A secret map",
+        "A magic key"
+      ],
+      "answer": 0
+    }
+  ],
+  "discussion": [
+    "Why does Daniel listen to people carefully?",
+    "Why is Ruth brave, even when she feels afraid?",
+    "Why must the police check facts before they accuse anyone?",
+    "How can a business protect its workers?",
+    "Which clue is the most important to you, and why?"
+  ],
+  "writing_task": "Write 8 to 10 simple sentences about a time you helped someone or asked for help. Use the words: worried, friend, help, safe, and thank you.",
+  "source": "Original WorldVoice Library A1 editorial review edition, November 2026."
+}
