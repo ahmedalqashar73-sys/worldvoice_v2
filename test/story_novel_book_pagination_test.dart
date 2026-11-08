@@ -20,7 +20,9 @@ void main() {
           as Map<String, dynamic>;
       final pages = buildNovelBookPages(novel);
       expect(pages.first.kind, 'cover');
-      expect(pages[1].kind, 'introduction');
+      expect(pages[1].kind, 'title');
+      expect(pages[2].kind, 'contents');
+      expect(pages[3].kind, 'introduction');
       expect(pages.any((p) => p.kind == 'contents'), isTrue);
       expect(pages.last.kind, 'ending');
       final chapters = novel['chapters'] as List;
