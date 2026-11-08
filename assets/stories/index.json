@@ -24,6 +24,17 @@
       "cover_image": "assets/stories/en/A1/illustrations/the_empty_house_cover.svg"
     },
     {
+      "id": "the_last_train",
+      "language": "en",
+      "level": "A1",
+      "title": "The Last Train",
+      "title_ar": "القطار الأخير",
+      "format": "novel",
+      "chapter_count": 7,
+      "asset": "assets/stories/en/A1/the_last_train.json",
+      "cover_image": "assets/stories/en/A1/illustrations/the_last_train_cover.svg"
+    },
+    {
       "id": "the_small_green_bag",
       "language": "en",
       "level": "A1",

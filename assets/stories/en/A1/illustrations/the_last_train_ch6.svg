@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="430" viewBox="0 0 840 430"><rect width="840" height="430" fill="#fff"/><defs>
+<pattern id="hatch" width="11" height="11" patternUnits="userSpaceOnUse" patternTransform="rotate(49)"><path d="M0 0V11 M5 0V11" stroke="#555" stroke-width=".7"/></pattern>
+<pattern id="dark" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(-48)"><path d="M0 0V7 M3 0V7" stroke="#333" stroke-width="1"/></pattern>
+<pattern id="cross" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M0 0l10 10M10 0L0 10" stroke="#777" stroke-width=".65"/></pattern>
+<pattern id="stone" width="60" height="36" patternUnits="userSpaceOnUse"><path d="M0 0H60M0 18H60M15 0v18M45 18v18" stroke="#777" stroke-width=".9" fill="none"/></pattern>
+</defs><g fill="none" stroke="#1a1a1a" stroke-linejoin="round" stroke-linecap="round"><path d="M35 351H808M130 352v-46h600v46" stroke-width="5"/>
+<rect x="107" y="132" width="604" height="181" fill="#fff" stroke-width="6"/>
+<path d="M122 145l560 13-24 138-536-14z" fill="url(#hatch)" stroke-width="2"/>
+<rect x="223" y="99" width="252" height="188" rx="15" fill="#fff" stroke-width="8" transform="rotate(-9 223 99)"/>
+<path d="M266 139l155-24m-152 57 158-25m-151 55 161-28m-148 62 161-34" stroke="#777" stroke-width="3"/>
+<path d="M520 219h138" stroke-width="7"/><path d="M524 230h118" stroke-width="3"/>
+<path d="M85 342q-42-33-18-75t54-25M72 261l-13-46m10 30 21-20" stroke-width="4"/>
+<path d="M670 311h66v-85h-66z" fill="url(#dark)" stroke-width="5"/>
+<path d="M692 228v-85m-8 15h18m-10 18h13" stroke-width="3"/>
+<path d="M49 381l755 17" stroke-width="3"/></g></svg>
