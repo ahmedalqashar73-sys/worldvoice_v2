@@ -229,71 +229,121 @@ class _StoryLibrarySectionState extends State<StoryLibrarySection> {
       ],
     );
   }
-  /// Original WorldVoice novels are separate from external graded storybooks.
+  /// Original full-length A1 books are presented as their own library shelf.
+  /// Short graded stories below remain a separate experience.
   Widget _originalNovelA1Shelf(bool ar, ColorScheme scheme) {
     return FutureBuilder<List<StoryLibraryEntry>>(
       future: _index,
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return const SizedBox.shrink();
+        if (snapshot.hasError) {
+          return Text(ar ? 'تعذّر تحميل روايات المكتبة.'
+              : 'Unable to load WorldVoice Library.');
+        }
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
         final novels = snapshot.data!.where((entry) =>
           entry.level == 'A1' && entry.language == 'en' &&
           entry.format == 'novel').toList(growable: false);
+        if (novels.isEmpty) return const SizedBox.shrink();
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (novels.isNotEmpty)
-              Text(ar ? 'روايات WorldVoice الأصلية · A1'
-                  : 'WorldVoice original novels · A1',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w900)),
-            const SizedBox(height: 9),
-            for (final novel in novels)
-              Card(
-                margin: const EdgeInsets.only(bottom: 14),
-                color: scheme.surfaceContainerLow,
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  key: ValueKey('stories-novel-open-' + novel.id),
-                  onTap: () => Navigator.of(context).push<void>(
-                    MaterialPageRoute(builder: (_) =>
-                      StoryLibraryReaderScreen(
-                        entry: novel, repository: _repository))),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: novel.coverImage != null
-                          ? (novel.coverImage!.endsWith('.svg')
-                              ? SvgPicture.asset(novel.coverImage!,
-                                  height: 115, width: 86, fit: BoxFit.cover)
-                              : Image.asset(novel.coverImage!,
-                                  height: 115, width: 86, fit: BoxFit.cover))
-                          : const SizedBox(width: 86, height: 115,
-                              child: Icon(Icons.menu_book_rounded)),
+            Row(children: [
+              const Icon(Icons.local_library_outlined, size: 23),
+              const SizedBox(width: 9),
+              Expanded(child: Text(
+                'WorldVoice Library',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900))),
+              Text(
+                ar ? 'روايات A1' : 'A1 novels',
+                style: TextStyle(fontSize: 12,
+                  color: scheme.onSurfaceVariant)),
+            ]),
+            const SizedBox(height: 6),
+            Text(ar ? 'كتب أصلية كاملة — اختر الغلاف لفتح الكتاب وتقليب صفحاته.'
+                : 'Original full-length books — open a cover and turn the pages.',
+              style: TextStyle(fontSize: 12,
+                color: scheme.onSurfaceVariant)),
+            const SizedBox(height: 16),
+            LayoutBuilder(builder: (context, constraints) {
+              final twoColumns = constraints.maxWidth >= 315;
+              final cardWidth = twoColumns
+                  ? (constraints.maxWidth - 12) / 2
+                  : constraints.maxWidth;
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  for (final novel in novels)
+                    SizedBox(
+                      width: cardWidth,
+                      child: Card(
+                        margin: EdgeInsets.zero,
+                        color: scheme.surfaceContainerLow,
+                        elevation: 1.5,
+                        clipBehavior: Clip.antiAlias,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(13),
+                          side: BorderSide(
+                            color: scheme.outlineVariant.withValues(alpha: .6)),
+                        ),
+                        child: InkWell(
+                          key: ValueKey('stories-novel-open-' + novel.id),
+                          onTap: () => Navigator.of(context).push<void>(
+                            MaterialPageRoute(builder: (_) =>
+                              StoryLibraryReaderScreen(
+                                entry: novel, repository: _repository))),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: SizedBox(
+                              height: 242,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Center(child: SizedBox(
+                                    height: 155,
+                                    width: 120,
+                                    child: novel.coverImage == null
+                                        ? const Center(child:
+                                            Icon(Icons.menu_book_rounded,
+                                              size: 48))
+                                        : novel.coverImage!.endsWith('.svg')
+                                            ? SvgPicture.asset(
+                                                novel.coverImage!,
+                                                fit: BoxFit.contain)
+                                            : Image.asset(
+                                                novel.coverImage!,
+                                                fit: BoxFit.contain),
+                                  )),
+                                  const SizedBox(height: 9),
+                                  Text(novel.title,
+                                    textDirection: TextDirection.ltr,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w800,
+                                      height: 1.2)),
+                                  const Spacer(),
+                                  Text(
+                                    'A1 · ' +
+                                    (novel.chapterCount ?? 7).toString() +
+                                    (ar ? ' فصول' : ' chapters'),
+                                    style: TextStyle(fontSize: 11.5,
+                                      color: scheme.onSurfaceVariant)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                      const SizedBox(width: 14),
-                      Expanded(child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(novel.title, textDirection: TextDirection.ltr,
-                            style: const TextStyle(fontWeight: FontWeight.w900,
-                              fontSize: 17)),
-                          const SizedBox(height: 6),
-                          Text(novel.titleAr,
-                            style: TextStyle(color: scheme.onSurfaceVariant)),
-                          const SizedBox(height: 8),
-                          Text(ar ? 'رواية كاملة · ${novel.chapterCount ?? 7} فصول · A1'
-                                  : 'Complete novel · ${novel.chapterCount ?? 7} chapters · A1',
-                            style: TextStyle(fontSize: 12,
-                              color: scheme.onSurfaceVariant)),
-                        ],
-                      )),
-                      const Icon(Icons.chevron_right_rounded),
-                    ]),
-                  ),
-                ),
-              ),
+                    ),
+                ],
+              );
+            }),
+            const SizedBox(height: 24),
           ],
         );
       },
