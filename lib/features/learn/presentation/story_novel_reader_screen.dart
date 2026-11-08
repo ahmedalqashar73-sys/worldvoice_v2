@@ -109,6 +109,12 @@ class _StoryNovelReaderScreenState extends State<StoryNovelReaderScreen> {
             const SizedBox(height: 19),
           ],
           _p(ch['paragraphs'][i] as String),
+          if (i == 9 && ch['extra_image'] is String) ...[
+            const SizedBox(height: 9),
+            Image.asset(ch['extra_image'] as String,
+              height: 180, fit: BoxFit.contain),
+            const SizedBox(height: 19),
+          ],
         ],
         const SizedBox(height: 20),
         Center(child: FilledButton.icon(
