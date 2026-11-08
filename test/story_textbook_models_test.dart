@@ -9,11 +9,12 @@ import 'package:worldvoice/features/learn/domain/models/story_textbook_models.da
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('both indexed A1 formats load with their correct readers', () async {
+  test('all three indexed A1 formats load without losing existing books', () async {
     final repository = StoryLibraryRepository();
     final entries = await repository.storiesFor(language: 'en', level: 'A1');
-    expect(entries, hasLength(6));
+    expect(entries.where((e) => e.format == 'legacy'), hasLength(1));
     expect(entries.where((e) => e.format == 'textbook'), hasLength(5));
+    expect(entries.where((e) => e.format == 'novel'), hasLength(5));
     final legacy = entries.firstWhere((e) => e.format == 'legacy');
     final textbook = entries.firstWhere((e) => e.format == 'textbook');
     expect((await repository.loadStory(legacy)).pages, hasLength(9));
