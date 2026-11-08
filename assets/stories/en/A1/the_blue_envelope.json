@@ -1,0 +1,515 @@
+{
+  "id": "the_blue_envelope",
+  "title": "The Blue Envelope",
+  "title_ar": "الظرف الأزرق",
+  "language": "en",
+  "level": "A1",
+  "format": "novel",
+  "author": "Ahmed Al-Qashar",
+  "publisher": "WorldVoice Library",
+  "status": "editorial_review",
+  "subtitle": "A London Mystery",
+  "synopsis": "Adam works in a print shop in London. He wants to save an old library near the river. One rainy day, a blue envelope arrives. Inside it are a silver key and a secret note. Adam and Emma must find a missing paper before Friday.",
+  "characters": [
+    {
+      "name": "Adam Reed",
+      "description": "A young man who works in a print shop and wants to save the old library."
+    },
+    {
+      "name": "Emma",
+      "description": "Adam's friend, careful and brave."
+    },
+    {
+      "name": "Mrs Lewis",
+      "description": "A kind woman who looks after the old library."
+    },
+    {
+      "name": "Mr Carter",
+      "description": "The caretaker of the library."
+    },
+    {
+      "name": "Miss Green",
+      "description": "A woman from the town office."
+    },
+    {
+      "name": "Peter Price",
+      "description": "A businessman who wants to buy the old library."
+    }
+  ],
+  "chapters": [
+    {
+      "number": 1,
+      "title": "The Blue Envelope",
+      "title_ar": "الظرف الأزرق",
+      "image": "assets/stories/en/A1/illustrations/the_blue_envelope_ch1.svg",
+      "paragraphs": [
+        "On Monday morning, rain fell on the streets of London. Adam Reed stood inside a small print shop. He worked there every day. He made posters, cards, and signs. Today he had a new poster on his desk. It said, SAVE OUR OLD LIBRARY.",
+        "The old library was near the river. It had been closed for many years. Now a company wanted to buy the building. The company wanted to make new offices there. Adam did not like this plan. When he was a boy, his mother took him to that library every Saturday.",
+        "Adam looked at the poster. His friend Emma came in with two cups of tea. Emma worked at the shop, too. She put a cup beside him. “You are still thinking about the library,” she said.",
+        "“I am,” Adam said. “My mother loved that place. It was full of books. I want children to go there again.”",
+        "“Then we must do something,” Emma said. “A poster is a start. It is not the end.”",
+        "At ten o’clock, a man brought a box of paper to the shop. After he left, Adam saw something on the floor by the door. It was a blue envelope. The paper was thick and clean. A small gold letter, M, was on the front. Under it were two words: FOR ADAM.",
+        "Adam picked it up. He did not know anyone with the name M. The envelope had no address and no stamp. He looked outside, but the man with the box was gone.",
+        "“Open it,” Emma said.",
+        "Adam broke the seal. Inside he found a short letter and a little silver key. The letter said: “The old library can stay open. There is a paper inside. This paper can help us. Come to the side gate at six tonight. Bring the key. Tell no one. - M.”",
+        "Emma read the letter over his shoulder. “Tell no one?” she said. “I do not like those words.”",
+        "“Maybe someone needs help,” Adam said. He turned the key in his hand. It was small and cold. On one side was a picture of an open book.",
+        "“Perhaps it is a trick,” Emma said.",
+        "Adam put the letter on the desk. “Then why give me a key? Why talk about the library?”",
+        "Emma sat down. She was quiet for a minute. “I will go with you,” she said at last.",
+        "“But the letter says - ”",
+        "“I know what it says,” she answered. “I am still going.”",
+        "For the rest of the day, Adam tried to work. He put the same word in the wrong place on a poster three times. He saw the blue envelope every time he looked at the desk. Outside, the rain stopped. The sky was still dark.",
+        "At five thirty, he closed the shop. Emma was waiting at the door with her coat on. They walked to the river. Buses went past them. People hurried home. In the distance, the old library stood between two tall buildings. Its windows were black.",
+        "At six, a woman came out of the shadows beside the side gate. She had a grey coat and a red scarf. “Adam Reed?” she asked quietly.",
+        "“Yes,” he said.",
+        "“Good,” the woman said. She looked behind them. “You came. Please come inside. We have very little time.”"
+      ]
+    },
+    {
+      "number": 2,
+      "title": "The Old Library",
+      "title_ar": "المكتبة القديمة",
+      "image": "assets/stories/en/A1/illustrations/the_blue_envelope_ch2.svg",
+      "paragraphs": [
+        "The woman opened a narrow door beside the gate. Adam and Emma followed her into a small garden. The path was wet, and little plants grew between the stones. At the end of the path stood a heavy wooden door.",
+        "“My name is Mrs Lewis,” the woman said. “I help to look after this place. It is very old, and it needs a lot of work.”",
+        "“Did you send the blue envelope?” Adam asked.",
+        "Mrs Lewis did not answer. She opened the door and took them inside.",
+        "The library was dark and cold. A long room stood before them. Tall shelves went from the floor almost to the ceiling. Some shelves had books. Others were empty. A great clock hung above the door. It did not move.",
+        "“Why is the clock stopped?” Emma asked.",
+        "“It has not worked for ten years,” Mrs Lewis said. “But there was a time when this room was full of people. I remember the sound of the clock. I remember the children, too.”",
+        "An old man came from behind a shelf. He wore a brown jacket and carried a small lamp. “I am Mr Carter,” he said. “I have the keys to most rooms here. Mrs Lewis told me that you wanted to help.”",
+        "“We do,” Adam said. He took the silver key from his pocket. “I got this in a letter.”",
+        "Mr Carter looked at the key. “An open book,” he said. “I know that picture. The woman who opened this library used it on all her letters.”",
+        "“What was her name?” Emma asked.",
+        "“Miss Ada Bell,” Mr Carter said. “She opened this place many years ago. She wanted every person in the city to have a place to read.”",
+        "Mr Carter led them to a little desk near the back wall. There was a picture of a book on one drawer. Adam put in the silver key. He turned it once. The drawer opened.",
+        "Inside were an old photograph and a small white card. The photograph showed a young woman standing in front of the library. Many people stood beside her. On the back were the words: OPENING DAY, 1908.",
+        "Adam turned over the white card. It said, “Look at the river in the picture. The next answer is not far away.”",
+        "“There are many pictures here,” Emma said. She looked at the walls. “Where is the river?”",
+        "“Perhaps in that one,” said Adam. A large painting hung beside the long table. It showed the river and an old bridge. The water was blue, but the sky was grey. The painting looked very old.",
+        "Before they could go near it, someone knocked hard on the front door. Mr Carter put down his lamp. A man’s voice called from outside.",
+        "“Carter! Open this door. I know you are there.”",
+        "Mrs Lewis went pale. “It is Mr Price,” she said. “He is the man who wants to buy the library.”",
+        "Mr Carter spoke softly. “Do not show him the photograph. Not yet.”",
+        "Adam put the card and the photograph in his coat. The knocking came again. This time it was louder. The old clock did not move, but Adam felt that their time was going very fast."
+      ]
+    },
+    {
+      "number": 3,
+      "title": "The River Picture",
+      "title_ar": "لوحة النهر",
+      "image": "assets/stories/en/A1/illustrations/the_blue_envelope_ch3.svg",
+      "paragraphs": [
+        "Mr Carter opened the front door. A tall man in a black coat came in. His shoes were wet, and he carried a leather bag. His face was not kind.",
+        "“Why are these people here?” the man asked. He looked first at Adam, then at Emma.",
+        "“They are helping me clean,” Mr Carter said.",
+        "“At this time of night?” the man said. “I am Peter Price. My company will buy this building on Friday. It is not safe. No one can come here without my word.”",
+        "“The building is not yours yet,” Emma said.",
+        "Mr Price turned to her. “And who are you?”",
+        "“A friend of the library,” she answered.",
+        "Mr Price looked at the long shelves. “This place is empty. People read on their phones now. We can make something new here.”",
+        "“We can make the library new,” Adam said.",
+        "Mr Price laughed once, but there was no joy in it. “You cannot stop the sale with a few posters.” He went out. His footsteps were loud on the stone floor.",
+        "Mr Carter closed the door. “He comes here every week,” he said. “He wants us to leave.”",
+        "“Does he have a right to buy it?” Adam asked.",
+        "“The town office says he does,” Mr Carter replied. “But Miss Bell gave this building to the people. There was a paper about it. That paper is missing.”",
+        "Adam thought about the letter in the blue envelope. It said that a paper could save the library. “Then we must find it,” he said.",
+        "They stood in front of the river painting. Emma held the lamp high. Adam looked at the frame. There was a little space between the painting and the wall. He put his fingers behind it and felt something hard.",
+        "He carefully lifted the painting. Behind it was a small square in the wall. In the square were an empty shelf and a piece of blue thread. There was also a little dust. Someone had taken something from that place.",
+        "“Was there a box here?” Emma asked.",
+        "“I do not know,” Mr Carter said. “I have not moved this painting for years.”",
+        "Adam looked down. There were marks on the floor. They were dark and wet. One mark was long. The other was round. “Someone stood here today,” he said. “Look at the mud.”",
+        "Mrs Lewis came closer. “Mr Price came here yesterday,” she said. “I saw him near this wall.”",
+        "“Then he may have the paper,” Emma said.",
+        "“But we must know,” Adam answered. “We cannot go to the town office with only a story.”",
+        "From outside came the sound of a car. They went to the window. A black car was leaving the street. The driver wore a hat. Adam could not see his face.",
+        "Emma took out her little notebook. She wrote down the time and the colour of the car. “We need facts,” she said. “Not only ideas.”",
+        "Mrs Lewis looked at the empty square in the wall. “Miss Bell had one special book,” she said. “It was the first book in this library. I think that book can help us.”",
+        "“What book?” Adam asked.",
+        "“I cannot remember its name,” she said. “But I know where we must look next. Upstairs, there is a small room.”"
+      ]
+    },
+    {
+      "number": 4,
+      "title": "The Light Upstairs",
+      "title_ar": "الضوء في الأعلى",
+      "image": "assets/stories/en/A1/illustrations/the_blue_envelope_ch4.svg",
+      "paragraphs": [
+        "The stairs were narrow. Mrs Lewis went first, with the lamp. Mr Carter stayed downstairs to close the windows. Adam and Emma followed her slowly. They could hear the old wood under their feet.",
+        "At the top of the stairs was a short hall. Five doors stood along it. Four were shut. A weak yellow light came from under the last door.",
+        "“I thought no one was here,” Emma said.",
+        "“Someone may be working,” Mrs Lewis answered. Her voice was very low.",
+        "They walked to the last door. Adam knocked. There was no answer. He pushed it open. Inside was a reading room with two desks, three chairs, and a high window. A small electric lamp was on.",
+        "A woman sat at one desk. She had short hair and glasses. She stood up very quickly when she saw them. “You are late,” she said to Mrs Lewis. “I thought you were not coming.”",
+        "“This is Miss Green,” Mrs Lewis said. “She works at the town office. She has been looking for the old papers.”",
+        "Miss Green looked at Adam and Emma. “The town office wants to sell this building. But I think we need to read every old paper first. There are boxes here with papers from many years ago.”",
+        "“Does Mr Price know you are here?” Emma asked.",
+        "“No,” Miss Green said. “He wants the sale on Friday. I want the truth.”",
+        "Miss Green opened a large book on the table. There were names and dates on every page. “This is the library book from its first year,” she said. “Miss Bell wrote down the names of the people who gave money and books.”",
+        "Adam ran a finger down one page. Then he stopped. Near the bottom was a name: E. REED.",
+        "“My family name,” he said.",
+        "Miss Green turned the book to the light. “Edith Reed gave books to the library in 1908,” she read. “Do you know that name?”",
+        "“My mother’s grandmother was called Edith,” Adam said. He smiled for the first time that evening. “I did not know she came here.”",
+        "Emma looked at him. “Your family has loved this library for a very long time.”",
+        "Miss Green showed them a blank space at the end of the page. “There was another paper here,” she said. “It is gone. Someone took it out.”",
+        "Mrs Lewis looked at the floor. “I must tell you something,” she said. “The blue envelope was mine. My first name is Margaret. That is why I wrote M.”",
+        "“Why did you not tell us?” Adam asked.",
+        "“I was afraid,” she answered. “Mr Price looks at all the letters we get here. I saw you making your posters. I knew you cared. I found Miss Bell’s key, so I sent it to you.”",
+        "Adam put the silver key on the desk. “Thank you for trusting me,” he said.",
+        "“I know there was a signed letter,” Mrs Lewis said. “Miss Bell wrote it when she gave the library to the town. But I do not know where it is now.”",
+        "At that moment, a door closed downstairs. All four people stopped talking. They heard quick steps. Then the steps stopped. Someone else was in the library."
+      ]
+    },
+    {
+      "number": 5,
+      "title": "The Small Room",
+      "title_ar": "الغرفة الصغيرة",
+      "image": "assets/stories/en/A1/illustrations/the_blue_envelope_ch5.svg",
+      "paragraphs": [
+        "Adam went to the door. He listened. The building was quiet again. Emma held the lamp. Miss Green closed the big book and put it under the desk.",
+        "“Do not run,” Mrs Lewis said. “The stairs are old.”",
+        "They went down together. In the hall, Mr Carter stood beside the river painting. He looked worried. “A man was here,” he said. “He came through the front door with a key. When he saw me, he went out.”",
+        "“Was it Mr Price?” Adam asked.",
+        "“No. It was Mr Gray from the town office. He carried a long wooden box.”",
+        "“Why was he here?” Miss Green asked. “He told me that he was going home.”",
+        "Mr Carter shook his head. “I do not know. He left something on the floor.”",
+        "There was a little piece of brown paper near the door. On it was a label: NORTH STATION - STORE ROOM.",
+        "“Why would a man take a box from the library to the station?” Emma asked.",
+        "“Perhaps he is moving old things,” Miss Green said. “The station has a store room for town papers.”",
+        "Adam looked at the river painting again. The blue thread was still behind it. He touched the thread. It was tied to a small nail in the wall. At the end was a tiny paper tag.",
+        "He read the words on the tag: “THE FIRST BOOK.”",
+        "“Mrs Lewis was right,” Adam said. “The first book is important.”",
+        "Mr Carter thought for a moment. “I remember something. There was a wooden sign over the library door. It said, THE OPEN DOOR. On opening day, Miss Bell put a book under that sign. She called it the first book.”",
+        "“But the sign is not here now,” Mrs Lewis said. “Someone took it last month.”",
+        "Emma looked at the brown label. “Maybe Mr Gray has the sign. Maybe the book is in the box, too.”",
+        "“The station closes at nine,” Miss Green said. She looked at her watch. “It is eight fifteen now.”",
+        "Adam picked up his coat. “We can get there.”",
+        "“I can speak to Mr Gray,” Miss Green said. “He knows me. He must tell us why he took the box.”",
+        "Mrs Lewis stayed with Mr Carter. Before Adam left, she took his hand. “Miss Bell loved this place,” she said. “She gave her life to it. I do not want the last light to go out.”",
+        "“It will not,” Adam promised. He did not know if he could keep his word, but he wanted to try.",
+        "Adam, Emma, and Miss Green hurried into the cold street. A train whistle sounded in the distance. The clock on the church showed half past eight. They had only thirty minutes before the store room closed.",
+        "As they turned the corner, Adam saw a black car near the station road. He knew that car. It had been outside the library. Now it was following them."
+      ]
+    },
+    {
+      "number": 6,
+      "title": "The Man at the Station",
+      "title_ar": "الرجل في المحطة",
+      "image": "assets/stories/en/A1/illustrations/the_blue_envelope_ch6.svg",
+      "paragraphs": [
+        "The station was full of noise. People waited with bags. A little girl slept beside her father. A man sold newspapers near the steps. Above the main door, a large clock showed twenty minutes to nine.",
+        "Adam, Emma, and Miss Green went quickly past the ticket office. Miss Green knew the way to the store room. It was at the end of a long hall, behind a door with a glass window.",
+        "Inside, a thin man in a grey suit stood beside a wooden box. He had a pen in his hand. Miss Green knocked on the glass.",
+        "“Mr Gray,” she said when he opened the door. “We need to ask you about that box.”",
+        "Mr Gray looked at the three of them. “What is wrong?” he asked. “I am putting old town things in a safe place.”",
+        "“Why did you take the box from the library?” Adam asked.",
+        "Mr Gray looked down. “Because rain comes through the roof. I did not want the old sign to get wet.”",
+        "He opened the box. Inside lay a long wooden sign with gold words: THE OPEN DOOR. Under the sign was a little red book.",
+        "“That book was under the sign,” Mr Gray said. “I thought it was only an old storybook. I was going to put it in a glass case.”",
+        "Mrs Lewis’s words came back to Adam: THE FIRST BOOK. He asked, “May I look at it?”",
+        "Mr Gray gave him the book. Adam opened it very slowly. On the first page were the words: “For the people of this town. May every open book open a new door. Ada Bell, 1908.”",
+        "Emma smiled. “That is beautiful,” she said.",
+        "Adam turned another page. A small piece of paper fell onto the table. It was folded into four parts. The paper was yellow with age. There was a dark blue mark on one corner.",
+        "Miss Green picked it up. “Do not touch it more than you need to,” she said. “It is very old.” She opened it flat on the table. At the bottom were two names and a date. One name was Ada Bell. The other was a town officer.",
+        "She read it aloud in simple words. “Miss Bell gives this building to the town. It must be a free library for all people. The town must look after it.”",
+        "Adam could hardly speak. “Is this the paper?” he asked.",
+        "“I think so,” Miss Green said. “We need to check it at the town office. But it has the names and the date we need.”",
+        "A voice came from the door. “That paper is not yours.”",
+        "Mr Price stood in the hall. He had followed them from the library. His face was red. “Give it to me,” he said. “That building is part of my plan.”",
+        "Miss Green stood between him and the table. “The paper is a town record,” she said. “You cannot take it.”",
+        "“I have a meeting on Friday,” Mr Price answered. “The sale will go on.”",
+        "“Then we will bring the paper to the meeting,” Emma said.",
+        "Mr Price looked at them for a long moment. Then he turned and walked away. They heard his steps until he reached the main hall.",
+        "Mr Gray found a clean folder. Miss Green put the paper inside. “I will take it to the town office tomorrow morning,” she said. “And we will all be there on Friday.”",
+        "At nine o’clock, the station bell rang. Adam looked at the blue envelope in his pocket. It had brought him here. Now he had to wait for Friday."
+      ]
+    },
+    {
+      "number": 7,
+      "title": "The Last Page",
+      "title_ar": "الصفحة الأخيرة",
+      "image": "assets/stories/en/A1/illustrations/the_blue_envelope_ch7.svg",
+      "paragraphs": [
+        "Friday morning was bright and cold. Adam stood outside the town hall with Emma. Mrs Lewis, Mr Carter, Miss Green, and Mr Gray were there, too. All around them stood people from the street. Some held the posters Adam had made: SAVE OUR OLD LIBRARY. Inside the hall, men and women sat at long tables.",
+        "The chair of the meeting asked everyone to be quiet. Mr Price sat near the front. He did not look at Adam. Miss Green stood up. She held a folder in her hands. “We have found an important paper,” she said. “It is from 1908. Ada Bell gave the old library to the town. She wanted the building to stay a free library for everyone.”",
+        "She put the paper on a large table. Two officers looked at the names and the date. They read the other old records beside it. The room was very quiet. Mr Price stood. “The building is old,” he said. “It needs money. I can make it useful again.” “It can be useful as a library,” Emma said from the back of the hall.",
+        "The chair looked up. “Please let Miss Green finish,” she said. Miss Green showed the first book and the wooden sign. She talked about Miss Bell and the people who gave books in 1908. Mr Carter told the meeting how many children used to come every day.",
+        "Mrs Lewis told them about the long years when the library was closed.",
+        "Then Adam stood. He was nervous. His hands were cold. But he remembered his mother, her kind voice, and the first time she put a book in his hands. “I was a boy when I came to the library,” he said. “I did not have many books at home. Here, I could read any book I wanted.",
+        "My mother said a book is like a door. It can take you anywhere.” He looked at the people in the room. “We can repair this building. We can clean the rooms. We can give our time. We do not need to lose this place.” The chair thanked him. The officers said the old paper was part of the town’s records.",
+        "Because of that paper, the plan for the sale could not go ahead that day. The council would keep the building and make a new plan for it. People began to smile. Someone clapped. Then many people clapped. Mrs Lewis put her hands over her face. Mr Carter smiled and looked down at the first book.",
+        "In the weeks that followed, people came to help. They cleaned the windows. They painted the doors. They brought old books and new books. Mr Gray fixed the wooden sign above the front door. Emma wrote a story for the town newspaper. Adam made a new poster: THE OPEN DOOR LIBRARY - OPEN AGAIN. On the first day, Adam stood just inside the library.",
+        "The great clock above the door was moving again. A little boy came in with his mother. He looked up at the books in wonder. “Is it free?” he asked. “Yes,” Adam said. “It is for everyone.” Mrs Lewis came to his side. She held a blue envelope. It was the same envelope from Monday morning.",
+        "“You can keep this,” she said. “It belongs to you now.” Adam smiled. “No,” he said. “It belongs here.” He put it in a little glass case beside the first book. Under it, he placed a card: ONE SMALL LETTER HELPED OPEN A BIG DOOR. The boy read the card. “Was there a secret?” he asked.",
+        "“There was,” Adam answered. “And now there are a thousand stories waiting for you.” Outside, the city was busy. Inside, the library was quiet and full of light. Adam opened the blue envelope one last time. There was no new letter, and there was no new key. He did not need one. The door was already open."
+      ]
+    }
+  ],
+  "vocabulary": [
+    {
+      "word": "address",
+      "meaning": "a place where a person lives or works"
+    },
+    {
+      "word": "answer",
+      "meaning": "what you say or find after a question"
+    },
+    {
+      "word": "bell",
+      "meaning": "a thing that makes a ringing sound"
+    },
+    {
+      "word": "building",
+      "meaning": "a house, school, shop, or other large place"
+    },
+    {
+      "word": "card",
+      "meaning": "a small piece of paper with words on it"
+    },
+    {
+      "word": "clap",
+      "meaning": "to put your hands together because you are happy"
+    },
+    {
+      "word": "clock",
+      "meaning": "a thing that shows the time"
+    },
+    {
+      "word": "coat",
+      "meaning": "clothes you wear over other clothes"
+    },
+    {
+      "word": "company",
+      "meaning": "a business"
+    },
+    {
+      "word": "corner",
+      "meaning": "a place where two streets meet"
+    },
+    {
+      "word": "council",
+      "meaning": "people who make decisions for a town"
+    },
+    {
+      "word": "drawer",
+      "meaning": "a box that moves in and out of a desk"
+    },
+    {
+      "word": "empty",
+      "meaning": "with nothing inside"
+    },
+    {
+      "word": "envelope",
+      "meaning": "paper that covers and holds a letter"
+    },
+    {
+      "word": "facts",
+      "meaning": "things that are true"
+    },
+    {
+      "word": "folder",
+      "meaning": "something that holds papers together"
+    },
+    {
+      "word": "gate",
+      "meaning": "a door in a wall or fence"
+    },
+    {
+      "word": "hall",
+      "meaning": "a big room or a long space with doors"
+    },
+    {
+      "word": "key",
+      "meaning": "a small metal thing that opens a lock"
+    },
+    {
+      "word": "lamp",
+      "meaning": "a light you can put on a desk"
+    },
+    {
+      "word": "letter",
+      "meaning": "words written to another person"
+    },
+    {
+      "word": "library",
+      "meaning": "a place where people read or borrow books"
+    },
+    {
+      "word": "look after",
+      "meaning": "to keep something safe and in good condition"
+    },
+    {
+      "word": "mark",
+      "meaning": "a line or place that you can see on something"
+    },
+    {
+      "word": "meeting",
+      "meaning": "people coming together to talk"
+    },
+    {
+      "word": "mud",
+      "meaning": "wet earth"
+    },
+    {
+      "word": "narrow",
+      "meaning": "not wide"
+    },
+    {
+      "word": "officer",
+      "meaning": "a person with an official job"
+    },
+    {
+      "word": "painting",
+      "meaning": "a picture made with paint"
+    },
+    {
+      "word": "paper",
+      "meaning": "a thin material we write or print on"
+    },
+    {
+      "word": "poster",
+      "meaning": "a large paper with words or pictures"
+    },
+    {
+      "word": "repair",
+      "meaning": "to make something work again"
+    },
+    {
+      "word": "sale",
+      "meaning": "when something is sold for money"
+    },
+    {
+      "word": "seal",
+      "meaning": "a mark that closes a letter"
+    },
+    {
+      "word": "shelf",
+      "meaning": "a flat place for books"
+    },
+    {
+      "word": "sign",
+      "meaning": "words or a picture that tell people something"
+    },
+    {
+      "word": "stamp",
+      "meaning": "a little paper picture on a letter"
+    },
+    {
+      "word": "store room",
+      "meaning": "a room for keeping things"
+    },
+    {
+      "word": "thread",
+      "meaning": "a thin piece of string"
+    },
+    {
+      "word": "truth",
+      "meaning": "what really happened"
+    }
+  ],
+  "questions": [
+    {
+      "q": "Where does Adam work?",
+      "options": [
+        "A print shop",
+        "A hospital",
+        "A hotel",
+        "A museum"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What does Adam find near the shop door?",
+      "options": [
+        "A red bag",
+        "A blue envelope",
+        "A wallet",
+        "A phone"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "What is inside the envelope?",
+      "options": [
+        "A map and money",
+        "A silver key and a letter",
+        "Two tickets",
+        "A picture and a coin"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "Who goes with Adam to the old library?",
+      "options": [
+        "Peter Price",
+        "Mr Gray",
+        "Emma",
+        "No one"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "What picture is on the small key?",
+      "options": [
+        "An open book",
+        "A house",
+        "A ship",
+        "A clock"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "Who wants to buy the old library?",
+      "options": [
+        "Adam",
+        "Peter Price",
+        "Emma",
+        "Mrs Lewis"
+      ],
+      "answer": 1
+    },
+    {
+      "q": "What does the painting show?",
+      "options": [
+        "A river and bridge",
+        "A beach",
+        "A park",
+        "A station"
+      ],
+      "answer": 0
+    },
+    {
+      "q": "What does Adam want to save?",
+      "options": [
+        "A bank",
+        "A theatre",
+        "An old library",
+        "A shop"
+      ],
+      "answer": 2
+    },
+    {
+      "q": "When do the people go to the town meeting?",
+      "options": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Friday"
+      ],
+      "answer": 3
+    },
+    {
+      "q": "What do the people do after the meeting?",
+      "options": [
+        "Close the library",
+        "Clean and repair the library",
+        "Sell all the books",
+        "Move to a new town"
+      ],
+      "answer": 1
+    }
+  ],
+  "source": "WorldVoice Library original review edition, November 2026."
+}

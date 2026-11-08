@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../data/story_library_repository.dart';
 import '../domain/models/story_library_models.dart';
 import 'story_textbook_reader_screen.dart';
+import 'story_novel_reader_screen.dart';
 
 /// Independent illustrated story reader. Synchronized audio and XP are
 /// implemented separately in later phases.
@@ -24,7 +25,8 @@ class StoryLibraryReaderScreen extends StatefulWidget {
 
 class _StoryLibraryReaderScreenState extends State<StoryLibraryReaderScreen> {
   // Do not start the legacy parser for chapter-based stories.
-  late final Future<StoryLibraryBook>? _story = widget.entry.format == 'textbook'
+  late final Future<StoryLibraryBook>? _story =
+      (widget.entry.format == 'textbook' || widget.entry.format == 'novel')
       ? null
       : widget.repository.loadStory(widget.entry);
   final PageController _pages = PageController();
@@ -50,6 +52,9 @@ class _StoryLibraryReaderScreenState extends State<StoryLibraryReaderScreen> {
     if (widget.entry.format == 'textbook') {
       return StoryTextbookReaderScreen(
         entry: widget.entry, repository: widget.repository);
+    }
+    if (widget.entry.format == 'novel') {
+      return StoryNovelReaderScreen(entry: widget.entry);
     }
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     final accent = Theme.of(context).brightness == Brightness.dark

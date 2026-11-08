@@ -292,7 +292,7 @@ class StoryLibraryEntry {
     final level = _requiredText(json, 'level');
     final asset = _requiredText(json, 'asset');
     final format = json['format'] ?? 'legacy';
-    if (format != 'legacy' && format != 'textbook') {
+    if (format != 'legacy' && format != 'textbook' && format != 'novel') {
       throw const FormatException('Unsupported story format.');
     }
     final prefix = 'assets/stories/$language/$level/';

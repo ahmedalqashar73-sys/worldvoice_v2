@@ -229,6 +229,74 @@ class _StoryLibrarySectionState extends State<StoryLibrarySection> {
       ],
     );
   }
+  /// Original WorldVoice novels are separate from external graded storybooks.
+  Widget _originalNovelA1Shelf(bool ar, ColorScheme scheme) {
+    return FutureBuilder<List<StoryLibraryEntry>>(
+      future: _index,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const SizedBox.shrink();
+        final novels = snapshot.data!.where((entry) =>
+          entry.level == 'A1' && entry.language == 'en' &&
+          entry.format == 'novel').toList(growable: false);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (novels.isNotEmpty)
+              Text(ar ? 'روايات WorldVoice الأصلية · A1'
+                  : 'WorldVoice original novels · A1',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w900)),
+            const SizedBox(height: 9),
+            for (final novel in novels)
+              Card(
+                margin: const EdgeInsets.only(bottom: 14),
+                color: scheme.surfaceContainerLow,
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  key: ValueKey('stories-novel-open-' + novel.id),
+                  onTap: () => Navigator.of(context).push<void>(
+                    MaterialPageRoute(builder: (_) =>
+                      StoryLibraryReaderScreen(
+                        entry: novel, repository: _repository))),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: novel.coverImage != null
+                          ? SvgPicture.asset(novel.coverImage!,
+                              height: 115, width: 86, fit: BoxFit.cover)
+                          : const SizedBox(width: 86, height: 115,
+                              child: Icon(Icons.menu_book_rounded)),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(novel.title, textDirection: TextDirection.ltr,
+                            style: const TextStyle(fontWeight: FontWeight.w900,
+                              fontSize: 17)),
+                          const SizedBox(height: 6),
+                          Text(novel.titleAr,
+                            style: TextStyle(color: scheme.onSurfaceVariant)),
+                          const SizedBox(height: 8),
+                          Text(ar ? 'رواية كاملة · 7 فصول · A1'
+                                  : 'Complete novel · 7 chapters · A1',
+                            style: TextStyle(fontSize: 12,
+                              color: scheme.onSurfaceVariant)),
+                        ],
+                      )),
+                      const Icon(Icons.chevron_right_rounded),
+                    ]),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
   /// Only English A1 is migrated in this stage. Keep A2–C2 unchanged.
   Widget _gradedA1Shelf(bool ar, ColorScheme scheme, Color accent) {
     return FutureBuilder<List<GradedStoryEntry>>(
@@ -253,6 +321,7 @@ class _StoryLibrarySectionState extends State<StoryLibrarySection> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _originalNovelA1Shelf(ar, scheme),
             Text(ar
                 ? 'قصص A1 · صوت بشري ونص أصلي'
                 : 'A1 graded stories · Original human narration',
