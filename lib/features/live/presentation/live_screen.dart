@@ -1858,7 +1858,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
-        backgroundColor: const Color(0xFF102820),
+        backgroundColor: const Color(0xFF161326),
         body: SafeArea(
           child: Stack(
             fit: StackFit.expand,
@@ -2289,8 +2289,8 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                             Positioned(
                               left: 12,
                               right: 12,
-                              top: 218,
-                              height: _liveBoardHeight(context),
+                              top: _liveBoardTop(context, tiles.length),
+                              height: _liveBoardHeight(context, tiles.length),
                               child: RoomBoardScreen(
                                 roomId: _liveId!,
                                 libraryLanguageCode: _languageCode,
@@ -3866,7 +3866,7 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
             }
             return Scaffold(
               resizeToAvoidBottomInset: false,
-              backgroundColor: const Color(0xFF102820),
+              backgroundColor: const Color(0xFF161326),
               body: SafeArea(
                 child: _minimized
                     ? const ColoredBox(color: Color(0xFF151226))
@@ -4073,8 +4073,8 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                 Positioned(
                                   left: 12,
                                   right: 12,
-                                  top: 218,
-                                  height: _liveBoardHeight(context),
+                                  top: _liveBoardTop(context, tiles.length),
+                                  height: _liveBoardHeight(context, tiles.length),
                                   child: RoomBoardScreen(
                                     roomId: widget.liveId,
                                     libraryLanguageCode:
@@ -7670,25 +7670,28 @@ class _HostJoinRequests extends StatelessWidget {
   }
 }
 
-/// Solo goes edge-to-edge. Multi-guest video uses a dedicated high
-/// panel so people remain legible, with a separate chat region below.
-/// Current verified backend limit: host + three guests.
+/// One host and up to three guests. Leave more space for faces and boards.
 double _liveStageHeight(BuildContext context, int count, {
   bool boardOpen = false,
 }) {
   final viewport = MediaQuery.sizeOf(context);
-  if (boardOpen) return (viewport.height * .13).clamp(66.0, 100.0);
   final safeHeight = viewport.height - MediaQuery.paddingOf(context).vertical;
-  // Reserve the lower half for chat when two or more speakers are live.
-  // The solo layout is full-bleed instead of using this calculation.
-  final available = (safeHeight - 96 - 178).clamp(140.0, safeHeight);
-  final target = safeHeight * (count <= 2 ? .45 : .43);
-  return target.clamp(140.0, available);
+  if (boardOpen) {
+    return (safeHeight * (count <= 2 ? .22 : .24)).clamp(126.0, 190.0);
+  }
+  final available = (safeHeight - 96 - 168).clamp(140.0, safeHeight);
+  return (safeHeight * (count <= 2 ? .54 : .55))
+      .clamp(140.0, available);
 }
 
-double _liveBoardHeight(BuildContext context) {
+double _liveBoardTop(BuildContext context, int count) =>
+    106 + _liveStageHeight(context, count, boardOpen: true) + 12;
+
+double _liveBoardHeight(BuildContext context, int count) {
   final height = MediaQuery.sizeOf(context).height;
-  return (height * .36).clamp(115.0, (height - 360).clamp(115.0, 370.0));
+  final available = (height - _liveBoardTop(context, count) - 164)
+      .clamp(116.0, height);
+  return (height * .43).clamp(116.0, available);
 }
 
 double _liveChatTop(BuildContext context, int count, {
@@ -7696,7 +7699,7 @@ double _liveChatTop(BuildContext context, int count, {
 }) {
   final height = MediaQuery.sizeOf(context).height;
   final preferred = boardOpen
-      ? 218 + _liveBoardHeight(context) + 12
+      ? _liveBoardTop(context, count) + _liveBoardHeight(context, count) + 10
       : count <= 1
           ? height * .58
           : 96 + _liveStageHeight(context, count) + 10;
@@ -7758,27 +7761,42 @@ class WorldVoiceLiveVideoGrid extends StatelessWidget {
     final items = children.take(4).toList(growable: false);
 
     if (compact && items.isNotEmpty) {
-      return LayoutBuilder(
-        builder: (context, bounds) {
-          final maxWidth = (bounds.maxWidth - (items.length - 1) * 5) /
-              items.length;
-          final tileSize = maxWidth < bounds.maxHeight
-              ? maxWidth : bounds.maxHeight;
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              for (var i = 0; i < items.length; i++) ...[
-                if (i != 0) const SizedBox(width: 5),
-                SizedBox(
-                  width: tileSize,
-                  height: tileSize,
-                  child: _tile(items[i]),
-                ),
-              ],
-            ],
-          );
-        },
-      );
+      // When the board opens, 4 video streams form a two-by-two panel.
+      // No camera becomes an unreadable tiny square thumbnail.
+      if (items.length == 1) {
+        return SizedBox.expand(child: _tile(items[0]));
+      }
+      if (items.length == 2) {
+        return Row(children: [
+          Expanded(child: _tile(items[0])),
+          const SizedBox(width: 5),
+          Expanded(child: _tile(items[1])),
+        ]);
+      }
+      if (items.length == 3) {
+        return Row(children: [
+          Expanded(flex: 11, child: _tile(items[0])),
+          const SizedBox(width: 5),
+          Expanded(flex: 9, child: Column(children: [
+            Expanded(child: _tile(items[1])),
+            const SizedBox(height: 5),
+            Expanded(child: _tile(items[2])),
+          ])),
+        ]);
+      }
+      return Column(children: [
+        Expanded(child: Row(children: [
+          Expanded(child: _tile(items[0])),
+          const SizedBox(width: 5),
+          Expanded(child: _tile(items[1])),
+        ])),
+        const SizedBox(height: 5),
+        Expanded(child: Row(children: [
+          Expanded(child: _tile(items[2])),
+          const SizedBox(width: 5),
+          Expanded(child: _tile(items[3])),
+        ])),
+      ]);
     }
 
     if (items.isEmpty) {
