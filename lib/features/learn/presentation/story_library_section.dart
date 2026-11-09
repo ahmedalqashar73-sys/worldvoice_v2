@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show SynchronousFuture;
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:pdfrx/pdfrx.dart';
 
 import '../data/academy_catalog.dart';
 import '../data/story_library_repository.dart';
@@ -305,17 +306,39 @@ class _StoryLibrarySectionState extends State<StoryLibrarySection> {
                                   Center(child: SizedBox(
                                     height: 155,
                                     width: 120,
-                                    child: novel.coverImage == null
-                                        ? const Center(child:
-                                            Icon(Icons.menu_book_rounded,
-                                              size: 48))
-                                        : novel.coverImage!.endsWith('.svg')
-                                            ? SvgPicture.asset(
-                                                novel.coverImage!,
-                                                fit: BoxFit.contain)
-                                            : Image.asset(
-                                                novel.coverImage!,
-                                                fit: BoxFit.contain),
+                                    // Red Umbrella and Empty House have approved PDF covers.
+                                    // Always show the same first page that the
+                                    // reader opens, not their legacy preview art.
+                                    child: (novel.id == 'the_red_umbrella' ||
+                                            novel.id == 'the_empty_house')
+                                        ? IgnorePointer(
+                                            child: PdfViewer.asset(
+                                              'assets/stories/en/A1/books/' +
+                                                  novel.id + '.pdf',
+                                              initialPageNumber: 1,
+                                              params: const PdfViewerParams(
+                                                margin: 0,
+                                                backgroundColor: Colors.transparent,
+                                                pageAnchor: PdfPageAnchor.all,
+                                                panEnabled: false,
+                                                scaleEnabled: false,
+                                                pageDropShadow: BoxShadow(
+                                                  color: Colors.transparent,
+                                                ),
+                                              ),
+                                            ),
+                                          )
+                                        : novel.coverImage == null
+                                            ? const Center(child:
+                                                Icon(Icons.menu_book_rounded,
+                                                  size: 48))
+                                            : novel.coverImage!.endsWith('.svg')
+                                                ? SvgPicture.asset(
+                                                    novel.coverImage!,
+                                                    fit: BoxFit.contain)
+                                                : Image.asset(
+                                                    novel.coverImage!,
+                                                    fit: BoxFit.contain),
                                   )),
                                   const SizedBox(height: 9),
                                   Text(novel.title,
