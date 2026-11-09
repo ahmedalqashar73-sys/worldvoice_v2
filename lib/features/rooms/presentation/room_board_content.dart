@@ -141,11 +141,18 @@ class _BoardVideoState extends State<BoardVideo> {
 }
 
 
-/// A PDF opened in a room is downloaded into app-private persistent storage
-/// once; repeated openings reuse that local file and avoid network spinners.
+/// A PDF opened in a room is cached locally, with optional page-by-page
+/// horizontal swipes for the room board. Pinch zoom and free pan remain intact.
 class CachedBoardPdf extends StatefulWidget {
-  const CachedBoardPdf({required this.url, super.key});
+  const CachedBoardPdf({
+    required this.url,
+    this.pageFlipEnabled = false,
+    super.key,
+  });
+
   final String url;
+  /// Enable book-like horizontal page turning only in voice rooms.
+  final bool pageFlipEnabled;
 
   @override
   State<CachedBoardPdf> createState() => _CachedBoardPdfState();
@@ -153,6 +160,10 @@ class CachedBoardPdf extends StatefulWidget {
 
 class _CachedBoardPdfState extends State<CachedBoardPdf> {
   late Future<File> _file;
+  final PdfViewerController _pdfController = PdfViewerController();
+  Offset? _swipeStart;
+  int _touchCount = 0;
+  int _swipePage = 1;
 
   @override
   void initState() {
@@ -164,8 +175,47 @@ class _CachedBoardPdfState extends State<CachedBoardPdf> {
   void didUpdateWidget(covariant CachedBoardPdf oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.url != widget.url) {
+      _swipeStart = null;
+      _touchCount = 0;
       _file = BoardMediaCache.getFile(widget.url, 'pdf');
     }
+  }
+
+  void _onPointerDown(PointerDownEvent event) {
+    _touchCount++;
+    if (_touchCount == 1 && _pdfController.isReady) {
+      _swipeStart = event.position;
+      _swipePage = _pdfController.pageNumber ?? 1;
+    } else {
+      // Never interpret a two-finger pinch as a page turn.
+      _swipeStart = null;
+    }
+  }
+
+  void _onPointerUp(PointerUpEvent event) {
+    _touchCount = (_touchCount - 1).clamp(0, 10);
+    final start = _swipeStart;
+    _swipeStart = null;
+    if (_touchCount != 0 || start == null || !_pdfController.isReady) return;
+    final dx = event.position.dx - start.dx;
+    final dy = event.position.dy - start.dy;
+    if (dx.abs() < 64 || dx.abs() < dy.abs() * 1.3) return;
+
+    // When the reader has zoomed in, swiping pans the enlarged page.
+    // A deliberate horizontal swipe only flips pages at fit-to-page zoom.
+    if (_pdfController.currentZoom > _pdfController.minScale * 1.28) return;
+    final target = (_swipePage + (dx < 0 ? 1 : -1))
+        .clamp(1, _pdfController.pageCount);
+    _pdfController.goToPage(
+      pageNumber: target,
+      anchor: PdfPageAnchor.all,
+      duration: const Duration(milliseconds: 240),
+    );
+  }
+
+  void _onPointerCancel(PointerCancelEvent event) {
+    _touchCount = (_touchCount - 1).clamp(0, 10);
+    _swipeStart = null;
   }
 
   @override
@@ -174,9 +224,33 @@ class _CachedBoardPdfState extends State<CachedBoardPdf> {
       future: _file,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          return PdfViewer.file(
+          final viewer = PdfViewer.file(
             snapshot.data!.path,
+            controller: _pdfController,
             params: PdfViewerParams(
+              pageAnchor: widget.pageFlipEnabled
+                  ? PdfPageAnchor.all : PdfPageAnchor.top,
+              // The original PDF viewer still handles all pinch/zoom gestures.
+              layoutPages: widget.pageFlipEnabled ? (pages, params) {
+                var height = 0.0;
+                for (final page in pages) {
+                  if (page.height > height) height = page.height;
+                }
+                height += params.margin * 2;
+                final layouts = <Rect>[];
+                var left = params.margin;
+                for (final page in pages) {
+                  layouts.add(Rect.fromLTWH(
+                    left, (height - page.height) / 2,
+                    page.width, page.height,
+                  ));
+                  left += page.width + params.margin;
+                }
+                return PdfPageLayout(
+                  pageLayouts: layouts,
+                  documentSize: Size(left, height),
+                );
+              } : null,
               errorBannerBuilder: (context, error, stack, document) =>
                   BoardMediaError(
                 url: widget.url,
@@ -186,6 +260,14 @@ class _CachedBoardPdfState extends State<CachedBoardPdf> {
                 ),
               ),
             ),
+          );
+          if (!widget.pageFlipEnabled) return viewer;
+          return Listener(
+            behavior: HitTestBehavior.translucent,
+            onPointerDown: _onPointerDown,
+            onPointerUp: _onPointerUp,
+            onPointerCancel: _onPointerCancel,
+            child: viewer,
           );
         }
         if (snapshot.hasError) {
