@@ -258,14 +258,10 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
   /// Select only published novels for the current room/live language.
   /// Unsupported languages stay empty until their own PDF assets ship.
   Future<List<StoryLibraryEntry>> _availableLibraryBooks() async {
-    final code = widget.libraryLanguageCode
-        .trim().toLowerCase().split(RegExp(r'[-_]')).first;
     final index = await StoryLibraryRepository().loadIndex();
     final found = <StoryLibraryEntry>[];
-    for (final book in index) {
-      if (book.format != 'novel' || book.language.toLowerCase() != code) {
-        continue;
-      }
+    for (final book in libraryNovelsForSessionLanguage(
+        index, widget.libraryLanguageCode)) {
       try {
         final path = novelPdfAssetPathForEntry(book);
         final data = await rootBundle.load(path);
