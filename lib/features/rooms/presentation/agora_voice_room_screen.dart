@@ -3236,6 +3236,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
       MaterialPageRoute(
         builder: (_) => RoomBoardScreen(
           roomId: widget.channelId,
+          libraryLanguageCode: widget.roomLanguageCode ?? 'en',
           canWrite: _isHost || _featureState.boardWriteEnabled,
           isHost: _isHost,
           agoraController: _controller,
@@ -4539,6 +4540,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                 if (_boardVisible) SizedBox(
                   height: (constraints.maxHeight * .55).clamp(110.0, 320.0),
                   child: RoomBoardScreen(roomId: widget.channelId,
+                    libraryLanguageCode: widget.roomLanguageCode ?? 'en',
                     canWrite: _isHost || _featureState.boardWriteEnabled,
                     isHost: _isHost, agoraController: _controller, embedded: true,
                     onExpand: _expandBoard, onClose: _closeBoard)),
