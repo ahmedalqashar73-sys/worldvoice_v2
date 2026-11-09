@@ -2,6 +2,10 @@ import { createHash } from "node:crypto";
 import agoraToken from "agora-token";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
+export function canModeratorPresentBoard({boardOpen, moderator, status}) {
+  return boardOpen === true && moderator === true && status === 'accepted';
+}
+
 const { RtcRole, RtcTokenBuilder } = agoraToken;
 const firebasePublicKeys = createRemoteJWKSet(
   new URL(
@@ -211,7 +215,19 @@ async function agoraTokenForUser(request, env) {
     const role = participant.fields.role?.stringValue;
     if (requestedRole === "publisher" &&
         !["host", "coHost", "speaker", "vipSeat"].includes(role)) {
-      return json({ error: "Only stage members can publish room audio." }, 403);
+      const hostId = room.fields.hostId?.stringValue;
+      const moderator = participant.fields.isModerator?.booleanValue === true;
+      const boardOpen = room.fields.boardPresentationActive?.booleanValue === true;
+      const invitation = hostId && moderator && boardOpen
+        ? await firestoreDocument({
+            projectId: env.FIREBASE_PROJECT_ID,
+            path: `users/${encodeURIComponent(hostId)}/moderators/${encodeURIComponent(uid)}`,
+            idToken,
+          }) : null;
+      if (!canModeratorPresentBoard({boardOpen, moderator,
+          status: invitation?.fields ? (invitation.fields.status?.stringValue ?? 'accepted') : null})) {
+        return json({ error: "Only stage members or approved board moderators can publish." }, 403);
+      }
     }
   } else {
     const fields = session.fields;

@@ -112,6 +112,14 @@ class RoomFeatureService {
       }
       throw StateError(reason);
     }
+    // Save only after the server accepted the chosen entitlement.
+    final applied = await _room.get(const GetOptions(source: Source.server));
+    if (applied.data()?['themeId'] == themeId) {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'preferredRoomThemeId': themeId,
+        'preferredRoomBackgroundUrl': applied.data()?['backgroundUrl'],
+      }, SetOptions(merge: true));
+    }
   }
 
   /// Host-only shared presentation, watched by all room members.
@@ -144,7 +152,8 @@ class RoomFeatureService {
   Future<void> setScreenSharing({required bool active, int? sharerUid}) async {
     await FirebaseFirestore.instance.runTransaction((transaction) async {
       final room = await transaction.get(_room);
-      if (active && room.data()?['boardMediaId'] != null) {
+      if (active && (room.data()?['boardMediaId'] != null ||
+          room.data()?['screenShareActive'] == true)) {
         throw StateError('Stop the current media presentation first.');
       }
       transaction.update(_room, {

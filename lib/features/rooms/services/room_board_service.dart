@@ -69,7 +69,11 @@ class RoomBoardService {
     await _db.runTransaction((transaction) async {
       final room = await transaction.get(_room);
       final data = room.data() ?? {};
-      if (data['hostId'] != user.uid) throw StateError('Only the host can present media.');
+      final member = collectionName == 'rooms'
+          ? await transaction.get(_room.collection('participants').doc(user.uid)) : null;
+      if (data['hostId'] != user.uid && member?.data()?['isModerator'] != true) {
+        throw StateError('Only the host or a moderator can present media.');
+      }
       if (data['screenShareActive'] == true || data['boardMediaId'] != null) {
         throw StateError('Stop the current presentation first.');
       }

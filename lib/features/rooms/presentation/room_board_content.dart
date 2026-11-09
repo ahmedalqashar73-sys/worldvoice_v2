@@ -142,7 +142,7 @@ class _BoardVideoState extends State<BoardVideo> {
 
 
 /// A PDF opened in a room is cached locally, with optional page-by-page
-/// horizontal swipes for the room board. Pinch zoom and free pan remain intact.
+/// buttons for the room board. Pinch zoom and free pan remain intact.
 class CachedBoardPdf extends StatefulWidget {
   const CachedBoardPdf({
     required this.url,
@@ -160,10 +160,8 @@ class CachedBoardPdf extends StatefulWidget {
 
 class _CachedBoardPdfState extends State<CachedBoardPdf> {
   late Future<File> _file;
-  final PdfViewerController _pdfController = PdfViewerController();
-  Offset? _swipeStart;
-  int _touchCount = 0;
-  int _swipePage = 1;
+  int _page = 1;
+  final _pageZoom = TransformationController();
 
   @override
   void initState() {
@@ -175,52 +173,22 @@ class _CachedBoardPdfState extends State<CachedBoardPdf> {
   void didUpdateWidget(covariant CachedBoardPdf oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.url != widget.url) {
-      _swipeStart = null;
-      _touchCount = 0;
+      _page = 1;
+      _pageZoom.value = Matrix4.identity();
       _file = BoardMediaCache.getFile(widget.url, 'pdf');
     }
   }
 
-  void _onPointerDown(PointerDownEvent event) {
-    _touchCount++;
-    if (_touchCount == 1 && _pdfController.isReady) {
-      _swipeStart = event.position;
-      _swipePage = _pdfController.pageNumber ?? 1;
-    } else {
-      // Never interpret a two-finger pinch as a page turn.
-      _swipeStart = null;
-    }
+  @override
+  void dispose() {
+    _pageZoom.dispose();
+    super.dispose();
   }
 
-  void _onPointerUp(PointerUpEvent event) {
-    _touchCount = (_touchCount - 1).clamp(0, 10).toInt();
-    final start = _swipeStart;
-    _swipeStart = null;
-    if (_touchCount != 0 || start == null || !_pdfController.isReady) return;
-    final dx = event.position.dx - start.dx;
-    final dy = event.position.dy - start.dy;
-    if (dx.abs() < 64 || dx.abs() < dy.abs() * 1.3) return;
-
-    // When the reader has zoomed in, swiping pans the enlarged page.
-    // A deliberate horizontal swipe only flips pages at fit-to-page zoom.
-    final fitMatrix = _pdfController.calcMatrixForFit(
-      pageNumber: _swipePage,
-    );
-    final fitZoom = fitMatrix?.getMaxScaleOnAxis() ?? _pdfController.minScale;
-    if (_pdfController.currentZoom > fitZoom * 1.20) return;
-    final target = (_swipePage + (dx < 0 ? 1 : -1))
-        .clamp(1, _pdfController.pageCount).toInt();
-    _pdfController.goToPage(
-      pageNumber: target,
-      anchor: PdfPageAnchor.all,
-      duration: const Duration(milliseconds: 240),
-    );
-  }
-
-  void _onPointerCancel(PointerCancelEvent event) {
-    _touchCount = (_touchCount - 1).clamp(0, 10).toInt();
-    _swipeStart = null;
-  }
+  void _turnPage(int page) => setState(() {
+    _page = page;
+    _pageZoom.value = Matrix4.identity();
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -228,50 +196,42 @@ class _CachedBoardPdfState extends State<CachedBoardPdf> {
       future: _file,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          final viewer = PdfViewer.file(
+          if (!widget.pageFlipEnabled) {
+            return PdfViewer.file(snapshot.data!.path);
+          }
+          final ar = Localizations.localeOf(context).languageCode == 'ar';
+          return PdfDocumentViewBuilder.file(
             snapshot.data!.path,
-            controller: _pdfController,
-            params: PdfViewerParams(
-              pageAnchor: widget.pageFlipEnabled
-                  ? PdfPageAnchor.all : PdfPageAnchor.top,
-              // The original PDF viewer still handles all pinch/zoom gestures.
-              layoutPages: widget.pageFlipEnabled ? (pages, params) {
-                var height = 0.0;
-                for (final page in pages) {
-                  if (page.height > height) height = page.height;
-                }
-                height += params.margin * 2;
-                final layouts = <Rect>[];
-                var left = params.margin;
-                for (final page in pages) {
-                  layouts.add(Rect.fromLTWH(
-                    left, (height - page.height) / 2,
-                    page.width, page.height,
-                  ));
-                  left += page.width + params.margin;
-                }
-                return PdfPageLayout(
-                  pageLayouts: layouts,
-                  documentSize: Size(left, height),
-                );
-              } : null,
-              errorBannerBuilder: (context, error, stack, document) =>
-                  BoardMediaError(
-                url: widget.url,
-                error: error.toString(),
-                onRetry: () => setState(
-                  () => _file = BoardMediaCache.getFile(widget.url, 'pdf'),
-                ),
-              ),
-            ),
-          );
-          if (!widget.pageFlipEnabled) return viewer;
-          return Listener(
-            behavior: HitTestBehavior.translucent,
-            onPointerDown: _onPointerDown,
-            onPointerUp: _onPointerUp,
-            onPointerCancel: _onPointerCancel,
-            child: viewer,
+            key: ValueKey(widget.url),
+            errorBuilder: (context, error, stack) => BoardMediaError(
+              url: widget.url, error: error.toString()),
+            builder: (context, document) {
+              if (document == null) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              return Column(children: [
+                Expanded(child: InteractiveViewer(
+                  transformationController: _pageZoom,
+                  minScale: 1, maxScale: 5,
+                  child: Center(child: PdfPageView(
+                    document: document, pageNumber: _page,
+                  )),
+                )),
+                Directionality(textDirection: TextDirection.ltr,
+                  child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    IconButton(key: const ValueKey('board-pdf-previous'),
+                      tooltip: ar ? 'الصفحة السابقة' : 'Previous page',
+                      onPressed: _page > 1 ? () => _turnPage(_page - 1) : null,
+                      icon: const Icon(Icons.chevron_left)),
+                    Text('$_page / ${document.pages.length}'),
+                    IconButton(key: const ValueKey('board-pdf-next'),
+                      tooltip: ar ? 'الصفحة التالية' : 'Next page',
+                      onPressed: _page < document.pages.length
+                          ? () => _turnPage(_page + 1) : null,
+                      icon: const Icon(Icons.chevron_right)),
+                  ])),
+              ]);
+            },
           );
         }
         if (snapshot.hasError) {

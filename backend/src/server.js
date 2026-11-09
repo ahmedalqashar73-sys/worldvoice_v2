@@ -1223,9 +1223,17 @@ app.post("/agora/token", async (req, res, next) => {
       }
       const participant = participantSnap.data() || {};
       if (requestedRole === "publisher" && !isStageRole(participant.role)) {
-        return res.status(403).json({
-          error: "This participant is not allowed to publish room audio.",
-        });
+        const hostId = roomSnap.data()?.hostId;
+        const moderator = hostId && participant.isModerator === true &&
+            roomSnap.data()?.boardPresentationActive === true
+          ? await db.collection("users").doc(hostId).collection("moderators").doc(user.uid).get()
+          : null;
+        if (!moderator?.exists ||
+            (moderator.data()?.status ?? "accepted") !== "accepted" || participant.kicked === true) {
+          return res.status(403).json({
+            error: "Only stage members or approved board moderators can publish.",
+          });
+        }
       }
     } else if (liveSnap.exists) {
       const live = liveSnap.data() || {};

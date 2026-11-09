@@ -691,3 +691,27 @@ test('pending and declined moderators have no room or live authority; revocation
   await assertFails(setDoc(doc(target, 'rooms/r1/mod_log/forged'), {action:'mute'}));
   await assertSucceeds(updateDoc(member(target, 'listener'), {isModerator:false,updatedAt:serverTimestamp()}));
 });
+
+test('accepted room moderator can present PDF and screen without host controls', async () => {
+  await env.withSecurityRulesDisabled(async ctx => {
+    const db = ctx.firestore();
+    await setDoc(doc(db, 'users/host/moderators/mod'), {status: 'accepted'});
+    await setDoc(member(db, 'mod'), {...participant('mod'), isModerator: true});
+    await updateDoc(room(db), {boardWriteEnabled: false});
+  });
+  const db = user('mod');
+  const batch = writeBatch(db);
+  batch.set(doc(db, 'rooms/r1/board_items/pdf'), {
+    type: 'pdf', url: 'https://example.com/book.pdf', name: 'Book',
+    userId: 'mod', createdAt: serverTimestamp(),
+  });
+  batch.update(room(db), {boardMediaId: 'pdf'});
+  await assertSucceeds(batch.commit());
+  await assertSucceeds(updateDoc(room(db), {screenShareActive: true, screenSharerUid: 123}));
+  await assertFails(updateDoc(room(db), {isOpen: false}));
+  await assertFails(updateDoc(room(db), {boardWriteEnabled: true}));
+  await assertFails(updateDoc(room(user('listener')), {boardMediaId: 'pdf'}));
+  await env.withSecurityRulesDisabled(ctx => updateDoc(
+    doc(ctx.firestore(), 'users/host/moderators/mod'), {status: 'revoked'}));
+  await assertFails(updateDoc(room(db), {screenShareActive: false}));
+});

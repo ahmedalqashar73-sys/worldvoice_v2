@@ -59,7 +59,7 @@ class RoomModerationService {
             .trim();
     final photoUrl = (data['photoUrl'] as String?)?.trim();
     final frameId = (data['profileFrameId'] as String?)?.trim();
-    final profileLanguageCode = (data['nativeLanguageCode'] ?? 'en')
+    final profileLanguageCode = (data['preferredRoomLanguage'] ?? 'en')
         .toString()
         .trim();
     final languageCode =
@@ -158,21 +158,28 @@ class RoomModerationService {
         'hostName': displayName.isEmpty ? 'WorldVoice user' : displayName,
         'hostPhotoUrl': photoUrl,
         'hostCountry': country,
-        'languageCode': languageCode.isEmpty ? 'en' : languageCode,
-        'languageCodes': [
-          languageCode.isEmpty ? 'en' : languageCode,
-          if (secondaryRoomLanguageCode != null &&
-              secondaryRoomLanguageCode!.isNotEmpty &&
-              secondaryRoomLanguageCode!.toLowerCase() != languageCode)
-            secondaryRoomLanguageCode!.toLowerCase(),
-        ],
+        if (!existingRoom.exists) ...{
+          'languageCode': languageCode.isEmpty ? 'en' : languageCode,
+          'languageCodes': [
+            languageCode.isEmpty ? 'en' : languageCode,
+            if (secondaryRoomLanguageCode != null &&
+                secondaryRoomLanguageCode!.isNotEmpty &&
+                secondaryRoomLanguageCode!.toLowerCase() != languageCode)
+              secondaryRoomLanguageCode!.toLowerCase(),
+          ],
+        },
         'showTeacherAiSeat': initialShowTeacherAiSeat,
         'isPrivate': initialIsPrivate,
         'vipOnly': initialVipOnly,
         // Existing progression is server-owned; do not replay a stale read.
         if (!existingRoom.exists) 'roomLevel': 1,
         if (!existingRoom.exists) 'roomXp': 0,
-        'themeId': existingData?['themeId'] ?? 'softGreenFlow',
+        // Never replay a stale theme while rejoining an existing room.
+        if (!existingRoom.exists) ...{
+          'themeId': data['preferredRoomThemeId'] ?? 'softGreenFlow',
+          if (data['preferredRoomBackgroundUrl'] != null)
+            'backgroundUrl': data['preferredRoomBackgroundUrl'],
+        },
         'mode': initialMode.name,
         'boardWriteEnabled': initialMode != RoomMode.lesson,
         'musicPlaying': existingData?['musicPlaying'] ?? false,

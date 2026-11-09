@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import worker, {
   validChannelName,
+  canModeratorPresentBoard,
   agoraUidForFirebaseUid,
   tokenSessionCollection,
   isAllowedGroupCallPublisher,
@@ -144,4 +145,15 @@ test("nonexistent path rejects requests", async () => {
     {},
   );
   assert.equal(response.status, 404);
+});
+
+
+test('board publishing requires current moderator acceptance and an open board', () => {
+  const input = {boardOpen: true, moderator: true, status: 'accepted'};
+  assert.equal(canModeratorPresentBoard(input), true);
+  assert.equal(canModeratorPresentBoard({...input, moderator: false}), false);
+  assert.equal(canModeratorPresentBoard({...input, boardOpen: false}), false);
+  for (const status of ['pending', 'revoked', null]) {
+    assert.equal(canModeratorPresentBoard({...input, status}), false);
+  }
 });

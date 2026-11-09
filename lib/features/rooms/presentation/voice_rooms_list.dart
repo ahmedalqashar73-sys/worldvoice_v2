@@ -217,16 +217,16 @@ class _VoiceRoomsListState extends State<VoiceRoomsList>
 
     if (!context.mounted) return;
 
-    final initialLanguage = _selectedLanguage == null ||
-            _selectedLanguage == 'all'
-        ? prefs.nativeLanguage
-        : _selectedLanguage!;
+    final profile = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    final initialLanguage = (profile.data()?['preferredRoomLanguage'] ?? 'en').toString();
+    final roomLanguages = <String>{'en', ...prefs.roomLanguages, initialLanguage}.toList();
+    if (!context.mounted) return;
 
     final result = await Navigator.of(context).push<CreateRoomResult>(
       MaterialPageRoute(
         builder: (_) => CreateRoomPage(
         isArabic: _isArabic,
-        languageOptions: prefs.roomLanguages,
+        languageOptions: roomLanguages,
         initialLanguage: initialLanguage,
         giftLevel: prefs.giftLevel,
         fixedMode: widget.onlyLive ? RoomMode.live : null,
@@ -235,6 +235,11 @@ class _VoiceRoomsListState extends State<VoiceRoomsList>
     );
 
     if (result == null || !context.mounted) return;
+
+    await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+      'preferredRoomLanguage': result.languageCode,
+    }, SetOptions(merge: true));
+    if (!context.mounted) return;
 
     final privateCode = result.isPrivate ? _makePrivateCode() : null;
 

@@ -1367,6 +1367,12 @@ service cloud.firestore {
                 )
               )
             )
+            || (
+              isModerator(roomId)
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                'boardMediaId', 'screenShareActive', 'screenSharerUid', 'updatedAt'
+              ])
+            )
             ||
             (
               !oldHostStillPresent(roomId)
@@ -1488,6 +1494,7 @@ service cloud.firestore {
             && request.resource.data.userId == request.auth.uid
             && (
               isHost(roomId)
+              || isModerator(roomId)
               || get(roomPath(roomId)).data.boardWriteEnabled == true
             );
         allow update: if false;

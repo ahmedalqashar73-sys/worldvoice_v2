@@ -24,6 +24,7 @@ class RoomBoardScreen extends StatefulWidget {
     required this.roomId,
     required this.canWrite,
     required this.isHost,
+    this.isModerator = false,
     required this.agoraController,
     this.parentCollection = 'rooms',
     this.libraryLanguageCode = 'en',
@@ -39,6 +40,8 @@ class RoomBoardScreen extends StatefulWidget {
   final String roomId;
   final bool canWrite;
   final bool isHost;
+  final bool isModerator;
+  bool get canPresent => isHost || (parentCollection == 'rooms' && isModerator);
   final AgoraVoiceRoomController agoraController;
   final String parentCollection;
   final String libraryLanguageCode;
@@ -129,18 +132,29 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
   }
 
   bool _sharingBusy = false;
+  AgoraRoomRole? _roleBeforeSharing;
+  Future<void> _stopOwnScreenShare() async {
+    await widget.agoraController.stopScreenShare();
+    final previous = _roleBeforeSharing;
+    _roleBeforeSharing = null;
+    if (previous != null) await widget.agoraController.switchRole(previous);
+  }
   Future<void> _toggleScreenShare() async {
-    if (_sharingBusy) return;
+    if (_sharingBusy || !widget.canPresent) return;
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     setState(() => _sharingBusy = true);
     try {
       final controller = widget.agoraController;
       if (controller.screenSharing) {
-        await controller.stopScreenShare();
+        await _stopOwnScreenShare();
         await _features.setScreenSharing(active: false);
       } else {
         if (!controller.joined) {
           await controller.ensureConnected(channelId: widget.roomId, role: AgoraRoomRole.speaker);
+        }
+        if (controller.role != AgoraRoomRole.speaker) {
+          _roleBeforeSharing = controller.role;
+          await controller.switchRole(AgoraRoomRole.speaker, startMuted: true);
         }
         await controller.startScreenShare();
         if (!controller.screenSharing || controller.localUid == null) {
@@ -149,11 +163,12 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
         try {
           await _features.setScreenSharing(active: true, sharerUid: controller.localUid!);
         } catch (_) {
-          await controller.stopScreenShare();
+          await _stopOwnScreenShare();
           rethrow;
         }
       }
     } catch (error) {
+      if (_roleBeforeSharing != null) await _stopOwnScreenShare();
       if (mounted) {
         await showDialog<void>(context: context, builder: (ctx) => AlertDialog(
           title: Text(ar ? 'تعذر بدء مشاركة الشاشة' : 'Screen sharing could not start'),
@@ -278,7 +293,7 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
   }
 
   Future<void> _openLibraryPicker() async {
-    if (!widget.isHost || _uploading || _sharingBusy) return;
+    if (!widget.canPresent || _uploading || _sharingBusy) return;
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     final language = widget.libraryLanguageCode
         .trim().toUpperCase().split(RegExp(r'[-_]')).first;
@@ -351,7 +366,7 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
   /// Reuses the existing PDF upload and shared board media channel.
   /// No new backend or permission model is introduced.
   Future<void> _shareLibraryBook(StoryLibraryEntry book) async {
-    if (!widget.isHost || _uploading) return;
+    if (!widget.canPresent || _uploading) return;
     setState(() => _uploading = true);
     File? temporary;
     try {
@@ -435,7 +450,7 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
           final selected = docs.where((doc) => doc.id == featureState?.boardMediaId).firstOrNull;
           final sharing = featureState?.screenShareActive == true;
           final presenting = sharing || featureState?.boardMediaId != null;
-          final canWrite = widget.isHost ||
+          final canWrite = widget.canPresent ||
               (widget.canWrite && (featureState?.boardWriteEnabled ?? true));
           _scope = sharing ? 'screen:${featureState?.screenSharerUid}' : (featureState?.boardMediaId ?? 'board');
           final strokes = docs.where((doc) => doc.data()['type'] == 'stroke' &&
@@ -517,14 +532,14 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                   IconButton(tooltip: isArabic ? 'تكبير' : 'Zoom in', onPressed: () => _zoom(1.25), icon: const Icon(Icons.zoom_in)),
                   IconButton(tooltip: isArabic ? 'تصغير' : 'Zoom out', onPressed: () => _zoom(.8), icon: const Icon(Icons.zoom_out)),
                   IconButton(tooltip: isArabic ? 'الحجم الأصلي' : 'Reset zoom', onPressed: () => _transform.value = Matrix4.identity(), icon: const Icon(Icons.center_focus_strong)),
-                  if (widget.isHost && presenting) IconButton(
+                  if (widget.canPresent && presenting) IconButton(
                     tooltip: isArabic ? 'إيقاف العرض الحالي' : 'Stop presentation',
                     onPressed: _sharingBusy || _uploading ? null : () => _boardAction(() async {
-                      if (sharing) { await widget.agoraController.stopScreenShare(); await _features.setScreenSharing(active: false); } else { await _service.stopMedia(); }
+                      if (sharing) { await _stopOwnScreenShare(); await _features.setScreenSharing(active: false); } else { await _service.stopMedia(); }
                       _transform.value = Matrix4.identity();
                     }), icon: const Icon(Icons.stop_circle_outlined)),
-                  if (widget.isHost) IconButton(tooltip: isArabic ? 'مشاركة الشاشة / إيقاف' : 'Start / stop screen sharing',
-                    onPressed: _sharingBusy || _uploading || (presenting && !sharing) ? null : _toggleScreenShare,
+                  if (widget.canPresent) IconButton(tooltip: isArabic ? 'مشاركة الشاشة / إيقاف' : 'Start / stop screen sharing',
+                    onPressed: _sharingBusy || _uploading || (presenting && !widget.agoraController.screenSharing) ? null : _toggleScreenShare,
                     icon: Icon(widget.agoraController.screenSharing ? Icons.stop_screen_share : Icons.screen_share)),
                   if (canWrite) ...[
                     IconButton(tooltip: isArabic ? 'ألوان القلم والسماكة' : 'Pen colors and width',
@@ -540,10 +555,10 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                       onPressed: _boardBusy || !_service.canRedo ? null : () => _boardAction(() => _service.redoStroke(scope: _scope)),
                       icon: const Icon(Icons.redo)),
                     IconButton(tooltip: isArabic ? 'نص' : 'Text', onPressed: _addText, icon: const Icon(Icons.text_fields)),
-                    IconButton(tooltip: isArabic ? 'صورة' : 'Image', onPressed: !widget.isHost || _uploading || _sharingBusy || presenting ? null : () => _pickAndUpload('image'), icon: const Icon(Icons.image_outlined)),
-                    IconButton(tooltip: isArabic ? 'فيديو' : 'Video', onPressed: !widget.isHost || _uploading || _sharingBusy || presenting ? null : () => _pickAndUpload('video'), icon: const Icon(Icons.video_file_outlined)),
-                    IconButton(tooltip: 'PDF', onPressed: !widget.isHost || _uploading || _sharingBusy || presenting ? null : () => _pickAndUpload('pdf'), icon: const Icon(Icons.folder_open)),
-                    if (widget.isHost) IconButton(
+                    IconButton(tooltip: isArabic ? 'صورة' : 'Image', onPressed: !widget.canPresent || _uploading || _sharingBusy || presenting ? null : () => _pickAndUpload('image'), icon: const Icon(Icons.image_outlined)),
+                    IconButton(tooltip: isArabic ? 'فيديو' : 'Video', onPressed: !widget.canPresent || _uploading || _sharingBusy || presenting ? null : () => _pickAndUpload('video'), icon: const Icon(Icons.video_file_outlined)),
+                    IconButton(tooltip: 'PDF', onPressed: !widget.canPresent || _uploading || _sharingBusy || presenting ? null : () => _pickAndUpload('pdf'), icon: const Icon(Icons.folder_open)),
+                    if (widget.canPresent) IconButton(
                       key: const ValueKey('board-worldvoice-library'),
                       tooltip: isArabic ? 'مشاركة رواية من المكتبة' : 'Share a WorldVoice Library book',
                       onPressed: _uploading || _sharingBusy || presenting ? null : _openLibraryPicker,
