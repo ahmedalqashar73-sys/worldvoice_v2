@@ -1,10 +1,16 @@
 import 'dart:io';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:path_provider/path_provider.dart';
 
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'room_board_content.dart';
+
+import '../../learn/data/story_library_repository.dart';
+import '../../learn/domain/models/story_library_models.dart';
+import '../../learn/presentation/story_novel_pdf_reader_screen.dart';
 
 import '../../../core/media/cloudinary_image_service.dart';
 import '../data/room_feature_models.dart';
@@ -20,6 +26,7 @@ class RoomBoardScreen extends StatefulWidget {
     required this.isHost,
     required this.agoraController,
     this.parentCollection = 'rooms',
+    this.libraryLanguageCode = 'en',
     this.embedded = false,
     this.onClose,
     this.onExpand,
@@ -34,6 +41,7 @@ class RoomBoardScreen extends StatefulWidget {
   final bool isHost;
   final AgoraVoiceRoomController agoraController;
   final String parentCollection;
+  final String libraryLanguageCode;
 
   @override
   State<RoomBoardScreen> createState() => _RoomBoardScreenState();
@@ -247,6 +255,149 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
     }
   }
 
+  /// Select only published novels for the current room/live language.
+  /// Unsupported languages stay empty until their own PDF assets ship.
+  Future<List<StoryLibraryEntry>> _availableLibraryBooks() async {
+    final code = widget.libraryLanguageCode
+        .trim().toLowerCase().split(RegExp(r'[-_]')).first;
+    final index = await StoryLibraryRepository().loadIndex();
+    final found = <StoryLibraryEntry>[];
+    for (final book in index) {
+      if (book.format != 'novel' || book.language.toLowerCase() != code) {
+        continue;
+      }
+      try {
+        final path = novelPdfAssetPathForEntry(book);
+        final data = await rootBundle.load(path);
+        if (data.lengthInBytes >= 128 &&
+            String.fromCharCodes(data.buffer.asUint8List(
+              data.offsetInBytes, 5)) == '%PDF-') {
+          found.add(book);
+        }
+      } catch (_) {
+        // A catalog entry without a bundled PDF must not be shared.
+      }
+    }
+    return found;
+  }
+
+  Future<void> _openLibraryPicker() async {
+    if (!widget.isHost || _uploading || _sharingBusy) return;
+    final ar = Localizations.localeOf(context).languageCode == 'ar';
+    final language = widget.libraryLanguageCode
+        .trim().toUpperCase().split(RegExp(r'[-_]')).first;
+    final books = _availableLibraryBooks();
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheet) => SizedBox(
+        height: MediaQuery.sizeOf(sheet).height * 0.58,
+        child: Column(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.auto_stories_outlined),
+              title: Text(ar ? 'كتب WorldVoice Library' : 'WorldVoice Library books'),
+              subtitle: Text(ar
+                  ? 'تُعرض روايات لغة الجلسة فقط: ' + language
+                  : 'Only ' + language + ' session books are shown'),
+            ),
+            Expanded(
+              child: FutureBuilder<List<StoryLibraryEntry>>(
+                future: books,
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Center(child: Text(ar
+                        ? 'تعذر تحميل مكتبة الروايات'
+                        : 'Could not load the book library'));
+                  }
+                  if (!snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.data!.isEmpty) {
+                    return Center(child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Text(
+                        ar
+                            ? 'لا توجد روايات PDF منشورة لهذه اللغة حتى الآن.'
+                            : 'No published PDF novels for this language yet.',
+                        textAlign: TextAlign.center,
+                      ),
+                    ));
+                  }
+                  return ListView.builder(
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      final book = snapshot.data![index];
+                      return ListTile(
+                        key: ValueKey('board-library-book-' + book.id),
+                        leading: const Icon(Icons.picture_as_pdf_outlined),
+                        title: Text(book.title),
+                        subtitle: Text(book.level + ' · PDF'),
+                        trailing: const Icon(Icons.present_to_all_rounded),
+                        onTap: () {
+                          Navigator.of(sheet).pop();
+                          _shareLibraryBook(book);
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Reuses the existing PDF upload and shared board media channel.
+  /// No new backend or permission model is introduced.
+  Future<void> _shareLibraryBook(StoryLibraryEntry book) async {
+    if (!widget.isHost || _uploading) return;
+    setState(() => _uploading = true);
+    File? temporary;
+    try {
+      final path = novelPdfAssetPathForEntry(book);
+      final bytes = await rootBundle.load(path);
+      final directory = await getTemporaryDirectory();
+      temporary = File(directory.path + Platform.pathSeparator +
+          'wv_library_' + book.id + '_' +
+          DateTime.now().microsecondsSinceEpoch.toString() + '.pdf');
+      await temporary.writeAsBytes(bytes.buffer.asUint8List(
+        bytes.offsetInBytes, bytes.lengthInBytes), flush: true);
+      final folder = 'worldvoice/' + widget.parentCollection + '/' +
+          widget.roomId + '/board';
+      final upload = await CloudinaryImageService.uploadRaw(
+        temporary, folder: folder);
+      try {
+        await BoardMediaCache.rememberLocalCopy(
+          url: upload.url, type: 'pdf', source: temporary);
+      } catch (_) {
+        // Other attendees can still load the PDF via its shared URL.
+      }
+      await _service.addMedia(
+        type: 'pdf', url: upload.url, name: book.title + '.pdf');
+      if (mounted) setState(() => _drawing = false);
+    } catch (error) {
+      if (mounted) {
+        final ar = Localizations.localeOf(context).languageCode == 'ar';
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(ar
+              ? 'تعذر مشاركة الرواية، حاول مجددًا.'
+              : 'Could not share this book. Please retry.'),
+        ));
+      }
+    } finally {
+      if (temporary != null) {
+        try { if (await temporary.exists()) await temporary.delete(); }
+        catch (_) { /* Temporary cleanup is best effort. */ }
+      }
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
+
   Future<void> _saveStroke(Size size) async {
     if (_draft.length < 2 || size.width <= 0 || size.height <= 0) {
       _draft.clear();
@@ -393,6 +544,11 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                     IconButton(tooltip: isArabic ? 'صورة' : 'Image', onPressed: !widget.isHost || _uploading || _sharingBusy || presenting ? null : () => _pickAndUpload('image'), icon: const Icon(Icons.image_outlined)),
                     IconButton(tooltip: isArabic ? 'فيديو' : 'Video', onPressed: !widget.isHost || _uploading || _sharingBusy || presenting ? null : () => _pickAndUpload('video'), icon: const Icon(Icons.video_file_outlined)),
                     IconButton(tooltip: 'PDF', onPressed: !widget.isHost || _uploading || _sharingBusy || presenting ? null : () => _pickAndUpload('pdf'), icon: const Icon(Icons.folder_open)),
+                    if (widget.isHost) IconButton(
+                      key: const ValueKey('board-worldvoice-library'),
+                      tooltip: isArabic ? 'مشاركة رواية من المكتبة' : 'Share a WorldVoice Library book',
+                      onPressed: _uploading || _sharingBusy || presenting ? null : _openLibraryPicker,
+                      icon: const Icon(Icons.menu_book_outlined)),
                   ],
                   if (widget.isHost) IconButton(
                     tooltip: (featureState?.boardWriteEnabled ?? true)
