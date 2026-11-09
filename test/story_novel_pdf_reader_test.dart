@@ -61,6 +61,39 @@ void main() {
     expect(() => novelPdfAssetPathForEntry(invalid), throwsArgumentError);
   });
 
+  test('room/live book picker never mixes session languages', () {
+    StoryLibraryEntry novel(String language, String id) => StoryLibraryEntry(
+      id: id,
+      language: language,
+      level: 'A1',
+      title: id,
+      titleAr: id,
+      asset: 'assets/stories/' + language + '/A1/' + id + '.json',
+      format: 'novel',
+    );
+    final books = <StoryLibraryEntry>[
+      novel('en', 'english_novel'),
+      novel('es', 'spanish_novel'),
+      novel('ar', 'arabic_novel'),
+      const StoryLibraryEntry(
+        id: 'english_short',
+        language: 'en',
+        level: 'A1',
+        title: 'Short',
+        titleAr: 'قصير',
+        asset: 'assets/stories/en/A1/english_short.json',
+        format: 'textbook',
+      ),
+    ];
+    expect(libraryNovelsForSessionLanguage(books, 'en-US')
+        .map((book) => book.id), ['english_novel']);
+    expect(libraryNovelsForSessionLanguage(books, 'es')
+        .map((book) => book.id), ['spanish_novel']);
+    expect(libraryNovelsForSessionLanguage(books, 'ar')
+        .map((book) => book.id), ['arabic_novel']);
+    expect(libraryNovelsForSessionLanguage(books, 'ko'), isEmpty);
+  });
+
   test('all five original PDF books are bundled and have valid headers',
       () async {
     for (final title in titles) {
