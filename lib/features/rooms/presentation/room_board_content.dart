@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/gestures.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:video_player/video_player.dart';
 
