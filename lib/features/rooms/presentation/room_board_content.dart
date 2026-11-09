@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:video_player/video_player.dart';
 
@@ -193,7 +194,7 @@ class _CachedBoardPdfState extends State<CachedBoardPdf> {
   }
 
   void _onPointerUp(PointerUpEvent event) {
-    _touchCount = (_touchCount - 1).clamp(0, 10);
+    _touchCount = (_touchCount - 1).clamp(0, 10).toInt();
     final start = _swipeStart;
     _swipeStart = null;
     if (_touchCount != 0 || start == null || !_pdfController.isReady) return;
@@ -203,9 +204,13 @@ class _CachedBoardPdfState extends State<CachedBoardPdf> {
 
     // When the reader has zoomed in, swiping pans the enlarged page.
     // A deliberate horizontal swipe only flips pages at fit-to-page zoom.
-    if (_pdfController.currentZoom > _pdfController.minScale * 1.28) return;
+    final fitMatrix = _pdfController.calcMatrixForFit(
+      pageNumber: _swipePage,
+    );
+    final fitZoom = fitMatrix?.getMaxScaleOnAxis() ?? _pdfController.minScale;
+    if (_pdfController.currentZoom > fitZoom * 1.20) return;
     final target = (_swipePage + (dx < 0 ? 1 : -1))
-        .clamp(1, _pdfController.pageCount);
+        .clamp(1, _pdfController.pageCount).toInt();
     _pdfController.goToPage(
       pageNumber: target,
       anchor: PdfPageAnchor.all,
@@ -214,7 +219,7 @@ class _CachedBoardPdfState extends State<CachedBoardPdf> {
   }
 
   void _onPointerCancel(PointerCancelEvent event) {
-    _touchCount = (_touchCount - 1).clamp(0, 10);
+    _touchCount = (_touchCount - 1).clamp(0, 10).toInt();
     _swipeStart = null;
   }
 
