@@ -460,7 +460,7 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                       child: Stack(fit: StackFit.expand, children: [
                       if (sharing) _LiveScreenShare(roomId: widget.roomId,
                         sharerUid: featureState?.screenSharerUid, controller: widget.agoraController),
-                      if (selected != null) _BoardContentCard(key: ValueKey(selected.id), data: selected.data()),
+                      if (selected != null) _BoardContentCard(key: ValueKey(selected.id), data: selected.data(), roomPageFlip: widget.parentCollection == 'rooms'),
                       if (texts.isNotEmpty) IgnorePointer(child: Align(alignment: Alignment.topLeft,
                         child: Padding(padding: const EdgeInsets.all(12), child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min,
@@ -729,8 +729,9 @@ class _BoardPainter extends CustomPainter {
 }
 
 class _BoardContentCard extends StatelessWidget {
-  const _BoardContentCard({required this.data, super.key});
+  const _BoardContentCard({required this.data, this.roomPageFlip = false, super.key});
   final Map<String, dynamic> data;
+  final bool roomPageFlip;
   @override
   Widget build(BuildContext context) {
     final type = data['type'];
@@ -742,7 +743,7 @@ class _BoardContentCard extends StatelessWidget {
       return BoardVideo(key: ValueKey(url), url: url);
     }
     if (type == 'pdf' && url.isNotEmpty) {
-      return CachedBoardPdf(key: ValueKey(url), url: url);
+      return CachedBoardPdf(key: ValueKey(url), url: url, pageFlipEnabled: roomPageFlip);
     }
     return SingleChildScrollView(padding: const EdgeInsets.all(12),
       child: Text(data['text']?.toString() ?? '', style: const TextStyle(color: Colors.white, fontSize: 20)));
