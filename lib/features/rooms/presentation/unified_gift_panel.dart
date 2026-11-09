@@ -43,15 +43,22 @@ class UnifiedGiftPanel extends StatefulWidget {
 class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
   late final Future<List<RoomGiftCatalogItem>> _classicPreviews =
       ClassicGiftCatalog.load();
-  late final Stream<DocumentSnapshot<Map<String, dynamic>>>? _rewardInventory =
-      FirebaseAuth.instance.currentUser == null
-      ? null
-      : FirebaseFirestore.instance
-            .collection('users')
-            .doc(FirebaseAuth.instance.currentUser!.uid)
-            .collection('inventory')
-            .doc('gift__wv_gift_001')
-            .snapshots();
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _inventorySubscription;
+  Map<String, Map<String, dynamic>> _giftInventory = {};
+
+  int _rewardCount(String? giftId) {
+    final data = _giftInventory[giftId];
+    final expiry = (data?['expiresAt'] as Timestamp?)?.toDate();
+    if (expiry != null && !expiry.isAfter(DateTime.now())) return 0;
+    final count = data?['freeGiftBalance'];
+    return count is int && count > 0 ? count : 0;
+  }
+
+  @override
+  void dispose() {
+    _inventorySubscription?.cancel();
+    super.dispose();
+  }
   bool _ownerBetaAvailable = false;
   bool _ownerBetaChecking = true;
   String _ownerBetaReason = 'CHECKING';
@@ -60,6 +67,21 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
   void initState() {
     super.initState();
     unawaited(_refreshOwnerBetaStatus());
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      _inventorySubscription = FirebaseFirestore.instance.collection('users')
+          .doc(uid).collection('inventory').where('type', isEqualTo: 'gift')
+          .snapshots().listen((snapshot) {
+        if (!mounted) return;
+        setState(() => _giftInventory = {
+          for (final doc in snapshot.docs)
+            (doc.data()['giftId'] ?? doc.id).toString()
+                .replaceFirst(RegExp(r'^gift__'), ''): doc.data(),
+        });
+      }, onError: (Object error) {
+        if (mounted) setState(() => _giftInventory = {});
+      });
+    }
   }
 
   Future<void> _refreshOwnerBetaStatus() async {
@@ -123,7 +145,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
     (_) => Random.secure().nextInt(256),
   ).map((b) => b.toRadixString(16).padLeft(2, '0')).join();
 
-  Future<void> _send({bool ownerBeta = false}) async {
+  Future<void> _send({bool ownerBeta = false, bool inventoryOnly = false}) async {
     final gift = _gift;
     final recipient = _recipient;
     final myself = FirebaseAuth.instance.currentUser?.uid;
@@ -137,7 +159,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
       return;
     }
     final signature =
-        '${widget.contextType}:${widget.contextId}:$recipient:${gift.id}';
+        '${widget.contextType}:${widget.contextId}:$recipient:${gift.id}:$inventoryOnly';
     if (signature != _pendingSignature) {
       _pendingSignature = signature;
       _pendingKey = _newKey();
@@ -171,6 +193,7 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
           recipientId: recipient,
           giftId: gift.id,
           requestKey: _pendingKey,
+          inventoryOnly: inventoryOnly,
         );
       }
       final senderUid = FirebaseAuth.instance.currentUser?.uid;
@@ -562,7 +585,9 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                         : 0;
                     // Owner beta spending is distinct from the unreleased
                     // real-money economy. The backend verifies the owner.
+                    final rewardReady = selected != null && _rewardCount(selected.id) > 0;
                     final ownerBetaReady =
+                        !rewardReady &&
                         _ownerBetaAvailable &&
                         const {'chat', 'room', 'live'}
                             .contains(widget.contextType) &&
@@ -669,35 +694,14 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                             ],
                           ),
                         ),
-                        StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                          stream: _rewardInventory,
-                          builder: (context, snapshot) {
-                            final data = snapshot.data?.data();
-                            final expiry = (data?['expiresAt'] as Timestamp?)
-                                ?.toDate();
-                            final count =
-                                expiry != null &&
-                                    !expiry.isAfter(DateTime.now())
-                                ? 0
-                                : (data?['freeGiftBalance'] as num? ?? 0)
-                                      .toInt();
-                            if (count <= 0) return const SizedBox.shrink();
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              child: Text(
-                                ar
-                                    ? 'في حقيبتك: $count من هدية «هيبة منتصف الليل» مجانًا. تُستخدم تلقائيًا عند إرسالها.'
-                                    : 'Your bag: $count free Midnight Prestige gifts. Used automatically when sent.',
-                                style: const TextStyle(
-                                  color: Color(0xFFFFD675),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+                        if (_giftInventory.keys.any((id) => _rewardCount(id) > 0))
+                          Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Text(ar
+                                ? 'لديك هدايا مجانية في «تم الامتلاك». اختر هديتك وأرسلها دون خصم كوينز.'
+                                : 'Free gifts are available in Owned. Choose one to send without spending coins.',
+                              style: const TextStyle(color: Color(0xFFFFD675))),
+                          ),
                         if (!ready)
                           Padding(
                             padding: const EdgeInsets.all(8),
@@ -873,15 +877,15 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                                           : null,
                                     ),
                                     label: Text(switch (tier) {
-                                      0 => ar ? '1–150 كوينز' : '1–150 coins',
+                                      0 => ar ? 'هدايا مميزة' : 'Special gifts',
                                       1 =>
                                         ar
-                                            ? '151–1000 كوينز'
-                                            : '151–1000 coins',
+                                            ? 'هدايا راقية'
+                                            : 'Elegant gifts',
                                       _ =>
                                         ar
-                                            ? '1001–5000 • فخمة'
-                                            : '1001–5000 • Luxury',
+                                            ? 'هدايا ملكية'
+                                            : 'Royal gifts',
                                     }),
                                     onSelected: _busy
                                         ? null
@@ -1228,11 +1232,11 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                                 !_busy &&
                                     ((ready && walletReady &&
                                           selected?.active == true) ||
-                                        ownerBetaReady) &&
+                                        ownerBetaReady || rewardReady) &&
                                     widget.recipients.containsKey(_recipient) &&
                                     _recipient != uid &&
                                     _recipient != 'teacher_ai'
-                                ? () => _send(ownerBeta: ownerBetaReady)
+                                ? () => _send(ownerBeta: ownerBetaReady, inventoryOnly: rewardReady)
                                 : null,
                             icon: _busy
                                 ? const SizedBox(
@@ -1248,6 +1252,8 @@ class _UnifiedGiftPanelState extends State<UnifiedGiftPanel> {
                                   ? (ar
                                         ? 'متابعة الهدية بعد الشحن'
                                         : 'Continue gift after recharge')
+                                  : rewardReady
+                                      ? (ar ? 'إرسال من هداياي مجانًا' : 'Send owned gift for free')
                                   : ownerBetaReady
                                       ? (ar
                                             ? 'إرسال هدية اختبار (بدون ألماس)'

@@ -114,4 +114,13 @@ void main() {
     expect(spent.isUsable, false);
   });
 
+  test('reward document ID resolves to the catalog image and name key', () {
+    final gift = OwnedCollectionEntry.fromInventory('gift__wv_gift_001', {
+      'type': 'gift', 'freeGiftBalance': 6,
+    });
+    expect(gift.itemId, 'wv_gift_001');
+    expect(gift.quantity, 6);
+    expect(gift.isUsable, true);
+  });
+
 }

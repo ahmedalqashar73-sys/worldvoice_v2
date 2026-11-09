@@ -78,6 +78,8 @@ class _RewardJourneyCardState extends State<RewardJourneyCard> with WidgetsBindi
     final data = _data;
     final claimed = (data?['claimedDays'] as num? ?? 0).toInt();
     final rest = data?['phase'] == 'rest';
+    final rewards = (data?['rewards'] as List?) ??
+        List.generate(3, (i) => {'giftId': 'wv_gift_001', 'quantity': i + 1});
     final remaining = _remaining;
     final countdown = '${remaining.inHours}:${(remaining.inMinutes % 60).toString().padLeft(2, '0')}';
     if (widget.compactProfile) {
@@ -179,13 +181,17 @@ class _RewardJourneyCardState extends State<RewardJourneyCard> with WidgetsBindi
                   ? const Color(0xFF83B99B) : const Color(0xFFE5DDBF)),
               ),
               child: Column(children: [
+              if (index < 3) Image.asset(
+                'assets/gifts/hd/${rewards[index]['giftId']}.webp',
+                width: 48, height: 48, fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => const Icon(Icons.card_giftcard)),
               Icon(index == 3 ? Icons.nights_stay_outlined
                 : index < claimed ? Icons.check_circle : Icons.card_giftcard,
                 color: index < claimed || (index == 3 && rest)
                   ? const Color(0xFF147A50) : const Color(0xFF727D77)),
               Text(index == 3 ? (ar ? 'راحة' : 'Rest') : (ar ? 'اليوم ${index + 1}' : 'Day ${index + 1}'),
                 style: const TextStyle(color: Color(0xFF245C49))),
-              if (index < 3) Text('×${index + 1}', style: const TextStyle(color: Color(0xFF245C49))),
+              if (index < 3) Text('×${rewards[index]['quantity']}', style: const TextStyle(color: Color(0xFF245C49))),
             ]))))),
             const SizedBox(height: 12),
             Text(ar ? 'هدايا مجانية في الحقيبة؛ ليست رصيد كوينز.' : 'Free gifts in your bag, not wallet coins.',

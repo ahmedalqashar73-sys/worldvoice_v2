@@ -1,8 +1,9 @@
+import {worldVoiceGiftCatalog} from './gift_catalog.js';
 import {giftProgress, visibleVipBadge} from './member_badge_policy.js';
 import {memberBadgeRef} from './member_badge_routes.js';
 import {privateWalletRef} from './wallet_store.js';
 import {FieldValue} from 'firebase-admin/firestore';
-import {cycleView, cycleEvidence, creativeAward, CYCLE_GIFT_ID} from './engagement_policy.js';
+import {cycleView, cycleEvidence, creativeAward, CYCLE_GIFT_ID, cycleRewards} from './engagement_policy.js';
 export const engagementRef = (db, uid) => db.collection('users').doc(uid)
   .collection('engagement').doc('cycle');
 export function registerEngagementRoutes({app, db, authenticatedUser, clock = Date.now}) {
@@ -14,7 +15,8 @@ export function registerEngagementRoutes({app, db, authenticatedUser, clock = Da
       return res.json({ok: true, ...cycleView(state, now), ...cycleEvidence(state, now),
         serverNowMs: now, creativeCycles: state.creativeCycles ?? 0,
         creativeAwardedAtMs: state.creativeAwardedAtMs ?? null,
-        completedCycles: state.completedCycles ?? 0, giftId: CYCLE_GIFT_ID});
+        completedCycles: state.completedCycles ?? 0, giftId: CYCLE_GIFT_ID,
+        rewards: cycleRewards(state, now)});
     } catch (error) { next(error); }
   });
   // Public achievements only: never expose attendance, wallet or private cycle dates.
@@ -45,19 +47,21 @@ export function registerEngagementRoutes({app, db, authenticatedUser, clock = Da
       const user = await authenticatedUser(req);
       const ref = engagementRef(db, user.uid);
       const userRef = db.collection('users').doc(user.uid);
-      const itemRef = db.collection('store_items').doc(`gift__${CYCLE_GIFT_ID}`);
-      const inventoryRef = userRef.collection('inventory').doc(`gift__${CYCLE_GIFT_ID}`);
       const result = await db.runTransaction(async tx => {
-        const [prior, item, inventory, profile] = await Promise.all(
-          [ref, itemRef, inventoryRef, userRef].map(r => tx.get(r)));
+        const [prior, profile] = await Promise.all([ref, userRef].map(r => tx.get(r)));
         const now = clock(), state = prior.data() ?? {}, view = cycleView(state, now);
+        const reward = cycleRewards(state, now)[Math.min(view.day, 3) - 1];
+        const {giftId, priceCoins, quantity} = reward;
+        const itemRef = db.collection('store_items').doc(`gift__${giftId}`);
+        const inventoryRef = userRef.collection('inventory').doc(`gift__${giftId}`);
+        const [item, inventory] = await Promise.all([itemRef, inventoryRef].map(r => tx.get(r)));
         // Echo server-issued cycle/day; a delayed retry cannot claim tomorrow.
         if (req.body?.startDay !== view.startDay || req.body?.day !== view.day) {
           throw Object.assign(new Error('Refresh the reward journey.'), {status: 409});
         }
         if (!view.canClaim) return {alreadyProcessed: true};
         if (!profile.exists || item.data()?.active !== true ||
-            item.data()?.type !== 'gift' || item.data()?.priceCoins !== 1) {
+            item.data()?.type !== 'gift' || item.data()?.priceCoins !== priceCoins) {
           throw Object.assign(new Error('Reward gift is not available yet.'), {status: 503});
         }
         const previous = inventory.data() ?? {};
@@ -66,22 +70,25 @@ export function registerEngagementRoutes({app, db, authenticatedUser, clock = Da
           throw Object.assign(new Error('Timed inventory requires reconciliation.'), {status: 409});
         }
         const balance = expired ? 0 : previous.freeGiftBalance ?? 0;
-        if (!Number.isSafeInteger(balance) || balance < 0 || !Number.isSafeInteger(balance + view.day)) {
+        if (!Number.isSafeInteger(balance) || balance < 0 || !Number.isSafeInteger(balance + quantity)) {
           throw Object.assign(new Error('Inventory requires reconciliation.'), {status: 409});
         }
         let updated = {...state, ...cycleEvidence(state, now), startDay: view.startDay,
           claimedDays: view.day, lastClaimAtMs: now,
+          rewardVersion: state.startDay === view.startDay ? (state.rewardVersion ?? 1) : 2,
           ...(view.startDay !== state.startDay ? {lastPresenceMs: now} : {}),
           completedCycles: (state.completedCycles ?? 0) + (view.day === 3 ? 1 : 0)};
         updated = creativeAward(updated, now);
         tx.set(ref, updated);
-        tx.set(inventoryRef, {type: 'gift', giftId: CYCLE_GIFT_ID,
-          freeGiftBalance: balance + view.day, expiresAt: null,
+        tx.set(inventoryRef, {type: 'gift', giftId, itemId: giftId,
+          name: worldVoiceGiftCatalog.get(giftId).name,
+          nameAr: worldVoiceGiftCatalog.get(giftId).nameAr,
+          freeGiftBalance: balance + quantity, expiresAt: null,
           lastRewardSource: 'three_day_cycle', updatedAt: FieldValue.serverTimestamp()}, {merge: true});
         tx.create(userRef.collection('engagement_receipts').doc(`${view.startDay}_${view.day}`), {
-          source: 'three_day_cycle', giftId: CYCLE_GIFT_ID, quantity: view.day,
+          source: 'three_day_cycle', giftId, quantity,
           cycleStartDay: view.startDay, day: view.day, grantedAtMs: now});
-        return {alreadyProcessed: false, quantity: view.day};
+        return {alreadyProcessed: false, giftId, quantity};
       });
       return res.json({ok: true, ...result});
     } catch (error) { next(error); }

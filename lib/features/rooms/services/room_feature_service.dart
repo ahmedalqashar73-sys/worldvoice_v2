@@ -43,17 +43,8 @@ class RoomFeatureService {
     final isHost = data['hostId'] == _user?.uid;
     if (!isHost) return;
 
-    final needsBackgroundV3 =
-        (data['backgroundLayoutVersion'] as num?)?.toInt() != 4 ||
-        !data.containsKey('themeId');
-    if (needsBackgroundV3) {
-      // Background changes are server-authorized so a stale client Firestore
-      // rule cannot block the host from restoring the clean default canvas.
-      await setPurchasedBackground(
-        themeId: 'softGreenFlow',
-        backgroundUrl: null,
-      );
-    }
+    // Opening a room must never replace the host's saved background.
+    // Missing theme fields already render the default without writing it.
 
     if (!data.containsKey('boardWriteEnabled')) {
       await _room.update({
@@ -209,6 +200,7 @@ class RoomFeatureService {
     required String giftId,
     required int points,
     int quantity = 1,
+    bool inventoryOnly = false,
     String? requestKey,
   }) {
     // Keep legacy UI callers compatible while refusing client-controlled price.
@@ -216,6 +208,7 @@ class RoomFeatureService {
     return sendContextGift(
       context: 'room', contextId: roomId, recipientId: recipientId,
       giftId: giftId, quantity: quantity, requestKey: requestKey,
+      inventoryOnly: inventoryOnly,
     );
   }
 
@@ -228,6 +221,7 @@ class RoomFeatureService {
     required String recipientId,
     required String giftId,
     int quantity = 1,
+    bool inventoryOnly = false,
     String? requestKey,
   }) async {
     final user = FirebaseAuth.instance.currentUser;
@@ -262,6 +256,7 @@ class RoomFeatureService {
       body: jsonEncode({
         'context': context, 'contextId': contextId,
         'recipientId': recipientId, 'giftId': giftId, 'quantity': quantity,
+        'inventoryOnly': inventoryOnly,
       }),
     ).timeout(const Duration(seconds: 20));
     if (response.statusCode < 200 || response.statusCode >= 300) {

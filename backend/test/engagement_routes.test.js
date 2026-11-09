@@ -25,6 +25,8 @@ test('engagement transactions in demo emulator', {skip: !process.env.FIRESTORE_E
     const uid = `cycle-${Date.now()}-${++sequence}`;
     await db.doc(`users/${uid}`).set({coins: 77});
     await db.doc('store_items/gift__wv_gift_001').set({active: true, type: 'gift', priceCoins: 1});
+    await db.doc('store_items/gift__wv_gift_002').set({active: true, type: 'gift', priceCoins: 3});
+    await db.doc('store_items/gift__wv_gift_003').set({active: true, type: 'gift', priceCoins: 5});
     return uid;
   }
   try {
@@ -42,14 +44,17 @@ test('engagement transactions in demo emulator', {skip: !process.env.FIRESTORE_E
         now = (startDay + day - 1) * DAY_MS;
         assert.equal((await call('claim', uid, {startDay, day})).status, 200);
       }
-      assert.equal((await inventory(uid).get()).data().freeGiftBalance, 6);
+      assert.equal((await inventory(uid).get()).data().freeGiftBalance, 1);
+      for (const id of ['002', '003']) {
+        assert.equal((await db.doc(`users/${uid}/inventory/gift__wv_gift_${id}`).get()).data().freeGiftBalance, 1);
+      }
       now = (startDay + 3) * DAY_MS;
       assert.equal((await call('status', uid)).body.phase, 'rest');
       assert.equal((await call('claim', uid, {startDay, day: 3})).status, 409);
       now += DAY_MS;
       assert.equal((await call('claim', uid, {startDay, day: 1})).status, 409);
       assert.equal((await call('claim', uid, {startDay: startDay + 4, day: 1})).status, 200);
-      assert.equal((await inventory(uid).get()).data().freeGiftBalance, 7);
+      assert.equal((await inventory(uid).get()).data().freeGiftBalance, 2);
     });
     await t.test('client cannot forge badge evidence; public response excludes private state', async () => {
       const uid = await seed(), startDay = Math.floor(now / DAY_MS);

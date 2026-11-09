@@ -12,6 +12,8 @@ import '../../rooms/presentation/room_background_atlas.dart';
 import '../../rooms/services/room_shop_service.dart';
 import '../../rooms/services/room_feature_service.dart';
 import '../data/owned_collection_entry.dart';
+import '../../rooms/data/classic_gift_catalog.dart';
+import '../../rooms/data/room_feature_models.dart';
 
 /// The signed-in user's actual owned cosmetics, received visual gifts and
 /// room rewards. Never creates an entitlement from a client or preview.
@@ -453,7 +455,25 @@ class _OwnedAssetCardState extends State<_OwnedAssetCard> {
   bool get _ar => widget.ar;
   OwnedCollectionEntry get entry => widget.entry;
 
+  List<RoomGiftCatalogItem> _catalog = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.entry.type == 'gift') {
+      ClassicGiftCatalog.load().then((items) {
+        if (mounted) setState(() => _catalog = items);
+      }, onError: (Object error) {});
+    }
+  }
+
   String _title() {
+    if (entry.type == 'gift') {
+      for (final gift in _catalog) {
+        if (gift.id == entry.itemId) return gift.localizedName(_ar);
+      }
+      return _ar ? 'هدية' : 'Gift';
+    }
     if (entry.type == 'frame') {
       return WorldVoiceAvatarFrame.label(entry.itemId, ar: _ar);
     }

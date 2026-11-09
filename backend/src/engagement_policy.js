@@ -41,3 +41,15 @@ export function addCyclePresence(state, verifiedDelta, now) {
   return creativeAward({...state, lastPresenceMs: now,
     activeMs: Math.min(3600000, (state.activeMs ?? 0) + credit)}, now);
 }
+
+// Existing in-progress journeys retain their promised quantities. New journeys
+// award one of three existing catalog designs, valued at 1, 3 and 5 coins.
+export function cycleRewards(state = {}, now = Date.now()) {
+  const view = cycleView(state, now);
+  const legacy = state.startDay === view.startDay && state.rewardVersion !== 2;
+  return legacy
+    ? [1, 2, 3].map(quantity => ({giftId: CYCLE_GIFT_ID, priceCoins: 1, quantity}))
+    : [1, 3, 5].map((priceCoins, i) => ({
+        giftId: `wv_gift_${String(i + 1).padStart(3, '0')}`, priceCoins, quantity: 1,
+      }));
+}

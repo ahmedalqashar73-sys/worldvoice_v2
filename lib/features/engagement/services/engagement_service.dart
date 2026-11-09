@@ -13,7 +13,7 @@ class EngagementService {
   }) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) throw StateError('SIGN_IN_REQUIRED');
-    final base = RoomBackendConfig.economyBaseUrl.replaceFirst(
+    final base = RoomBackendConfig.giftStoreBaseUrl.replaceFirst(
       RegExp(r'/$'),
       '',
     );

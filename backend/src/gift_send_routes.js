@@ -40,6 +40,7 @@ const send = bondOnly => async (req, res, next) => {
   try {
     const sender = await authenticatedUser(req);
     const senderIsOwner = await isVerifiedOwner(sender);
+    const inventoryOnly = req.body?.inventoryOnly === true;
     const {recipientId, giftId, type} = req.body || {};
     const context = bondOnly ? "worldbond" : req.body?.context;
     const contextId = bondOnly && BOND_TYPES.includes(type) && typeof recipientId === "string"
@@ -115,7 +116,8 @@ const send = bondOnly => async (req, res, next) => {
         const data = existing.data();
         if (data.userId !== sender.uid || data.context !== context ||
             data.contextId !== contextId || data.recipientId !== recipientId ||
-            data.giftId !== giftId || data.quantity !== quantity) {
+            data.giftId !== giftId || data.quantity !== quantity ||
+            (data.inventoryOnly === true) !== inventoryOnly) {
           throw Object.assign(new Error("Idempotency key reused for another request."),
             {status: 409});
         }
@@ -177,11 +179,23 @@ const send = bondOnly => async (req, res, next) => {
       // Verified-owner beta delivery uses administrative coins only and
       // creates no withdrawable diamond liability. It never enables
       // the real-money economy for ordinary members.
-      const ownerBeta = !bondOnly && senderIsOwner &&
+      const now = Date.now();
+      const freeData = freeGiftSnap.data() || {};
+      const freeExpiry = freeData.expiresAt?.toMillis?.() ?? null;
+      const freeBalance = bondGift ? 0 :
+        (freeExpiry !== null && freeExpiry <= now ? 0 : (freeData.freeGiftBalance ?? 0));
+      if (!Number.isSafeInteger(freeBalance) || freeBalance < 0) {
+        throw Object.assign(new Error("Invalid gift inventory."), {status: 409});
+      }
+      const rewardOnly = !bondOnly && freeBalance >= quantity;
+      if (inventoryOnly && !rewardOnly) {
+        throw Object.assign(new Error("OWNED_GIFT_UNAVAILABLE"), {status: 409});
+      }
+      const ownerBeta = !bondOnly && !rewardOnly && senderIsOwner &&
         process.env.WORLDVOICE_OWNER_BETA_GIFTS_ENABLED === "true";
-      const config = ownerBeta ? null : requireLiveEconomy(configSnap.data());
-      requirePrivateWallet(senderSnap);
-      if (recipientRef && !ownerBeta) requirePrivateWallet(snapshots[10]);
+      const config = ownerBeta || rewardOnly ? null : requireLiveEconomy(configSnap.data());
+      if (!rewardOnly) requirePrivateWallet(senderSnap);
+      if (recipientRef && !ownerBeta && !rewardOnly) requirePrivateWallet(snapshots[10]);
       // The four WorldBond designs are server-priced built-ins. They do
       // not appear in store_items or the room/Live gift catalog.
       const item = bondGift
@@ -206,18 +220,13 @@ const send = bondOnly => async (req, res, next) => {
         throw Object.assign(new Error("Gift level requirement not met."),
           {status: 403});
       }
-      const now = Date.now();
-      const freeData = freeGiftSnap.data() || {};
-      const freeExpiry = freeData.expiresAt?.toMillis?.() ?? null;
-      // Never allow free room gifts to reduce a paid WorldBond price.
-      const freeBalance = bondGift ? 0 :
-        (freeExpiry !== null && freeExpiry <= now ? 0
-          : Number(freeData.freeGiftBalance || 0));
       const betaTotal = price * quantity;
       if (ownerBeta && (!Number.isSafeInteger(betaTotal) || betaTotal <= 0)) {
         throw Object.assign(new Error("Invalid promotional gift total."), {status: 400});
       }
-      const amounts = ownerBeta
+      const amounts = rewardOnly
+        ? {freeUnits: quantity, chargedCoins: 0, giftLevelPoints: 0, pendingDiamonds: 0}
+        : ownerBeta
         ? {freeUnits: 0, chargedCoins: betaTotal,
             giftLevelPoints: betaTotal, pendingDiamonds: 0}
         : calculateGiftSettlement({
@@ -243,7 +252,7 @@ const send = bondOnly => async (req, res, next) => {
       // Promotional owner coins buy the full animation and level points, but
       // cannot mint redeemable recipient diamonds. Mixed spends settle only
       // the purchased portion to the receiver.
-      const pendingDiamonds = recipientRef && !ownerBeta
+      const pendingDiamonds = recipientRef && !ownerBeta && !rewardOnly
         ? diamondsForPaidCoins({config, paidCoins: spent.paidSpent}) : 0;
       const roomXp = Number(roomSnap.data()?.roomXp || 0);
       if (recipientId === "teacher_ai" &&
@@ -252,7 +261,7 @@ const send = bondOnly => async (req, res, next) => {
         throw Object.assign(new Error("Room XP exceeds safe limits."), {status: 400});
       }
       // Server-enforced sender daily spend limit. Not configured => stop.
-      if (!ownerBeta &&
+      if (!ownerBeta && !rewardOnly &&
           (!Number.isSafeInteger(config.giftingDailyCoinLimit) ||
           config.giftingDailyCoinLimit <= 0)) {
         throw Object.assign(new Error("Gifting daily limit not configured."),
@@ -267,11 +276,11 @@ const send = bondOnly => async (req, res, next) => {
       }
       // The verified owner can spend the entire 10,000-coin monthly testing
       // allowance without being stopped by ordinary user daily limits.
-      if (!senderIsOwner && !ownerBeta &&
+      if (!senderIsOwner && !ownerBeta && !rewardOnly &&
           dailySpent + amounts.chargedCoins > config.giftingDailyCoinLimit) {
         throw Object.assign(new Error("Daily gift limit reached."), {status: 429});
       }
-      const recipientData = recipientRef ? snapshots[10].data() || {} : null;
+      const recipientData = recipientRef && !rewardOnly ? snapshots[10].data() || {} : null;
       const recipientProfile = recipientRef ? snapshots[9].data() || {} : null;
       const recipientBefore = recipientData
         ? Number(recipientData.diamondsPending || 0) : 0;
@@ -281,18 +290,18 @@ const send = bondOnly => async (req, res, next) => {
           {status: 400});
       }
       const holdUntil = Timestamp.fromMillis(
-        now + (ownerBeta ? 0 : config.holdDays) * 24 * 60 * 60 * 1000,
+        now + (ownerBeta || rewardOnly ? 0 : config.holdDays) * 24 * 60 * 60 * 1000,
       );
       const outcome = {
         ...(bondOnly ? {operationId: requestHash, bondId: contextId} : {}),
-        giftId, quantity, freeUnits: amounts.freeUnits,
+        giftId, quantity, rewardOnly, freeUnits: amounts.freeUnits,
         chargedCoins: amounts.chargedCoins, balanceAfter: after,
         pendingDiamonds, adminCoinsSpent: spent.adminSpent,
         paidCoinsSpent: spent.paidSpent,
         ...(ownerBeta ? {ownerBetaGift: true, nonRedeemable: true} : {}),
         holdUntil: recipientRef ? holdUntil.toDate().toISOString() : null,
       };
-      tx.set(senderWalletRef, {
+      if (!rewardOnly) tx.set(senderWalletRef, {
         coins: after,
         adminCoins: spent.remainingAdminCoins,
         giftSentPoints: FieldValue.increment(amounts.chargedCoins),
@@ -307,11 +316,11 @@ const send = bondOnly => async (req, res, next) => {
           updatedAt: FieldValue.serverTimestamp(),
         });
       }
-      tx.set(dailyRef, {
+      if (!rewardOnly) tx.set(dailyRef, {
         giftCoins: dailySpent + amounts.chargedCoins,
         updatedAt: FieldValue.serverTimestamp(),
       }, {merge: true});
-      tx.create(senderRef.collection("wallet_transactions").doc(requestHash), {
+      if (!rewardOnly) tx.create(senderRef.collection("wallet_transactions").doc(requestHash), {
         type: "gift_send", amount: -amounts.chargedCoins, currency: "coins",
         balanceBefore: balance, balanceAfter: after, source: context,
         sourceId: contextId, itemId: giftId, quantity,
@@ -321,7 +330,7 @@ const send = bondOnly => async (req, res, next) => {
         createdAt: FieldValue.serverTimestamp(),
       });
       if (recipientRef) {
-        if (!ownerBeta || snapshots[10].exists) {
+        if (!rewardOnly && (!ownerBeta || snapshots[10].exists)) {
           tx.set(recipientWalletRef, {
           diamondsPending: receiverAfter,
           giftReceivedPoints: FieldValue.increment(amounts.chargedCoins),
@@ -344,7 +353,7 @@ const send = bondOnly => async (req, res, next) => {
           operationId: requestHash, createdAt: FieldValue.serverTimestamp(),
         });
         }
-      } else {
+      } else if (!rewardOnly) {
         // Teacher-AI gifts may support the room castle, but not exceed the
         // 50-level progression cap or erase XP from pre-existing level-60 rooms.
         const startingCastle = roomCastleProgressSnapshot(roomSnap.data());
@@ -401,7 +410,7 @@ const send = bondOnly => async (req, res, next) => {
       }
       tx.create(eventRef, {
         userId: sender.uid, context, contextId, recipientId,
-        giftId, quantity, ...(bondGift ? {giftCategory: "worldbond"} : {}),
+        giftId, quantity, inventoryOnly, ...(bondGift ? {giftCategory: "worldbond"} : {}),
         outcome,
         createdAt: FieldValue.serverTimestamp(),
       });

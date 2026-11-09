@@ -45,7 +45,8 @@ class OwnedCollectionEntry {
     String documentId, Map<String, dynamic> data,
   ) {
     final type = (data['type'] ?? '').toString();
-    final itemId = (data['itemId'] ?? documentId).toString();
+    final rawId = (data['giftId'] ?? data['itemId'] ?? documentId).toString();
+    final itemId = type == 'gift' ? rawId.replaceFirst(RegExp(r'^gift__'), '') : rawId;
     return OwnedCollectionEntry(
       id: 'inventory:$documentId',
       type: type,
@@ -69,7 +70,8 @@ class OwnedCollectionEntry {
   ) => OwnedCollectionEntry(
     id: 'received:$documentId',
     type: (data['type'] ?? 'gift').toString(),
-    itemId: (data['itemId'] ?? data['giftId'] ?? '').toString(),
+    itemId: (data['giftId'] ?? data['itemId'] ?? '').toString()
+        .replaceFirst(RegExp(r'^gift__'), ''),
     name: (data['nameAr']?.toString().trim().isNotEmpty == true
         ? data['nameAr'] : data['name'] ?? data['giftId'] ?? 'Gift').toString(),
     source: 'received_gift',
