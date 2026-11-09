@@ -498,7 +498,10 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                         ),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: selected == null && !sharing && texts.isEmpty && !_editingText ? const Color(0xFF102C25) : Colors.transparent,
+                            color: selected == null && !sharing && texts.isEmpty && !_editingText
+                                ? (widget.parentCollection == 'live_sessions'
+                                    ? const Color(0xFF161326) : const Color(0xFF102C25))
+                                : Colors.transparent,
                             border: Border.all(color: Colors.white12),
                           ),
                         ),
@@ -574,7 +577,8 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
       data: Theme.of(context).copyWith(
         iconTheme: const IconThemeData(color: Color(0xFFE7C56E))),
       child: widget.embedded
-        ? ColoredBox(color: const Color(0xFF102C25), child: Column(children: [
+        ? ColoredBox(color: widget.parentCollection == 'live_sessions'
+            ? const Color(0xFF161326) : const Color(0xFF102C25), child: Column(children: [
             SizedBox(height: 36, child: Row(children: [
               IconButton(padding: EdgeInsets.zero, tooltip: isArabic ? 'تكبير' : 'Expand', onPressed: widget.onExpand, icon: const Icon(Icons.fullscreen)),
               Expanded(child: Text(isArabic ? 'السبورة المشتركة' : 'Shared board', style: const TextStyle(color: Color(0xFFE7C56E), fontSize: 12))),
