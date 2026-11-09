@@ -5,6 +5,21 @@ import 'package:flutter/services.dart';
 import '../domain/models/story_library_models.dart';
 import '../domain/models/story_textbook_models.dart';
 
+/// The book board only offers novels in the current room/live language.
+/// Keep a language with no published novels empty; never show English as
+/// a fallback in another language's session.
+List<StoryLibraryEntry> libraryNovelsForSessionLanguage(
+  Iterable<StoryLibraryEntry> entries,
+  String languageCode,
+) {
+  final normalized = languageCode
+      .trim().toLowerCase().split(RegExp(r'[-_]')).first;
+  return List<StoryLibraryEntry>.unmodifiable(
+    entries.where((book) =>
+        book.format == 'novel' && book.language.toLowerCase() == normalized),
+  );
+}
+
 /// Asset-only repository in phase 1. No Firebase or third-party requests.
 ///
 /// Add story metadata to assets/stories/index.json and the matching JSON file
