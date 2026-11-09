@@ -2293,6 +2293,7 @@ class _LiveCameraGateState extends State<_LiveCameraGate> {
                               height: _liveBoardHeight(context),
                               child: RoomBoardScreen(
                                 roomId: _liveId!,
+                                libraryLanguageCode: _languageCode,
                                 parentCollection: 'live_sessions',
                                 canWrite: true,
                                 isHost: true,
@@ -4076,6 +4077,11 @@ class _LiveViewerScreenState extends State<_LiveViewerScreen> {
                                   height: _liveBoardHeight(context),
                                   child: RoomBoardScreen(
                                     roomId: widget.liveId,
+                                    libraryLanguageCode:
+                                        (live?['languageCode'] ??
+                                                widget.data['languageCode'] ??
+                                                'en')
+                                            .toString(),
                                     parentCollection: 'live_sessions',
                                     canWrite:
                                         _guestPublishing &&
