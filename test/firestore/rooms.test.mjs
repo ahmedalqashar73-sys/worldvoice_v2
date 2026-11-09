@@ -700,6 +700,8 @@ test('accepted room moderator can present PDF and screen without host controls',
     await updateDoc(room(db), {boardWriteEnabled: false});
   });
   const db = user('mod');
+  await assertSucceeds(updateDoc(room(db), {boardPresentationActive: true}));
+  await assertFails(updateDoc(room(user('listener')), {boardPresentationActive: true}));
   const batch = writeBatch(db);
   batch.set(doc(db, 'rooms/r1/board_items/pdf'), {
     type: 'pdf', url: 'https://example.com/book.pdf', name: 'Book',
@@ -714,4 +716,5 @@ test('accepted room moderator can present PDF and screen without host controls',
   await env.withSecurityRulesDisabled(ctx => updateDoc(
     doc(ctx.firestore(), 'users/host/moderators/mod'), {status: 'revoked'}));
   await assertFails(updateDoc(room(db), {screenShareActive: false}));
+  await assertFails(updateDoc(room(db), {boardPresentationActive: false}));
 });

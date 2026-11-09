@@ -3196,7 +3196,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
           roomFeatures: _features,
           isHost: _isHost,
           // The shared board already supports text and a multi-color palette.
-          onOpenWriting: _isHost || _featureState.boardWriteEnabled
+          onOpenWriting: _canModerate || _featureState.boardWriteEnabled
               ? _expandBoard
               : null,
         ),
@@ -3218,7 +3218,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
   bool _boardVisible = false;
   Future<void> _showBoard() async {
-    if (!_isHost) return;
+    if (!_canModerate) return;
     try {
       await _features.setBoardPresentationActive(true);
       if (mounted) setState(() => _boardVisible = true);
@@ -3231,7 +3231,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   }
 
   Future<void> _closeBoard() async {
-    if (_isHost) {
+    if (_canModerate) {
       try {
         await _features.setBoardPresentationActive(false);
       } catch (error) {
@@ -3623,24 +3623,21 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
   // Tapping the room title opens only the five working room controls.
   // Host/moderation controls remain role-gated.
   Future<void> _showTitleActions() async {
-    // The room title must never show host content controls to listeners.
-    // Moderators get only participant controls; content remains host-owned.
-    if (!_isHost) {
-      if (_isModerator) await _showRoomControls();
-      return;
-    }
+    // Moderators receive board presentation controls only, alongside their
+    // existing participant controls. Other content tools remain host-only.
+    if (!_canModerate) return;
     final ar = (widget.localeController?.locale?.languageCode ??
         Localizations.localeOf(context).languageCode) == 'ar';
     final items = <(IconData, String, VoidCallback)>[
       (Icons.admin_panel_settings_rounded,
           ar ? 'المدير' : 'Moderator', _showRoomControls),
-      (Icons.chat_bubble_outline_rounded,
+      if (_isHost) (Icons.chat_bubble_outline_rounded,
         ar ? 'الشات' : 'Chat', _showRoomChat),
-      (Icons.music_note_rounded,
+      if (_isHost) (Icons.music_note_rounded,
         ar ? 'الموسيقى' : 'Music', _showMusic),
       (Icons.draw_rounded,
         ar ? 'السبورة' : 'Whiteboard', _showBoard),
-      (Icons.quiz_outlined,
+      if (_isHost) (Icons.quiz_outlined,
         ar ? 'الكويز' : 'Quiz', _showQuiz),
     ];
     await showModalBottomSheet<void>(
@@ -3680,6 +3677,8 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     final ar = (widget.localeController?.locale?.languageCode ??
         Localizations.localeOf(context).languageCode) == 'ar';
     final items = <(IconData, String, VoidCallback)>[
+      if (_canModerate)
+        (Icons.draw_rounded, ar ? 'السبورة' : 'Whiteboard', _showBoard),
       (Icons.castle_outlined, ar ? 'مهام الغرفة' : 'Room tasks',
         () => _showRoomExtras(initialTab: 0)),
       (Icons.card_giftcard_rounded, ar ? 'الهدايا' : 'Gifts', _showGifts),
@@ -3735,7 +3734,7 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: index == 3
+                        colors: item.$1 == Icons.sports_esports_rounded
                             ? const [Color(0xFF247D52), Color(0xFF15513F)]
                             : const [Color(0xFF1A5641), Color(0xFF103A30)],
                       ),
