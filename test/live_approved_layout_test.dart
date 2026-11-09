@@ -91,13 +91,48 @@ void main() {
     expect((host.height - b.height).abs(), lessThan(2));
   });
 
-  testWidgets('opening board preserves all four camera thumbnails',
+  testWidgets('board with one participant keeps a full-width camera',
+      (tester) async {
+    await _render(tester, ['host'], compact: true);
+    final host = _cameraRect(tester, 'host');
+    expect(host.width, 340);
+    expect(host.height, 110);
+  });
+
+  testWidgets('board with two participants keeps both cameras wide',
+      (tester) async {
+    await _render(tester, ['host', 'a'], compact: true);
+    final host = _cameraRect(tester, 'host');
+    final guest = _cameraRect(tester, 'a');
+    expect(host.width, greaterThan(150));
+    expect(guest.width, greaterThan(150));
+    expect((host.top - guest.top).abs(), lessThan(2));
+  });
+
+  testWidgets('board with three participants keeps host large and guests stacked',
+      (tester) async {
+    await _render(tester, ['host', 'a', 'b'], compact: true);
+    final host = _cameraRect(tester, 'host');
+    final guestA = _cameraRect(tester, 'a');
+    final guestB = _cameraRect(tester, 'b');
+    expect(host.height, 110);
+    expect((guestA.left - guestB.left).abs(), lessThan(2));
+    expect(guestB.top, greaterThan(guestA.bottom));
+    expect(guestA.left, greaterThan(host.right));
+  });
+
+  testWidgets('board with four participants uses two-by-two wide cameras',
       (tester) async {
     await _render(tester, ['host', 'a', 'b', 'c'], compact: true);
-    final top = _cameraRect(tester, 'host');
-    final bottom = _cameraRect(tester, 'c');
-    expect((top.width - top.height).abs(), lessThan(2));
-    expect((top.top - bottom.top).abs(), lessThan(2));
-    expect(bottom.right, lessThanOrEqualTo(800));
+    final host = _cameraRect(tester, 'host');
+    final a = _cameraRect(tester, 'a');
+    final b = _cameraRect(tester, 'b');
+    final c = _cameraRect(tester, 'c');
+    expect((host.top - a.top).abs(), lessThan(2));
+    expect((b.top - c.top).abs(), lessThan(2));
+    expect(a.left, greaterThan(host.right));
+    expect(c.left, greaterThan(b.right));
+    expect(b.top, greaterThan(host.bottom));
+    expect(host.width, greaterThan(150));
   });
 }
