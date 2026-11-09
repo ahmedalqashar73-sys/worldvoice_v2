@@ -55,6 +55,8 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   bool _disposed = false;
   int _connectionAttempt = 0;
   bool _screenSharing = false;
+  bool _screenShareStarting = false;
+  AgoraRoomRole? _roleBeforeScreenShare;
   bool _cameraPublishing = false;
   bool _localPreviewPrepared = false;
   bool _preparingLocalPreview = false;
@@ -78,6 +80,7 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   bool get muted => _muted;
   String? get error => _error;
   bool get screenSharing => _screenSharing;
+  bool get screenShareStarting => _screenShareStarting;
   bool get cameraPublishing => _cameraPublishing;
   bool get localPreviewPrepared => _localPreviewPrepared;
   RtcEngine? get engine => _engine;
@@ -718,7 +721,33 @@ class AgoraVoiceRoomController extends ChangeNotifier {
     }
   });
 
-  Future<void> startScreenShare() async {
+  Future<void> startScreenShare({bool allowListener = false}) async {
+    if (_screenShareStarting || _screenSharing || !_joined) return;
+    _screenShareStarting = true;
+    try {
+      if (_role == AgoraRoomRole.listener) {
+        if (!allowListener) return;
+        _roleBeforeScreenShare = _role;
+        await switchRole(AgoraRoomRole.speaker, startMuted: true);
+      }
+      await _startScreenShareCapture();
+      if (!_screenSharing) throw StateError('Screen sharing did not start.');
+    } catch (_) {
+      _screenShareStarting = false;
+      if (!_screenSharing) {
+        try { await _engine?.stopScreenCapture(); } catch (_) {}
+        try {
+          await _engine?.stopPreview(sourceType: VideoSourceType.videoSourceScreen);
+        } catch (_) {}
+      }
+      await stopScreenShare();
+      rethrow;
+    } finally {
+      _screenShareStarting = false;
+    }
+  }
+
+  Future<void> _startScreenShareCapture() async {
     final engine = _engine;
     if (engine == null || !_joined || _role != AgoraRoomRole.speaker) {
       return;
@@ -758,6 +787,13 @@ class AgoraVoiceRoomController extends ChangeNotifier {
   }
 
   Future<void> stopScreenShare() async {
+    await _stopScreenShareCapture();
+    final previous = _roleBeforeScreenShare;
+    _roleBeforeScreenShare = null;
+    if (previous != null && _joined) await switchRole(previous);
+  }
+
+  Future<void> _stopScreenShareCapture() async {
     final engine = _engine;
     if (engine == null || !_joined || !_screenSharing) return;
 
@@ -1044,6 +1080,8 @@ class AgoraVoiceRoomController extends ChangeNotifier {
       _connecting = false;
       _muted = false;
       _screenSharing = false;
+      _screenShareStarting = false;
+      _roleBeforeScreenShare = null;
       _cameraPublishing = false;
       _localPreviewPrepared = false;
       _preparingLocalPreview = false;

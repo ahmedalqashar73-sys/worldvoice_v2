@@ -132,13 +132,6 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
   }
 
   bool _sharingBusy = false;
-  AgoraRoomRole? _roleBeforeSharing;
-  Future<void> _stopOwnScreenShare() async {
-    await widget.agoraController.stopScreenShare();
-    final previous = _roleBeforeSharing;
-    _roleBeforeSharing = null;
-    if (previous != null) await widget.agoraController.switchRole(previous);
-  }
   Future<void> _toggleScreenShare() async {
     if (_sharingBusy || !widget.canPresent) return;
     final ar = Localizations.localeOf(context).languageCode == 'ar';
@@ -146,29 +139,24 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
     try {
       final controller = widget.agoraController;
       if (controller.screenSharing) {
-        await _stopOwnScreenShare();
+        await widget.agoraController.stopScreenShare();
         await _features.setScreenSharing(active: false);
       } else {
         if (!controller.joined) {
           await controller.ensureConnected(channelId: widget.roomId, role: AgoraRoomRole.speaker);
         }
-        if (controller.role != AgoraRoomRole.speaker) {
-          _roleBeforeSharing = controller.role;
-          await controller.switchRole(AgoraRoomRole.speaker, startMuted: true);
-        }
-        await controller.startScreenShare();
+        await controller.startScreenShare(allowListener: widget.canPresent);
         if (!controller.screenSharing || controller.localUid == null) {
           throw StateError(ar ? 'لم تبدأ مشاركة الشاشة' : 'Screen sharing did not start');
         }
         try {
           await _features.setScreenSharing(active: true, sharerUid: controller.localUid!);
         } catch (_) {
-          await _stopOwnScreenShare();
+          await widget.agoraController.stopScreenShare();
           rethrow;
         }
       }
     } catch (error) {
-      if (_roleBeforeSharing != null) await _stopOwnScreenShare();
       if (mounted) {
         await showDialog<void>(context: context, builder: (ctx) => AlertDialog(
           title: Text(ar ? 'تعذر بدء مشاركة الشاشة' : 'Screen sharing could not start'),
@@ -535,7 +523,7 @@ class _RoomBoardScreenState extends State<RoomBoardScreen> {
                   if (widget.canPresent && presenting) IconButton(
                     tooltip: isArabic ? 'إيقاف العرض الحالي' : 'Stop presentation',
                     onPressed: _sharingBusy || _uploading ? null : () => _boardAction(() async {
-                      if (sharing) { await _stopOwnScreenShare(); await _features.setScreenSharing(active: false); } else { await _service.stopMedia(); }
+                      if (sharing) { await widget.agoraController.stopScreenShare(); await _features.setScreenSharing(active: false); } else { await _service.stopMedia(); }
                       _transform.value = Matrix4.identity();
                     }), icon: const Icon(Icons.stop_circle_outlined)),
                   if (widget.canPresent) IconButton(tooltip: isArabic ? 'مشاركة الشاشة / إيقاف' : 'Start / stop screen sharing',

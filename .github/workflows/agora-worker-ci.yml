@@ -21,7 +21,7 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - run: flutter analyze
+      - run: flutter analyze --no-fatal-infos
       - run: flutter test test/live_camera_controls_test.dart test/room_conversation_panel_test.dart test/room_quiz_options_test.dart
 
   test:

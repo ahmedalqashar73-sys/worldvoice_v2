@@ -601,10 +601,17 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
 
       _featuresSub = _features.watchState().listen((state) {
         if (!mounted) return;
+        final wasLocalScreenPresenter = _featureState.screenShareActive &&
+            _featureState.screenSharerUid == _controller.localUid;
         setState(() {
           _featureState = state;
           _boardVisible = state.boardPresentationActive;
         });
+        if (wasLocalScreenPresenter && _controller.screenSharing &&
+            (!state.boardPresentationActive || !state.screenShareActive ||
+              state.screenSharerUid != _controller.localUid)) {
+          unawaited(_controller.stopScreenShare());
+        }
         unawaited(_syncRoomMusic(state));
       });
 
@@ -1808,7 +1815,14 @@ class _AgoraVoiceRoomScreenState extends State<AgoraVoiceRoomScreen> {
     _roleUpdateInProgress = true;
     try {
       final participant = _me!;
-      final role = participant.isOnStage
+      final presentingAsModerator = participant.isModerator &&
+          _featureState.boardPresentationActive &&
+          (_controller.screenShareStarting || _controller.screenSharing);
+      if (_controller.screenSharing && !participant.isOnStage &&
+          !presentingAsModerator) {
+        await _controller.stopScreenShare();
+      }
+      final role = participant.isOnStage || presentingAsModerator
           ? AgoraRoomRole.speaker
           : AgoraRoomRole.listener;
       if (_controller.role != role) {

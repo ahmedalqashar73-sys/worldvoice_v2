@@ -5,6 +5,16 @@ import 'package:worldvoice/features/rooms/services/agora_voice_room_controller.d
 
 class _Engine extends Fake implements RtcEngine {
   bool capture = false;
+  bool screenCapture = false;
+  Completer<void>? screenGate;
+  @override
+  Future<void> startScreenCapture(ScreenCaptureParameters2 parameters) async {
+    screenCapture = true;
+    await screenGate?.future;
+  }
+  @override
+  Future<void> stopScreenCapture() async { screenCapture = false; }
+
   bool audioMuted = false;
   bool failOptions = false;
   bool failVideo = false;
@@ -37,6 +47,30 @@ class _Engine extends Fake implements RtcEngine {
 }
 
 void main() {
+  test('screen-share startup stays visible to room role synchronization', () async {
+    final engine = _Engine()..screenGate = Completer<void>();
+    final controller = AgoraVoiceRoomController.forMediaTesting(engine);
+    final start = controller.startScreenShare();
+    await Future<void>.delayed(Duration.zero);
+    expect(controller.screenShareStarting, true);
+    expect(controller.screenSharing, false);
+    engine.screenGate!.complete();
+    await start;
+    expect(controller.screenShareStarting, false);
+    expect(controller.screenSharing, true);
+    await controller.stopScreenShare();
+    expect(engine.screenCapture, false);
+    expect(controller.screenSharing, false);
+  });
+  test('failed screen publishing releases capture and startup state', () async {
+    final engine = _Engine()..failOptions = true;
+    final controller = AgoraVoiceRoomController.forMediaTesting(engine);
+    await expectLater(controller.startScreenShare(), throwsStateError);
+    expect(engine.screenCapture, false);
+    expect(controller.screenShareStarting, false);
+    expect(controller.screenSharing, false);
+  });
+
   test('camera off/on preserves muted microphone and stops local capture', () async {
     final engine = _Engine();
     final controller = AgoraVoiceRoomController.forMediaTesting(engine);
