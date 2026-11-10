@@ -1,52 +1,50 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:worldvoice/features/learn/data/story_library_repository.dart';
 import 'package:worldvoice/features/learn/presentation/story_library_section.dart';
-import 'package:worldvoice/features/learn/presentation/graded_story_reader_screen.dart';
-import 'package:worldvoice/features/learn/data/graded_story_repository.dart';
 
 void main() {
-  testWidgets('English A1 shows only five licensed graded storybooks',
-      (tester) async {
-    await tester.pumpWidget(const MaterialApp(
-      home: Scaffold(
-        body: SingleChildScrollView(child: StoryLibrarySection()),
-      ),
-    ));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const ValueKey('stories-language-en')), findsOneWidget);
-    expect(find.byKey(const ValueKey('stories-level-A1')), findsOneWidget);
-    for (final id in ['0087', '0327', '0008', '0156', '0302']) {
-      expect(find.byKey(ValueKey('stories-a1-open-ccby-$id')), findsOneWidget);
-    }
-    expect(find.byKey(const ValueKey('stories-book-en-a1-001')), findsNothing);
-    expect(find.byKey(const ValueKey('stories-book-en-a1-005')), findsNothing);
-    expect(find.textContaining('A1'), findsWidgets);
-  });
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('A1 opens new graded reader instead of legacy storybook',
-      (tester) async {
-    const preview = GradedStoryEntry(
-      id: 'ccby-0087', language: 'en', level: 'A1',
-      title: 'I Like to Read!', titleAr: 'أحب القراءة',
-      asset: 'assets/stories/graded/en/A1/ccby-0087.json',
-      status: 'preview', rightsStatus: 'cc_by_3_0',
+  test('Academy Stories shows only published PDF novels at every level',
+      () async {
+    final index = await StoryLibraryRepository().loadIndex();
+
+    final expected = <String, int>{
+      'A1': 5,
+      'A2': 7,
+      'B1': 1,
+      'B2': 0,
+      'C1': 0,
+      'C2': 0,
+    };
+    for (final entry in expected.entries) {
+      final novels = visiblePdfNovelsFor(
+        index,
+        language: 'en',
+        level: entry.key,
+      );
+      expect(novels, hasLength(entry.value), reason: entry.key);
+      expect(
+        novels.every((novel) =>
+            novel.format == 'novel' &&
+            novel.level == entry.key &&
+            novel.asset ==
+                'assets/stories/en/${entry.key}/books/${novel.id}.pdf'),
+        isTrue,
+        reason: 'Show original PDF novels, never JSON/audio storybooks.',
+      );
+    }
+    final a2 = visiblePdfNovelsFor(index, language: 'EN', level: 'a2');
+    expect(a2.map((book) => book.id).toSet(), hasLength(7));
+    expect(
+      visiblePdfNovelsFor(index, language: 'es', level: 'A1'),
+      isEmpty,
+      reason: 'Do not silently use English books for other languages.',
     );
-    await tester.pumpWidget(const MaterialApp(
-      home: Scaffold(
-        body: SingleChildScrollView(
-          child: StoryLibrarySection(initialA1Stories: [preview]),
-        ),
-      ),
-    ));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 250));
-    final entry = find.byKey(const ValueKey('stories-a1-open-ccby-0087'));
-    expect(entry, findsOneWidget);
-    await tester.ensureVisible(entry);
-    await tester.tap(entry);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 250));
-    expect(find.byType(GradedStoryReaderScreen), findsOneWidget);
-    expect(find.byKey(const ValueKey('textbook-story-scroll')), findsNothing);
+    expect(
+      visiblePdfNovelsFor(index, language: 'en', level: 'B1')
+          .single.id,
+      'the_boys_of_the_cedar_river',
+    );
   });
 }
