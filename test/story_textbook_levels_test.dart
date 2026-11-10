@@ -75,8 +75,13 @@ void main() {
 
   test('English B1 has five original readers, 10 intermediate paragraphs and illustrations', () async {
     final repository = StoryLibraryRepository();
-    final entries = await repository.storiesFor(language: 'en', level: 'B1');
+    final allEntries = await repository.storiesFor(language: 'en', level: 'B1');
+    final entries = allEntries.where((item) => item.format == 'textbook').toList();
+    final novels = allEntries.where((item) => item.format == 'novel').toList();
+    expect(allEntries, hasLength(6));
     expect(entries, hasLength(5));
+    expect(novels, hasLength(1));
+    expect(novels.single.id, 'the_boys_of_the_cedar_river');
     expect(entries.map((e) => e.title).toSet(), hasLength(5));
 
     for (final entry in entries) {
