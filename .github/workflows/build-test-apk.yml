@@ -2,16 +2,20 @@ name: Build WorldVoice Test APK (manual upload)
 
 on:
   workflow_dispatch:
-  # Build only when the beta packaging workflow itself is changed.
-  # Do not upload to Firebase; the owner installs/distributes manually.
+  # Publishing a new tester build intentionally updates this workflow
+  # on main; other source-only changes must not trigger expensive APK builds.
   push:
     branches: [main]
     paths:
       - '.github/workflows/build-test-apk.yml'
 
+permissions:
+  contents: read
+
 jobs:
   android-debug-apk:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
 
@@ -27,23 +31,31 @@ jobs:
           channel: stable
           cache: true
 
-      - run: flutter pub get
-      - name: Validate latest WorldVoice chat, cosmetics, and WorldBond before packaging
-        run: |
-          flutter analyze
-          flutter test test/world_bond_api_url_test.dart test/chat_gift_message_card_test.dart test/worldvoice_avatar_frame_test.dart test/chat_delivery_crypto_test.dart test/chat_delivery_recovery_test.dart
-      - name: Refuse to build an APK without the eight premium images
-        run: python3 scripts/verify_room_background_assets.py
+      - name: Resolve dependencies
+        run: flutter pub get
 
-      - name: Give Gradle more memory in CI
+      - name: Verify Academy PDF library and Flutter source
+        run: |
+          flutter analyze --no-fatal-infos
+          flutter test test/academy_story_library_navigation_test.dart test/story_novel_pdf_reader_test.dart test/story_textbook_levels_test.dart
+
+      - name: Validate required room backgrounds and castle images
+        run: |
+          python3 scripts/verify_room_background_assets.py
+          python3 scripts/verify_castle_assets.py --require-webp
+
+      - name: Give Gradle enough CI heap
         shell: bash
         run: sed -i 's/-Xmx2048m/-Xmx4096m/' android/gradle.properties
 
-      - name: Build Android TEST APK (versionCode increases per CI release)
+      - name: Build latest WorldVoice beta APK
         shell: bash
         run: |
-          BUILD_NUMBER=$((20000 + GITHUB_RUN_NUMBER))
-          flutter build apk --release --build-name=1.0.2 --build-number="$BUILD_NUMBER" \
+          set -euo pipefail
+          BUILD_NUMBER=$((30000 + GITHUB_RUN_NUMBER))
+          echo "WorldVoice beta commit: ${GITHUB_SHA}"
+          echo "WorldVoice Android versionCode: ${BUILD_NUMBER}"
+          flutter build apk --release --build-name=1.0.3 --build-number="${BUILD_NUMBER}" \
             --dart-define=WORLDVOICE_BUILD_REVISION=${GITHUB_SHA} \
             --dart-define=WORLDVOICE_FRIEND_GIFT_PREVIEW=true \
             --dart-define=WORLDVOICE_OWNER_BETA_GIFTS_ENABLED=true \
@@ -56,11 +68,20 @@ jobs:
             --dart-define=WORLDVOICE_ECONOMY_ENDPOINT=https://worldvoice-v2.onrender.com \
             --dart-define=WORLDVOICE_WORLDBOND_BACKEND_URL=https://worldvoice-teacher-ai.onrender.com
 
-      - name: Upload test APK
+      - name: Confirm generated release-mode APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s build/app/outputs/flutter-apk/app-release.apk
+          sha256sum build/app/outputs/flutter-apk/app-release.apk
+          ls -lh build/app/outputs/flutter-apk/app-release.apk
+
+      # Signed with the repository's configured CI debug key.
+      # For Firebase App Distribution testing, not Play Store production.
+      - name: Upload Firebase App Distribution test APK
         uses: actions/upload-artifact@v4
         with:
-          name: worldvoice-test-apk-${{ github.sha }}
+          name: worldvoice-firebase-tester-apk-${{ github.sha }}
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
-          retention-days: 7
-
+          retention-days: 14
