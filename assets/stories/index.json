@@ -115,6 +115,36 @@
       "cover_image": "assets/stories/en/A1/illustrations/en-a1-005_scene_01.svg"
     },
     {
+      "id": "the_trial_of_the_mask",
+      "language": "en",
+      "level": "A2",
+      "title": "The Trial of the Mask",
+      "title_ar": "محاكمة القناع",
+      "format": "novel",
+      "chapter_count": 9,
+      "asset": "assets/stories/en/A2/books/the_trial_of_the_mask.pdf"
+    },
+    {
+      "id": "the_silk_road_home",
+      "language": "en",
+      "level": "A2",
+      "title": "The Silk Road Home",
+      "title_ar": "العودة عبر طريق الحرير",
+      "format": "novel",
+      "chapter_count": 5,
+      "asset": "assets/stories/en/A2/books/the_silk_road_home.pdf"
+    },
+    {
+      "id": "seven_days_across_the_atlas",
+      "language": "en",
+      "level": "A2",
+      "title": "Seven Days Across the Atlas",
+      "title_ar": "سبعة أيام عبر جبال الأطلس",
+      "format": "novel",
+      "chapter_count": 7,
+      "asset": "assets/stories/en/A2/books/seven_days_across_the_atlas.pdf"
+    },
+    {
       "id": "en-a2-001",
       "language": "en",
       "level": "A2",

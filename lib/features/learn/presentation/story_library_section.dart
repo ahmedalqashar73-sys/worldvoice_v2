@@ -123,7 +123,7 @@ class _StoryLibrarySectionState extends State<StoryLibrarySection> {
             final hasTextbooks =
                 available.any((entry) => entry.format == 'textbook');
             final stories = available.where((entry) =>
-                !hasTextbooks || entry.format == 'textbook')
+                entry.format == 'novel' || !hasTextbooks || entry.format == 'textbook')
               .toList(growable: false);
             if (stories.isEmpty) {
               return Padding(
@@ -167,7 +167,22 @@ class _StoryLibrarySectionState extends State<StoryLibrarySection> {
                               child: SizedBox(
                                 width: 116,
                                 height: 114,
-                                child: story.coverImage == null
+                                child: story.format == 'novel'
+                                     ? IgnorePointer(
+                                         child: PdfViewer.asset(
+                                           story.asset,
+                                           initialPageNumber: 1,
+                                           params: const PdfViewerParams(
+                                             margin: 0,
+                                             panEnabled: false,
+                                             scaleEnabled: false,
+                                             backgroundColor: Colors.transparent,
+                                             pageDropShadow: BoxShadow(
+                                               color: Colors.transparent),
+                                           ),
+                                         ),
+                                       )
+                                     : story.coverImage == null
                                     ? ColoredBox(
                                         color: scheme.primaryContainer,
                                         child: Icon(Icons.auto_stories_rounded,
@@ -205,8 +220,11 @@ class _StoryLibrarySectionState extends State<StoryLibrarySection> {
                                     color: accent, size: 15),
                                   const SizedBox(width: 5),
                                   Flexible(child: Text(
-                                    ar ? 'A1 · فصلان · 10 فقرات'
-                                       : 'A1 · 2 chapters · 10 paragraphs',
+                                    story.format == 'novel'
+                                         ? '${story.level} · ${story.chapterCount ?? 7}' +
+                                           (ar ? ' فصول' : ' chapters')
+                                         : (ar ? 'A1 · فصلان · 10 فقرات'
+                                               : 'A1 · 2 chapters · 10 paragraphs'),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(

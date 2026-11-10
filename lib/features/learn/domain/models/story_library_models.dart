@@ -302,7 +302,8 @@ class StoryLibraryEntry {
         !levels.contains(level) ||
         !RegExp(r'^[a-z0-9]+(?:[-_][a-z0-9]+)*$').hasMatch(id) ||
         !asset.startsWith(prefix) ||
-        asset != '$prefix$id.json') {
+        (asset != '$prefix$id.json' &&
+            !(format == 'novel' && asset == '${prefix}books/$id.pdf'))) {
       throw const FormatException('Invalid story index entry.');
     }
     final chapterCount = json['chapter_count'];

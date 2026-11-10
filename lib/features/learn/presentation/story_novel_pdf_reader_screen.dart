@@ -42,6 +42,10 @@ String novelPdfAssetPathForEntry(StoryLibraryEntry entry) {
     throw ArgumentError('Invalid WorldVoice novel language, level or id');
   }
   final root = 'assets/stories/' + code + '/' + level + '/';
+  if (entry.format == 'novel' &&
+      entry.asset == root + 'books/' + entry.id + '.pdf') {
+    return entry.asset;
+  }
   if (!entry.asset.startsWith(root) || !entry.asset.endsWith('.json')) {
     throw ArgumentError('WorldVoice novel index does not match its asset path');
   }
