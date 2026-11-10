@@ -1,0 +1,27 @@
+name: Publish individually approved WorldVoice A2 PDFs
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'assets/stories/en/A2/books/.approved_upload/**/approved.json'
+permissions:
+  contents: write
+concurrency:
+  group: worldvoice-a2-pdf-publishing-main
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Verify approved PDF and publish on main
+        run: |
+          python -m pip install pypdf==5.9.0
+          python scripts/publish_staged_a2_pdf.py
