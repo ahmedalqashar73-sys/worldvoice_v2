@@ -393,6 +393,16 @@
       "format": "textbook",
       "asset": "assets/stories/en/C2/en-c2-005.json",
       "cover_image": "assets/stories/en/C2/illustrations/en-c2-005_scene_01.svg"
+    },
+    {
+      "id": "the_grand_hotel_of_rio",
+      "language": "en",
+      "level": "A2",
+      "title": "The Grand Hotel of Rio",
+      "title_ar": "فندق ريو الكبير",
+      "format": "novel",
+      "chapter_count": 7,
+      "asset": "assets/stories/en/A2/books/the_grand_hotel_of_rio.pdf"
     }
   ]
 }
