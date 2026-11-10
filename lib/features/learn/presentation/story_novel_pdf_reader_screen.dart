@@ -46,7 +46,7 @@ String novelPdfAssetPathForEntry(StoryLibraryEntry entry) {
       entry.asset == root + 'books/' + entry.id + '.pdf') {
     return entry.asset;
   }
-  if (!entry.asset.startsWith(root) || !entry.asset.endsWith('.json')) {
+  if (entry.asset != root + entry.id + '.json') {
     throw ArgumentError('WorldVoice novel index does not match its asset path');
   }
   return root + 'books/' + entry.id + '.pdf';

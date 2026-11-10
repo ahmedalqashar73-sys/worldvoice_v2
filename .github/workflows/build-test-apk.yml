@@ -37,7 +37,7 @@ jobs:
       - name: Verify Academy PDF library and Flutter source
         run: |
           flutter analyze --no-fatal-infos
-          flutter test test/academy_story_library_navigation_test.dart test/story_novel_pdf_reader_test.dart test/story_textbook_levels_test.dart
+          flutter test test/academy_story_library_navigation_test.dart test/story_novel_pdf_reader_test.dart test/story_textbook_levels_test.dart test/story_library_repository_test.dart
 
       - name: Validate required room backgrounds and castle images
         run: |
