@@ -9,10 +9,22 @@ void main() {
   test('English A2 has five complete books with ten graded paragraphs each',
       () async {
     final repository = StoryLibraryRepository();
-    final entries = await repository.storiesFor(language: 'en', level: 'A2');
+    final allEntries = await repository.storiesFor(language: 'en', level: 'A2');
+    final entries = allEntries.where((item) => item.format == 'textbook').toList();
+    final novels = allEntries.where((item) => item.format == 'novel').toList();
+    expect(allEntries, hasLength(12));
     expect(entries, hasLength(5));
-    expect(entries.every((item) => item.format == 'textbook'), isTrue);
+    expect(novels, hasLength(7));
     expect(entries.map((item) => item.id).toSet(), hasLength(5));
+    expect(novels.map((item) => item.id).toSet(), equals(<String>{
+      'the_trial_of_the_mask',
+      'the_silk_road_home',
+      'seven_days_across_the_atlas',
+      'the_grand_hotel_of_rio',
+      'beyond_the_frozen_pass',
+      'the_newspaper_in_alexandria',
+      'the_last_radio_message',
+    }));
 
     final titles = <String>{};
     for (final entry in entries) {
