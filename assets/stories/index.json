@@ -433,6 +433,16 @@
       "format": "novel",
       "chapter_count": 9,
       "asset": "assets/stories/en/A2/books/the_last_radio_message.pdf"
+    },
+    {
+      "id": "the_boys_of_the_cedar_river",
+      "language": "en",
+      "level": "B1",
+      "title": "The Boys of the Cedar River",
+      "title_ar": "أولاد نهر الأرز",
+      "format": "novel",
+      "chapter_count": 10,
+      "asset": "assets/stories/en/B1/books/the_boys_of_the_cedar_river.pdf"
     }
   ]
 }
