@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:worldvoice/features/learn/data/story_library_repository.dart';
 import 'package:worldvoice/features/learn/presentation/story_library_section.dart';
+import 'package:worldvoice/features/learn/presentation/story_novel_pdf_reader_screen.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -28,7 +29,7 @@ void main() {
         novels.every((novel) =>
             novel.format == 'novel' &&
             novel.level == entry.key &&
-            novel.asset ==
+            novelPdfAssetPathForEntry(novel) ==
                 'assets/stories/en/${entry.key}/books/${novel.id}.pdf'),
         isTrue,
         reason: 'Show original PDF novels, never JSON/audio storybooks.',

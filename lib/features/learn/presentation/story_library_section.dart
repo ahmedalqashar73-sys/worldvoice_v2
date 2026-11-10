@@ -20,8 +20,7 @@ List<StoryLibraryEntry> visiblePdfNovelsFor(
       entry.language == code &&
       entry.level == grade &&
       entry.format == 'novel' &&
-      entry.asset ==
-          'assets/stories/${entry.language}/${entry.level}/books/${entry.id}.pdf'));
+      (entry.asset.endsWith('.pdf') || entry.asset.endsWith('.json'))));
 }
 
 /// Every level uses the same two-column PDF book-cover shelf as A1.
@@ -235,7 +234,7 @@ class _NovelCoverCard extends StatelessWidget {
                       child: IgnorePointer(
                         child: RepaintBoundary(
                           child: PdfViewer.asset(
-                            novel.asset,
+                            novelPdfAssetPathForEntry(novel),
                             initialPageNumber: 1,
                             params: const PdfViewerParams(
                               margin: 0,
