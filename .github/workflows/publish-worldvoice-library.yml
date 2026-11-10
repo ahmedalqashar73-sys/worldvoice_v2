@@ -1,0 +1,70 @@
+name: Publish approved WorldVoice Library PDFs
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: GitHub release tag containing the approved ZIP
+        required: true
+        type: string
+      zip_asset_name:
+        description: Exact ZIP name in the release (optional if only one ZIP)
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: worldvoice-library-main-publishing
+  cancel-in-progress: false
+
+jobs:
+  publish-approved-books:
+    if: github.event_name == 'release' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Download approved archive from the repository's release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
+          ZIP_ASSET: ${{ inputs.zip_asset_name }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$ZIP_ASSET" ]]; then
+            ZIP_ASSET="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '[.assets[].name | select(endswith(".zip"))] | if length == 1 then .[0] else error("release must contain exactly one ZIP") end')"
+          fi
+          [[ "$ZIP_ASSET" == *.zip && "$ZIP_ASSET" != */* ]] || { echo 'Invalid ZIP asset name'; exit 1; }
+          mkdir -p "$RUNNER_TEMP/worldvoice-library"
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$ZIP_ASSET" --dir "$RUNNER_TEMP/worldvoice-library"
+          test -s "$RUNNER_TEMP/worldvoice-library/$ZIP_ASSET"
+          echo "WORLDVOICE_APPROVED_ZIP=$RUNNER_TEMP/worldvoice-library/$ZIP_ASSET" >> "$GITHUB_ENV"
+      - name: Validate every PDF against the approved manifest
+        run: |
+          python -m pip install 'pypdf==5.9.0'
+          python scripts/publish_worldvoice_library.py "$WORLDVOICE_APPROVED_ZIP" --dry-run
+      - name: Publish novels one at a time on main and verify each upload
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          python scripts/publish_worldvoice_library.py "$WORLDVOICE_APPROVED_ZIP"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.8'
+          channel: stable
+          cache: true
+      - name: Verify Flutter asset registration and story reader tests
+        run: |
+          flutter pub get
+          flutter analyze --no-fatal-infos
+          flutter test test/story_novel_pdf_reader_test.dart test/story_library_repository_test.dart test/academy_story_library_navigation_test.dart
