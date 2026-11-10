@@ -423,6 +423,16 @@
       "format": "novel",
       "chapter_count": 9,
       "asset": "assets/stories/en/A2/books/the_newspaper_in_alexandria.pdf"
+    },
+    {
+      "id": "the_last_radio_message",
+      "language": "en",
+      "level": "A2",
+      "title": "The Last Radio Message",
+      "title_ar": "الرسالة الإذاعية الأخيرة",
+      "format": "novel",
+      "chapter_count": 9,
+      "asset": "assets/stories/en/A2/books/the_last_radio_message.pdf"
     }
   ]
 }
