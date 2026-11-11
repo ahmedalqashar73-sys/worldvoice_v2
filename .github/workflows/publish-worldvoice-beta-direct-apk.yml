@@ -1,0 +1,47 @@
+name: Publish WorldVoice Beta APK (direct download)
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/publish-worldvoice-beta-direct-apk.yml'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish-existing-verified-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download exactly the successfully built beta APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          gh run download 42912812178 --repo "$GITHUB_REPOSITORY" --name 'worldvoice-firebase-tester-apk-55165602eee6513e203b84dffe21185a879874ec' --dir dist
+          test -s dist/app-release.apk
+          head -c 2 dist/app-release.apk | od -An -tx1 | grep -Eq '^ *50 4b'
+          unzip -t dist/app-release.apk | tail -1
+          sha256sum dist/app-release.apk
+          mv dist/app-release.apk dist/WorldVoice-1.0.3-Beta-5516560.apk
+          ls -lh dist/WorldVoice-1.0.3-Beta-5516560.apk
+
+      - name: Publish direct APK download as pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh release create 'worldvoice-beta-20261111-5516560' 'dist/WorldVoice-1.0.3-Beta-5516560.apk#WorldVoice-1.0.3-Beta-5516560.apk' \
+            --repo "$GITHUB_REPOSITORY" \
+            --target '55165602eee6513e203b84dffe21185a879874ec' \
+            --title 'WorldVoice 1.0.3 Beta (Nov 11, 2026)' \
+            --notes 'Firebase App Distribution test APK built from commit 55165602eee6513e203b84dffe21185a879874ec. Includes WorldVoice Library PDF novels and two-column story covers. Public beta APK; signed using the repository test signing configuration, not for Google Play production.' \
+            --prerelease
+          gh release view 'worldvoice-beta-20261111-5516560' --repo "$GITHUB_REPOSITORY" --json url,assets
